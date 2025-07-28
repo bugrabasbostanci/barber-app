@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { checkUserRole, getRecentAppointments } from "@/lib/admin-actions";
 import { AppointmentsList } from "@/components/barber/appointments-list";
 
+// Force dynamic rendering since we use cookies for auth
+export const dynamic = 'force-dynamic'
+
 export default async function BarberAppointments() {
   // Check if user has barber role
   const userRole = await checkUserRole();

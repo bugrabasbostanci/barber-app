@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { signIn } from "@/lib/auth";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -124,5 +124,23 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">Yükleniyor...</div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,7 @@ interface Appointment {
   createdAt: string;
 }
 
-export default function MyAppointmentsPage() {
+function MyAppointmentsContent() {
   const { user, loading } = useAuth();
   const searchParams = useSearchParams();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -547,4 +547,24 @@ export default function MyAppointmentsPage() {
       </main>
     </div>
   );
+}
+
+export default function MyAppointmentsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <header className="bg-white shadow-sm sticky top-0 z-50">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-center">
+              <div className="text-lg font-semibold text-gray-900">
+                Yükleniyor...
+              </div>
+            </div>
+          </div>
+        </header>
+      </div>
+    }>
+      <MyAppointmentsContent />
+    </Suspense>
+  )
 }

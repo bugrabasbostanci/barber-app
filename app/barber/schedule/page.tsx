@@ -7,6 +7,9 @@ import { checkUserRole } from "@/lib/admin-actions";
 import { TimeBlockingForm } from "@/components/barber/time-blocking-form";
 import { WorkingHoursSettings } from "@/components/barber/working-hours-settings";
 
+// Force dynamic rendering since we use cookies for auth
+export const dynamic = 'force-dynamic'
+
 export default async function BarberSchedule() {
   // Check if user has barber role
   const userRole = await checkUserRole();

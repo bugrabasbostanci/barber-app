@@ -228,19 +228,20 @@ components/
 - [x] Temel sayfa routing'i
 - [x] shadcn/ui bileşenlerini entegre et
 
-### Faz 2: Müşteri Özellikleri (2-3 hafta)
+### Faz 2: Müşteri Özellikleri (2-3 hafta) ✅ TAMAMLANDI
 
 - [x] Kullanıcı kaydı/girişi
-- [x] Randevu oluşturma akışı
-- [x] Randevularım sayfası
-- [ ] Randevu iptali fonksiyonu
+- [x] Randevu oluşturma akışı (gerçek API entegrasyonu)
+- [x] Randevularım sayfası (database entegrasyonu)
+- [x] Randevu iptali fonksiyonu (API ile database güncelleme)
 
-### Faz 3: Berber Paneli (2-3 hafta)
+### Faz 3: Berber Paneli (2-3 hafta) ✅ TAMAMLANDI
 
-- [x] Berber dashboard
+- [x] Berber dashboard (gerçek istatistikler)
 - [x] Takvim görünümleri (günlük/haftalık/aylık)
-- [x] Manuel randevu oluşturma
-- [x] Zaman bloklama sistemi
+- [x] Manuel randevu oluşturma (API entegrasyonu)
+- [x] Zaman bloklama sistemi (database persistence)
+- [x] Randevu yönetimi (liste, durum güncelleme)
 
 ### Faz 4: Test ve Optimizasyon (1 hafta)
 
@@ -300,6 +301,41 @@ components/
 - Randevu oluşturma akışı
 - Berber panel işlemleri
 - Kritik user journeys
+
+## 🎯 Güncel Durum (28 Temmuz 2025)
+
+### ✅ Tamamlanan Özellikler
+
+**Müşteri Tarafı:**
+- Online randevu alma sistemi (4 adımlı akış)
+- Kullanıcı kaydı/girişi (Supabase Auth)
+- Randevularım sayfası (geçmiş/yaklaşan filtreleri)
+- Randevu iptal etme (2 saat kuralı ile)
+- Gerçek personel verilerini görme
+- Database entegrasyonu
+
+**Berber Tarafı:**
+- Role-based dashboard erişimi
+- Günlük randevu istatistikleri
+- Manuel randevu oluşturma (yeni/mevcut müşteri)
+- Zaman bloklama sistemi (tam gün/saat aralığı)
+- Randevu yönetimi ve filtreleme
+- Takvim görünümleri
+
+**Teknik:**
+- TypeScript hata düzeltmeleri
+- API endpoint'leri (PostgreSQL/Prisma)
+- ESLint yapılandırması
+- Role-based routing
+- Database seed data
+
+### 🔧 Son Yapılan İyileştirmeler
+
+- Next.js 15 uyumluluğu (dynamic routes)
+- Type safety düzeltmeleri
+- Null-safe rendering
+- Real-time data integration
+- API authentication/authorization
 
 ## 📝 Notlar
 

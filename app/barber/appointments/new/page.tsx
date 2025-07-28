@@ -5,6 +5,9 @@ import { ArrowLeft } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
 import { NewAppointmentForm } from "@/components/barber/new-appointment-form";
 
+// Force dynamic rendering since we use cookies for auth
+export const dynamic = 'force-dynamic'
+
 export default async function NewBarberAppointment() {
   // Check if user has barber role
   const userRole = await checkUserRole();

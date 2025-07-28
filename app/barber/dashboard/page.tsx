@@ -8,6 +8,9 @@ import { getDashboardStats, getTodayAppointments, checkUserRole } from "@/lib/ad
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
+// Force dynamic rendering since we use cookies for auth
+export const dynamic = 'force-dynamic'
+
 export default async function BarberDashboard() {
   // Check if user has barber role
   const userRole = await checkUserRole()
