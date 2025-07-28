@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { checkUserRole, getRecentAppointments } from "@/lib/admin-actions";
 import { AppointmentsList } from "@/components/barber/appointments-list";
 
-export const runtime = "edge";
+// export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Force dynamic rendering since we use cookies for auth
 export const dynamic = "force-dynamic";

@@ -18,7 +18,8 @@ import {
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 
-export const runtime = "edge";
+// export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Force dynamic rendering since we use cookies for auth
 export const dynamic = "force-dynamic";

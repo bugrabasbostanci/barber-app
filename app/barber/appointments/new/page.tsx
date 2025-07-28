@@ -5,7 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
 import { NewAppointmentForm } from "@/components/barber/new-appointment-form";
 
-export const runtime = "edge";
+// export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Force dynamic rendering since we use cookies for auth
 export const dynamic = "force-dynamic";

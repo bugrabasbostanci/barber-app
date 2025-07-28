@@ -5,7 +5,8 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
 import { CalendarView } from "@/components/barber/calendar-view";
 
-export const runtime = "edge";
+// export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Force dynamic rendering since we use cookies for auth
 export const dynamic = "force-dynamic";
