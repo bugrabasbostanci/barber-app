@@ -9,6 +9,7 @@ Berber salonları için dijital randevu yönetim platformu. Müşteriler online 
 ## 🎯 MVP Hedefleri
 
 ### Temel İş Kuralları
+
 - **Çalışma saatleri**: 09:30 - 21:30
 - **Randevu süresi**: Sabit 45 dakika
 - **Kapalı gün**: Pazar
@@ -55,7 +56,7 @@ model Appointment {
   createdById String?           @db.Uuid
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
-  
+
   // Manuel randevular için (sistemde kayıtlı olmayan müşteriler)
   manualCustomerName  String?
   manualCustomerPhone String?
@@ -96,9 +97,9 @@ model Shop {
   isActive    Boolean       @default(true) @map("is_active")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  
+
   appointments Appointment[]
-  
+
   @@map("shops")
 }
 
@@ -122,6 +123,7 @@ enum AppointmentStatus {
 ### Schema Özellikleri
 
 **✅ MVP için Hazır:**
+
 - **Manuel randevu desteği**: `manualCustomerName/Phone` alanları
 - **Esnek kullanıcı sistemi**: Tek `User` tablosu, rol bazlı yetkilendirme
 - **Zaman bloklama**: `EmployeeUnavailableTime` ile
@@ -129,6 +131,7 @@ enum AppointmentStatus {
 - **Audit trail**: `createdBy` ile kim oluşturdu takibi
 
 **🔮 Gelecek için Hazır:**
+
 - **Multi-shop desteği**: `Shop` tablosu entegre
 - **Gelişmiş durumlar**: 5 farklı appointment status
 - **UUID kullanımı**: Güvenlik ve performans için
@@ -136,11 +139,13 @@ enum AppointmentStatus {
 ## 🔐 Kimlik Doğrulama Akışı
 
 ### Müşteri Kaydı/Girişi
+
 1. **Supabase Auth** ile e-posta/şifre
 2. Kullanıcı profili `User` tablosuna kaydedilir
 3. Rol otomatik `CUSTOMER` olarak atanır
 
 ### Berber Girişi
+
 1. Özel e-posta ile kayıt
 2. Rol manuel olarak `BARBER` yapılır
 3. Yönetici paneline erişim
@@ -148,6 +153,7 @@ enum AppointmentStatus {
 ## 📱 Sayfa Yapısı
 
 ### Müşteri Sayfaları
+
 ```
 / (Anasayfa)
 ├── /auth/login
@@ -162,6 +168,7 @@ enum AppointmentStatus {
 ```
 
 ### Berber Yönetim Paneli
+
 ```
 /admin (Dashboard)
 ├── /admin/calendar
@@ -181,6 +188,7 @@ enum AppointmentStatus {
 ## 🧩 Bileşen Mimarisi
 
 ### UI Bileşenleri (shadcn/ui basis)
+
 ```
 components/
 ├── ui/ (shadcn/ui bileşenleri)
@@ -207,24 +215,28 @@ components/
 ## 🚀 Geliştirme Aşamaları
 
 ### Faz 1: Temel Altyapı (1-2 hafta)
-- [ ] Database schema oluştur ve migrate et
-- [ ] Supabase authentication kurulumu
-- [ ] Temel sayfa routing'i
-- [ ] shadcn/ui bileşenlerini entegre et
+
+- [x] Database schema oluştur ve migrate et
+- [x] Supabase authentication kurulumu
+- [x] Temel sayfa routing'i
+- [x] shadcn/ui bileşenlerini entegre et
 
 ### Faz 2: Müşteri Özellikleri (2-3 hafta)
-- [ ] Kullanıcı kaydı/girişi
-- [ ] Randevu oluşturma akışı
-- [ ] Randevularım sayfası
+
+- [x] Kullanıcı kaydı/girişi
+- [x] Randevu oluşturma akışı
+- [x] Randevularım sayfası
 - [ ] Randevu iptali fonksiyonu
 
 ### Faz 3: Berber Paneli (2-3 hafta)
+
 - [ ] Admin dashboard
 - [ ] Takvim görünümleri (günlük/haftalık/aylık)
 - [ ] Manuel randevu oluşturma
 - [ ] Zaman bloklama sistemi
 
 ### Faz 4: Test ve Optimizasyon (1 hafta)
+
 - [ ] E2E testler
 - [ ] Performance optimizasyonu
 - [ ] Responsive tasarım iyileştirmeleri
@@ -233,6 +245,7 @@ components/
 ## 🔮 Gelecek Sürüm Özellikleri
 
 ### Faz 5: Gelişmiş Özellikler
+
 - [ ] Otomatik SMS/WhatsApp bildirimleri
 - [ ] Online ödeme entegrasyonu
 - [ ] Çoklu hizmet türleri ve fiyatlandırma
@@ -243,17 +256,20 @@ components/
 ## 📊 Teknik Gereksinimler
 
 ### Performans
+
 - Sayfa yükleme süresi < 2 saniye
 - Responsive tasarım (mobile-first)
 - SEO optimizasyonu
 
 ### Güvenlik
+
 - Input validasyonu (Zod)
 - SQL injection koruması (Prisma)
 - Rate limiting
 - HTTPS zorunluluğu
 
 ### Monitoring
+
 - Error tracking
 - Performance monitoring
 - User analytics
@@ -261,16 +277,19 @@ components/
 ## 🧪 Test Stratejisi
 
 ### Unit Tests
+
 - Utility fonksiyonları
 - Business logic
 - Validation schemas
 
 ### Integration Tests
+
 - API endpoints
 - Database operations
 - Authentication flow
 
 ### E2E Tests
+
 - Randevu oluşturma akışı
 - Berber panel işlemleri
 - Kritik user journeys
