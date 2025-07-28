@@ -2,6 +2,8 @@ import { PrismaClient } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'edge'
+
 const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {

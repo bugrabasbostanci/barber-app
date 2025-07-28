@@ -5,8 +5,10 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
 import { CalendarView } from "@/components/barber/calendar-view";
 
+export const runtime = "edge";
+
 // Force dynamic rendering since we use cookies for auth
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 export default async function BarberCalendar() {
   // Check if user has barber role
