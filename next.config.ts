@@ -1,10 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Optimize for Cloudflare deployment
+  // Optimize for Cloudflare Pages deployment
+  output: "standalone",
+  
+  // External packages for server components
   serverExternalPackages: ["@prisma/client"],
-
-  // Ensure proper runtime selection
+  
+  // Disable automatic runtime selection to prevent conflicts
+  experimental: {
+    serverMinification: false,
+  },
+  
+  // Headers for API routes
   async headers() {
     return [
       {

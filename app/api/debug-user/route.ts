@@ -2,9 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { checkUserRole } from "@/lib/admin-actions";
 import { NextResponse } from "next/server";
 
-// export const runtime = "edge";
-export const runtime = "nodejs";
-
 export async function GET() {
   try {
     const supabase = await createClient();

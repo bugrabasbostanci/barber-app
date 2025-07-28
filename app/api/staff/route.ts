@@ -1,9 +1,6 @@
 import { getStaffMembers } from "@/lib/seed-data";
 import { NextResponse } from "next/server";
 
-// export const runtime = "edge";
-export const runtime = "nodejs";
-
 export async function GET() {
   try {
     const staff = await getStaffMembers();

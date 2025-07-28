@@ -1,0 +1,18 @@
+# Cloudflare Pages configuration
+name = "barber-app"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+compatibility_flags = ["nodejs_compat"]
+node_compat = true
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = "./"
+watch_dir = "app"
+
+# Node.js compatibility for Prisma
+[[env.production.compatibility_flags]]
+name = "nodejs_compat"
