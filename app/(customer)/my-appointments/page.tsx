@@ -12,13 +12,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { BUSINESS_RULES } from "@/lib/constants";
 import {
   Calendar,
   Clock,
   User,
-  Phone,
   MapPin,
   AlertCircle,
   X,
@@ -276,11 +277,31 @@ export default function MyAppointmentsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-2">Yükleniyor...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <header className="bg-white shadow-sm sticky top-0 z-50">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+          </div>
+        </header>
+        <main className="px-4 py-6 max-w-4xl mx-auto">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -329,25 +350,27 @@ export default function MyAppointmentsPage() {
       <main className="px-4 py-6 max-w-4xl mx-auto">
         {/* Success Message */}
         {showSuccessMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <h3 className="font-medium text-green-800">Randevunuz Başarıyla Oluşturuldu!</h3>
-                <p className="text-sm text-green-700 mt-1">
-                  Randevunuz sistem tarafından onaylandı. Detayları aşağıda görebilirsiniz.
-                </p>
+          <Alert className="mb-6">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <strong>Randevunuz Başarıyla Oluşturuldu!</strong>
+                  <p className="text-sm mt-1">
+                    Randevunuz sistem tarafından onaylandı. Detayları aşağıda görebilirsiniz.
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSuccessMessage(false)}
+                  className="ml-auto"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSuccessMessage(false)}
-                className="ml-auto text-green-600 hover:text-green-700"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Filter Tabs */}
@@ -359,7 +382,7 @@ export default function MyAppointmentsPage() {
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setFilter(tab.key as any)}
+              onClick={() => setFilter(tab.key as typeof filter)}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                 filter === tab.key
                   ? "bg-blue-500 text-white"
@@ -514,12 +537,12 @@ export default function MyAppointmentsPage() {
                   );
                 })()}
 
-                <div className="bg-yellow-50 p-3 rounded-lg mb-4">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Uyarı:</strong> İptal edilen randevular geri
-                    alınamaz.
-                  </p>
-                </div>
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Uyarı:</strong> İptal edilen randevular geri alınamaz.
+                  </AlertDescription>
+                </Alert>
 
                 <div className="flex gap-3">
                   <Button

@@ -158,31 +158,38 @@ enum AppointmentStatus {
 / (Anasayfa)
 ├── /auth/login
 ├── /auth/register
-├── /book-appointment
-│   ├── 1. Tarih seçimi
-│   ├── 2. Personel seçimi
-│   ├── 3. Saat seçimi
-│   └── 4. Onay
-├── /my-appointments
-└── /profile
+├── (customer) route group - URL'ye eklenmez, sadece organizasyon
+│   ├── /book-appointment
+│   │   ├── 1. Tarih seçimi  
+│   │   ├── 2. Personel seçimi
+│   │   ├── 3. Saat seçimi
+│   │   └── 4. Onay
+│   ├── /my-appointments
+│   └── /profile
 ```
 
 ### Berber Yönetim Paneli
 
 ```
-/admin (Dashboard)
-├── /admin/calendar
+/barber (BARBER rolü - Salon Yönetimi)
+├── /barber/dashboard
+├── /barber/calendar
 │   ├── Günlük görünüm
 │   ├── Haftalık görünüm
 │   └── Aylık görünüm
-├── /admin/appointments
+├── /barber/appointments
 │   ├── Yeni randevu oluştur
 │   ├── Randevu düzenle
 │   └── Randevu iptali
-├── /admin/schedule
-│   ├── Zaman blokla
-│   └── Çalışma saatleri
-└── /admin/staff (gelecek sürüm)
+└── /barber/schedule
+    ├── Zaman blokla
+    └── Çalışma saatleri
+
+/admin (ADMIN rolü - Sistem Yönetimi - Gelecek)
+├── /admin/dashboard
+├── /admin/salons
+├── /admin/users
+└── /admin/reports
 ```
 
 ## 🧩 Bileşen Mimarisi
@@ -230,10 +237,10 @@ components/
 
 ### Faz 3: Berber Paneli (2-3 hafta)
 
-- [ ] Admin dashboard
-- [ ] Takvim görünümleri (günlük/haftalık/aylık)
-- [ ] Manuel randevu oluşturma
-- [ ] Zaman bloklama sistemi
+- [x] Berber dashboard
+- [x] Takvim görünümleri (günlük/haftalık/aylık)
+- [x] Manuel randevu oluşturma
+- [x] Zaman bloklama sistemi
 
 ### Faz 4: Test ve Optimizasyon (1 hafta)
 

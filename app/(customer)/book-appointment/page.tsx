@@ -38,7 +38,7 @@ export default function BookAppointmentPage() {
 
   const handleBookingConfirmation = async () => {
     setIsBooking(true);
-    
+
     try {
       // In production, this would be an API call to create the appointment
       // const response = await fetch('/api/appointments', {
@@ -50,17 +50,16 @@ export default function BookAppointmentPage() {
       //     timeSlot: bookingData.timeSlot
       //   })
       // });
-      
+
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Redirect to success page or my-appointments
-      window.location.href = '/my-appointments?success=true';
-      
+      window.location.href = "/my-appointments?success=true";
     } catch (error) {
-      console.error('Randevu oluşturulurken hata oluştu:', error);
+      console.error("Randevu oluşturulurken hata oluştu:", error);
       // In production, show error toast/notification
-      alert('Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
+      alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setIsBooking(false);
     }
@@ -193,12 +192,14 @@ export default function BookAppointmentPage() {
                     İleri
                   </Button>
                 ) : (
-                  <Button 
-                    className="flex-1" 
+                  <Button
+                    className="flex-1"
                     onClick={handleBookingConfirmation}
                     disabled={isBooking}
                   >
-                    {isBooking ? 'Randevu Oluşturuluyor...' : 'Randevuyu Onayla'}
+                    {isBooking
+                      ? "Randevu Oluşturuluyor..."
+                      : "Randevuyu Onayla"}
                   </Button>
                 )}
               </div>
@@ -475,7 +476,6 @@ function TimeSelection({
   selectedTime,
   onTimeSelect,
   date,
-  staffId,
 }: {
   selectedTime: string;
   onTimeSelect: (time: string) => void;
@@ -490,34 +490,38 @@ function TimeSelection({
     const duration = BUSINESS_RULES.APPOINTMENT_DURATION; // 45 minutes
 
     // Parse start time
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
-    
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
     let currentHour = startHour;
     let currentMinute = startMinute;
 
     while (
-      currentHour < endHour || 
+      currentHour < endHour ||
       (currentHour === endHour && currentMinute <= endMinute - duration)
     ) {
-      const timeString = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-      
+      const timeString = `${currentHour
+        .toString()
+        .padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
+
       // Calculate end time for this slot
       let endSlotMinute = currentMinute + duration;
       let endSlotHour = currentHour;
-      
+
       if (endSlotMinute >= 60) {
         endSlotHour++;
         endSlotMinute -= 60;
       }
-      
-      const endTimeString = `${endSlotHour.toString().padStart(2, '0')}:${endSlotMinute.toString().padStart(2, '0')}`;
-      
+
+      const endTimeString = `${endSlotHour
+        .toString()
+        .padStart(2, "0")}:${endSlotMinute.toString().padStart(2, "0")}`;
+
       slots.push({
         id: timeString,
         startTime: timeString,
         endTime: endTimeString,
-        available: Math.random() > 0.3 // Random availability for demo - production'da database'den gelecek
+        available: Math.random() > 0.3, // Random availability for demo - production'da database'den gelecek
       });
 
       // Move to next slot
@@ -534,14 +538,35 @@ function TimeSelection({
   const timeSlots = generateTimeSlots();
 
   const formatDateDisplay = (dateStr: string) => {
-    const date = new Date(dateStr + 'T00:00:00');
-    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
-    const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 
-                   'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-    
-    return `${date.getDate()} ${months[date.getMonth()]} ${days[date.getDay()]}`;
-  };
+    const date = new Date(dateStr + "T00:00:00");
+    const days = [
+      "Pazar",
+      "Pazartesi",
+      "Salı",
+      "Çarşamba",
+      "Perşembe",
+      "Cuma",
+      "Cumartesi",
+    ];
+    const months = [
+      "Ocak",
+      "Şubat",
+      "Mart",
+      "Nisan",
+      "Mayıs",
+      "Haziran",
+      "Temmuz",
+      "Ağustos",
+      "Eylül",
+      "Ekim",
+      "Kasım",
+      "Aralık",
+    ];
 
+    return `${date.getDate()} ${months[date.getMonth()]} ${
+      days[date.getDay()]
+    }`;
+  };
 
   return (
     <div className="space-y-6">
@@ -559,7 +584,7 @@ function TimeSelection({
         {timeSlots.map((slot) => {
           const isSelected = selectedTime === slot.id;
           const isAvailable = slot.available;
-          
+
           return (
             <button
               key={slot.id}
@@ -567,15 +592,15 @@ function TimeSelection({
               disabled={!isAvailable}
               className={`p-3 rounded-lg border text-sm font-medium transition-all ${
                 !isAvailable
-                  ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                  ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
                   : isSelected
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:shadow-sm'
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:shadow-sm"
               }`}
             >
               <div>{slot.startTime}</div>
               <div className="text-xs opacity-75">
-                {isAvailable ? 'Müsait' : 'Dolu'}
+                {isAvailable ? "Müsait" : "Dolu"}
               </div>
             </button>
           );
@@ -588,18 +613,20 @@ function TimeSelection({
           <div className="flex items-center gap-2">
             <div className="text-green-600">✓</div>
             <div className="text-sm text-green-700">
-              <strong>Seçilen saat:</strong> {selectedTime} - {
-                timeSlots.find(s => s.id === selectedTime)?.endTime
-              } ({BUSINESS_RULES.APPOINTMENT_DURATION} dakika)
+              <strong>Seçilen saat:</strong> {selectedTime} -{" "}
+              {timeSlots.find((s) => s.id === selectedTime)?.endTime} (
+              {BUSINESS_RULES.APPOINTMENT_DURATION} dakika)
             </div>
           </div>
         </div>
       )}
 
       {/* No available slots message */}
-      {timeSlots.filter(s => s.available).length === 0 && (
+      {timeSlots.filter((s) => s.available).length === 0 && (
         <div className="text-center p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-800 font-medium">Bu tarihte müsait saat bulunmuyor</p>
+          <p className="text-yellow-800 font-medium">
+            Bu tarihte müsait saat bulunmuyor
+          </p>
           <p className="text-xs text-yellow-600 mt-1">
             Lütfen farklı bir tarih veya personel seçin
           </p>

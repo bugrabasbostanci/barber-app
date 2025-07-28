@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +64,12 @@ export default function Home() {
                         <Link href="/my-appointments" className="flex items-center cursor-pointer">
                           <Calendar className="mr-2 h-4 w-4" />
                           <span>Randevularım</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/barber/dashboard" className="flex items-center cursor-pointer">
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Berber Paneli</span>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
