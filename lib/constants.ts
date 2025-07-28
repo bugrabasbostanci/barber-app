@@ -1,0 +1,7 @@
+export const BUSINESS_RULES = {
+  WORKING_HOURS: { start: "09:30", end: "21:30" },
+  APPOINTMENT_DURATION: 45,
+  BOOKING_WINDOW_DAYS: 7,
+  CANCELLATION_HOURS: 2,
+  CLOSED_DAYS: [0], // Pazar
+};

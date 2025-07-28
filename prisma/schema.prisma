@@ -13,3 +13,96 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum Role {
+  CUSTOMER
+  EMPLOYEE
+  BARBER
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  phone     String?
+  role      Role
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Fixed relation names
+  customerAppointments Appointment[]             @relation("CustomerAppointments")
+  staffAppointments    Appointment[]             @relation("StaffAppointments")
+  createdAppointments  Appointment[]             @relation("CreatedAppointments")
+  unavailableTimes     EmployeeUnavailableTime[] @relation("StaffUnavailableTimes")
+
+  @@map("users")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model Appointment {
+  id          String            @id @default(uuid()) @db.Uuid
+  shopId      String            @db.Uuid
+  customerId  String?           @db.Uuid
+  staffId     String            @db.Uuid
+  date        DateTime          @db.Date
+  startTime   DateTime          @db.Time
+  endTime     DateTime          @db.Time
+  status      AppointmentStatus @default(SCHEDULED)
+  notes       String?
+  createdById String?           @db.Uuid
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  // Manuel randevular için (sistemde kayıtlı olmayan müşteriler)
+  manualCustomerName  String?
+  manualCustomerPhone String?
+
+  // Relations
+  shop      Shop  @relation(fields: [shopId], references: [id])
+  customer  User? @relation("CustomerAppointments", fields: [customerId], references: [id])
+  staff     User  @relation("StaffAppointments", fields: [staffId], references: [id])
+  createdBy User? @relation("CreatedAppointments", fields: [createdById], references: [id])
+
+  @@unique([staffId, date, startTime])
+  @@map("appointments")
+}
+
+model EmployeeUnavailableTime {
+  id        String    @id @default(uuid()) @db.Uuid
+  staffId   String    @db.Uuid
+  date      DateTime  @db.Date
+  startTime DateTime? @db.Time
+  endTime   DateTime? @db.Time
+  reason    String?
+  createdAt DateTime  @default(now())
+
+  // Relation back to the user (must be barber or employee — enforce separately)
+  staff User @relation("StaffUnavailableTimes", fields: [staffId], references: [id])
+
+  @@map("employee_unavailable_times")
+}
+
+model Shop {
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String        @unique
+  description String
+  address     String
+  isActive    Boolean       @default(true) @map("is_active")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  
+  appointments Appointment[]
+  
+  @@map("shops")
+}
