@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,25 +40,26 @@ export default function BookAppointmentPage() {
     setIsBooking(true);
 
     try {
-      // In production, this would be an API call to create the appointment
-      // const response = await fetch('/api/appointments', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     date: bookingData.date,
-      //     staffId: bookingData.staffId,
-      //     timeSlot: bookingData.timeSlot
-      //   })
-      // });
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: bookingData.date,
+          staffId: bookingData.staffId,
+          startTime: bookingData.timeSlot
+        })
+      });
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const result = await response.json()
 
-      // Redirect to success page or my-appointments
-      window.location.href = "/my-appointments?success=true";
+      if (response.ok && result.success) {
+        // Redirect to success page
+        window.location.href = "/my-appointments?success=true";
+      } else {
+        alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
+      }
     } catch (error) {
       console.error("Randevu oluşturulurken hata oluştu:", error);
-      // In production, show error toast/notification
       alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setIsBooking(false);
@@ -352,6 +353,13 @@ function DateSelection({
   );
 }
 
+interface Staff {
+  id: string;
+  firstName: string;  
+  lastName: string;
+  role: string;
+}
+
 function StaffSelection({
   selectedStaff,
   onStaffSelect,
@@ -359,39 +367,50 @@ function StaffSelection({
   selectedStaff: string;
   onStaffSelect: (staffId: string) => void;
 }) {
-  // Sample staff data - production'da database'den gelecek
-  const staffMembers = [
-    {
-      id: "staff-1",
-      firstName: "Ahmet",
-      lastName: "Yılmaz",
-      role: "BARBER",
-      experience: "5 yıl",
-      specialty: "Saç Kesimi & Sakal Traşı",
-      rating: 4.8,
-      avatar: "👨‍💼",
-    },
-    {
-      id: "staff-2",
-      firstName: "Mehmet",
-      lastName: "Kaya",
-      role: "EMPLOYEE",
-      experience: "3 yıl",
-      specialty: "Saç Kesimi",
-      rating: 4.6,
-      avatar: "👨‍🔧",
-    },
-    {
-      id: "staff-3",
-      firstName: "Mustafa",
-      lastName: "Demir",
-      role: "BARBER",
-      experience: "8 yıl",
-      specialty: "Klasik Berberlik & Cilt Bakımı",
-      rating: 4.9,
-      avatar: "👨‍⚕️",
-    },
-  ];
+  const [staffMembers, setStaffMembers] = useState<Staff[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch staff from database
+  useEffect(() => {
+    async function fetchStaff() {
+      try {
+        const response = await fetch('/api/staff')
+        if (response.ok) {
+          const staffData = await response.json()
+          setStaffMembers(staffData)
+        }
+      } catch (error) {
+        console.error('Error fetching staff:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchStaff()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center mb-4">
+          <p className="text-sm text-gray-600">Personel listesi yükleniyor...</p>
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -407,6 +426,7 @@ function StaffSelection({
       <div className="space-y-3">
         {staffMembers.map((staff) => {
           const isSelected = selectedStaff === staff.id;
+          const avatar = staff.role === "BARBER" ? "👨‍💼" : "👨‍🔧";
 
           return (
             <button
@@ -419,22 +439,13 @@ function StaffSelection({
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="text-3xl">{staff.avatar}</div>
+                <div className="text-3xl">{avatar}</div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <h3 className="font-semibold text-gray-900">
                       {staff.firstName} {staff.lastName}
                     </h3>
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-400">⭐</span>
-                      <span className="text-sm text-gray-600">
-                        {staff.rating}
-                      </span>
-                    </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-1">
-                    {staff.specialty}
-                  </p>
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
@@ -443,10 +454,10 @@ function StaffSelection({
                           : "bg-green-100 text-green-700"
                       }`}
                     >
-                      {staff.role === "BARBER" ? "Berber" : "Çalışan"}
+                      {staff.role === "BARBER" ? "Usta Berber" : "Berber"}
                     </span>
                     <span className="text-xs text-gray-500">
-                      {staff.experience} deneyim
+                      Deneyimli personel
                     </span>
                   </div>
                 </div>
@@ -476,66 +487,57 @@ function TimeSelection({
   selectedTime,
   onTimeSelect,
   date,
+  staffId,
 }: {
   selectedTime: string;
   onTimeSelect: (time: string) => void;
   date: string;
   staffId: string;
 }) {
-  // Generate time slots based on business rules
-  const generateTimeSlots = () => {
-    const slots = [];
-    const startTime = BUSINESS_RULES.WORKING_HOURS.start; // "09:30"
-    const endTime = BUSINESS_RULES.WORKING_HOURS.end; // "21:30"
-    const duration = BUSINESS_RULES.APPOINTMENT_DURATION; // 45 minutes
+  const [timeSlots, setTimeSlots] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
 
-    // Parse start time
-    const [startHour, startMinute] = startTime.split(":").map(Number);
-    const [endHour, endMinute] = endTime.split(":").map(Number);
-
-    let currentHour = startHour;
-    let currentMinute = startMinute;
-
-    while (
-      currentHour < endHour ||
-      (currentHour === endHour && currentMinute <= endMinute - duration)
-    ) {
-      const timeString = `${currentHour
-        .toString()
-        .padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
-
-      // Calculate end time for this slot
-      let endSlotMinute = currentMinute + duration;
-      let endSlotHour = currentHour;
-
-      if (endSlotMinute >= 60) {
-        endSlotHour++;
-        endSlotMinute -= 60;
-      }
-
-      const endTimeString = `${endSlotHour
-        .toString()
-        .padStart(2, "0")}:${endSlotMinute.toString().padStart(2, "0")}`;
-
-      slots.push({
-        id: timeString,
-        startTime: timeString,
-        endTime: endTimeString,
-        available: Math.random() > 0.3, // Random availability for demo - production'da database'den gelecek
-      });
-
-      // Move to next slot
-      currentMinute += duration;
-      if (currentMinute >= 60) {
-        currentHour++;
-        currentMinute -= 60;
-      }
+  // Fetch available time slots from API
+  useEffect(() => {
+    if (!date || !staffId) {
+      setTimeSlots([])
+      setLoading(false)
+      return
     }
 
-    return slots;
-  };
+    async function fetchTimeSlots() {
+      setLoading(true)
+      try {
+        const response = await fetch(`/api/time-slots?date=${date}&staffId=${staffId}`)
+        if (response.ok) {
+          const availableSlots = await response.json()
+          setTimeSlots(availableSlots)
+        }
+      } catch (error) {
+        console.error('Error fetching time slots:', error)
+        setTimeSlots([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchTimeSlots()
+  }, [date, staffId])
 
-  const timeSlots = generateTimeSlots();
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center mb-4">
+          <p className="text-sm text-gray-600">Müsait saatler yükleniyor...</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-10 bg-gray-200 rounded animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   const formatDateDisplay = (dateStr: string) => {
     const date = new Date(dateStr + "T00:00:00");
@@ -582,26 +584,20 @@ function TimeSelection({
       {/* All Time Slots */}
       <div className="grid grid-cols-2 gap-2">
         {timeSlots.map((slot) => {
-          const isSelected = selectedTime === slot.id;
-          const isAvailable = slot.available;
+          const isSelected = selectedTime === slot;
 
           return (
             <button
-              key={slot.id}
-              onClick={() => isAvailable && onTimeSelect(slot.id)}
-              disabled={!isAvailable}
+              key={slot}
+              onClick={() => onTimeSelect(slot)}
               className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                !isAvailable
-                  ? "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
-                  : isSelected
+                isSelected
                   ? "border-blue-500 bg-blue-50 text-blue-700"
                   : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:shadow-sm"
               }`}
             >
-              <div>{slot.startTime}</div>
-              <div className="text-xs opacity-75">
-                {isAvailable ? "Müsait" : "Dolu"}
-              </div>
+              <div>{slot}</div>
+              <div className="text-xs opacity-75">Müsait</div>
             </button>
           );
         })}
@@ -613,8 +609,7 @@ function TimeSelection({
           <div className="flex items-center gap-2">
             <div className="text-green-600">✓</div>
             <div className="text-sm text-green-700">
-              <strong>Seçilen saat:</strong> {selectedTime} -{" "}
-              {timeSlots.find((s) => s.id === selectedTime)?.endTime} (
+              <strong>Seçilen saat:</strong> {selectedTime} (
               {BUSINESS_RULES.APPOINTMENT_DURATION} dakika)
             </div>
           </div>
@@ -622,7 +617,7 @@ function TimeSelection({
       )}
 
       {/* No available slots message */}
-      {timeSlots.filter((s) => s.available).length === 0 && (
+      {timeSlots.length === 0 && (
         <div className="text-center p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-yellow-800 font-medium">
             Bu tarihte müsait saat bulunmuyor

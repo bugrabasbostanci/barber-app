@@ -1,89 +1,149 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
-import { Save, RefreshCw } from "lucide-react"
-import { BUSINESS_RULES } from "@/lib/constants"
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Save, RefreshCw } from "lucide-react";
+import { BUSINESS_RULES } from "@/lib/constants";
 
 interface DaySchedule {
-  isOpen: boolean
-  startTime: string
-  endTime: string
+  isOpen: boolean;
+  startTime: string;
+  endTime: string;
 }
 
 interface WeekSchedule {
-  monday: DaySchedule
-  tuesday: DaySchedule
-  wednesday: DaySchedule
-  thursday: DaySchedule
-  friday: DaySchedule
-  saturday: DaySchedule
-  sunday: DaySchedule
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
 }
 
 export function WorkingHoursSettings() {
   const [schedule, setSchedule] = useState<WeekSchedule>({
-    monday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    tuesday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    wednesday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    thursday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    friday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    saturday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    sunday: { isOpen: false, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-  })
+    monday: {
+      isOpen: true,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+    tuesday: {
+      isOpen: true,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+    wednesday: {
+      isOpen: true,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+    thursday: {
+      isOpen: true,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+    friday: {
+      isOpen: true,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+    saturday: {
+      isOpen: true,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+    sunday: {
+      isOpen: false,
+      startTime: BUSINESS_RULES.WORKING_HOURS.start,
+      endTime: BUSINESS_RULES.WORKING_HOURS.end,
+    },
+  });
 
-  const [isSaving, setIsSaving] = useState(false)
+  const [isSaving, setIsSaving] = useState(false);
 
   const dayNames = {
-    monday: 'Pazartesi',
-    tuesday: 'Salı',
-    wednesday: 'Çarşamba',
-    thursday: 'Perşembe',
-    friday: 'Cuma',
-    saturday: 'Cumartesi',
-    sunday: 'Pazar'
-  }
+    monday: "Pazartesi",
+    tuesday: "Salı",
+    wednesday: "Çarşamba",
+    thursday: "Perşembe",
+    friday: "Cuma",
+    saturday: "Cumartesi",
+    sunday: "Pazar",
+  };
 
-  const updateDaySchedule = (day: keyof WeekSchedule, field: keyof DaySchedule, value: boolean | string) => {
-    setSchedule(prev => ({
+  const updateDaySchedule = (
+    day: keyof WeekSchedule,
+    field: keyof DaySchedule,
+    value: boolean | string
+  ) => {
+    setSchedule((prev) => ({
       ...prev,
       [day]: {
         ...prev[day],
-        [field]: value
-      }
-    }))
-  }
+        [field]: value,
+      },
+    }));
+  };
 
   const handleSave = async () => {
-    setIsSaving(true)
-    
+    setIsSaving(true);
+
     try {
       // Mock API call - in real app, save to database
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      alert('Çalışma saatleri güncellendi!')
-    } catch (error) {
-      alert('Ayarlar kaydedilirken bir hata oluştu.')
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      alert("Çalışma saatleri güncellendi!");
+    } catch {
+      alert("Ayarlar kaydedilirken bir hata oluştu.");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const resetToDefault = () => {
     setSchedule({
-      monday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-      tuesday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-      wednesday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-      thursday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-      friday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-      saturday: { isOpen: true, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-      sunday: { isOpen: false, startTime: BUSINESS_RULES.WORKING_HOURS.start, endTime: BUSINESS_RULES.WORKING_HOURS.end },
-    })
-  }
+      monday: {
+        isOpen: true,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+      tuesday: {
+        isOpen: true,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+      wednesday: {
+        isOpen: true,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+      thursday: {
+        isOpen: true,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+      friday: {
+        isOpen: true,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+      saturday: {
+        isOpen: true,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+      sunday: {
+        isOpen: false,
+        startTime: BUSINESS_RULES.WORKING_HOURS.start,
+        endTime: BUSINESS_RULES.WORKING_HOURS.end,
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -93,15 +153,21 @@ export function WorkingHoursSettings() {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Randevu Süresi:</span>
-              <span className="ml-2 font-medium">{BUSINESS_RULES.APPOINTMENT_DURATION} dakika</span>
+              <span className="ml-2 font-medium">
+                {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
+              </span>
             </div>
             <div>
               <span className="text-gray-600">Rezervasyon Süresi:</span>
-              <span className="ml-2 font-medium">{BUSINESS_RULES.BOOKING_WINDOW_DAYS} gün önceden</span>
+              <span className="ml-2 font-medium">
+                {BUSINESS_RULES.BOOKING_WINDOW_DAYS} gün önceden
+              </span>
             </div>
             <div>
               <span className="text-gray-600">İptal Sınırı:</span>
-              <span className="ml-2 font-medium">{BUSINESS_RULES.CANCELLATION_HOURS} saat önce</span>
+              <span className="ml-2 font-medium">
+                {BUSINESS_RULES.CANCELLATION_HOURS} saat önce
+              </span>
             </div>
           </div>
         </CardContent>
@@ -122,39 +188,67 @@ export function WorkingHoursSettings() {
                   <div className="flex items-center gap-2">
                     <Switch
                       checked={daySchedule.isOpen}
-                      onCheckedChange={(checked) => updateDaySchedule(day as keyof WeekSchedule, 'isOpen', checked)}
+                      onCheckedChange={(checked) =>
+                        updateDaySchedule(
+                          day as keyof WeekSchedule,
+                          "isOpen",
+                          checked
+                        )
+                      }
                     />
                     {daySchedule.isOpen ? (
-                      <Badge variant="outline" className="text-green-600 border-green-600">
+                      <Badge
+                        variant="outline"
+                        className="text-green-600 border-green-600"
+                      >
                         Açık
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-red-600 border-red-600">
+                      <Badge
+                        variant="outline"
+                        className="text-red-600 border-red-600"
+                      >
                         Kapalı
                       </Badge>
                     )}
                   </div>
                 </div>
-                
+
                 {daySchedule.isOpen && (
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor={`${day}-start`} className="text-sm">Başlangıç:</Label>
+                      <Label htmlFor={`${day}-start`} className="text-sm">
+                        Başlangıç:
+                      </Label>
                       <Input
                         id={`${day}-start`}
                         type="time"
                         value={daySchedule.startTime}
-                        onChange={(e) => updateDaySchedule(day as keyof WeekSchedule, 'startTime', e.target.value)}
+                        onChange={(e) =>
+                          updateDaySchedule(
+                            day as keyof WeekSchedule,
+                            "startTime",
+                            e.target.value
+                          )
+                        }
                         className="w-32"
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <Label htmlFor={`${day}-end`} className="text-sm">Bitiş:</Label>
+                      <Label htmlFor={`${day}-end`} className="text-sm">
+                        Bitiş:
+                      </Label>
                       <Input
                         id={`${day}-end`}
                         type="time"
                         value={daySchedule.endTime}
-                        onChange={(e) => updateDaySchedule(day as keyof WeekSchedule, 'endTime', e.target.value)}
+                        onChange={(e) =>
+                          updateDaySchedule(
+                            day as keyof WeekSchedule,
+                            "endTime",
+                            e.target.value
+                          )
+                        }
                         className="w-32"
                       />
                     </div>
@@ -174,9 +268,9 @@ export function WorkingHoursSettings() {
         </Button>
         <Button onClick={handleSave} disabled={isSaving}>
           <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+          {isSaving ? "Kaydediliyor..." : "Kaydet"}
         </Button>
       </div>
     </div>
-  )
+  );
 }

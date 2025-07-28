@@ -22,7 +22,7 @@ export async function getDashboardStats() {
       }
     })
 
-    // Get active staff count
+    // Get active staff count (include both EMPLOYEE and BARBER roles)
     const activeStaff = await prisma.user.count({
       where: {
         role: {
@@ -84,7 +84,22 @@ export async function getTodayAppointments() {
       }
     })
 
-    return appointments
+    // Format the data to match the component interface
+    const formattedAppointments = appointments.map(appointment => ({
+      id: appointment.id,
+      date: appointment.date,
+      startTime: appointment.startTime.toTimeString().substring(0, 5), // HH:MM format
+      endTime: appointment.endTime.toTimeString().substring(0, 5), // HH:MM format
+      status: appointment.status,
+      notes: appointment.notes,
+      manualCustomerName: appointment.manualCustomerName,
+      manualCustomerPhone: appointment.manualCustomerPhone,
+      customer: appointment.customer,
+      staff: appointment.staff,
+      createdAt: appointment.createdAt
+    }))
+
+    return formattedAppointments
   } catch (error) {
     console.error('Error fetching today appointments:', error)
     return []
@@ -115,7 +130,22 @@ export async function getRecentAppointments(limit = 10) {
       }
     })
 
-    return appointments
+    // Format the data to match the component interface
+    const formattedAppointments = appointments.map(appointment => ({
+      id: appointment.id,
+      date: appointment.date,
+      startTime: appointment.startTime.toTimeString().substring(0, 5), // HH:MM format
+      endTime: appointment.endTime.toTimeString().substring(0, 5), // HH:MM format
+      status: appointment.status,
+      notes: appointment.notes,
+      manualCustomerName: appointment.manualCustomerName,
+      manualCustomerPhone: appointment.manualCustomerPhone,
+      customer: appointment.customer,
+      staff: appointment.staff,
+      createdAt: appointment.createdAt
+    }))
+
+    return formattedAppointments
   } catch (error) {
     console.error('Error fetching recent appointments:', error)
     return []

@@ -1,16 +1,15 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { checkUserRole } from "@/lib/admin-actions"
-import { NewAppointmentForm } from "@/components/barber/new-appointment-form"
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { checkUserRole } from "@/lib/admin-actions";
+import { NewAppointmentForm } from "@/components/barber/new-appointment-form";
 
 export default async function NewBarberAppointment() {
   // Check if user has barber role
-  const userRole = await checkUserRole()
-  if (!userRole || userRole.role !== 'BARBER') {
-    redirect('/auth/login')
+  const userRole = await checkUserRole();
+  if (!userRole || userRole.role !== "BARBER") {
+    redirect("/auth/login");
   }
 
   return (
@@ -25,8 +24,12 @@ export default async function NewBarberAppointment() {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Yeni Randevu Oluştur</h1>
-              <p className="mt-2 text-gray-600">Manuel olarak randevu oluşturun</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Yeni Randevu Oluştur
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Manuel olarak randevu oluşturun
+              </p>
             </div>
           </div>
         </div>
@@ -34,5 +37,5 @@ export default async function NewBarberAppointment() {
         <NewAppointmentForm />
       </div>
     </div>
-  )
+  );
 }

@@ -1,17 +1,17 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Clock, Calendar, Ban } from "lucide-react"
-import { checkUserRole } from "@/lib/admin-actions"
-import { TimeBlockingForm } from "@/components/barber/time-blocking-form"
-import { WorkingHoursSettings } from "@/components/barber/working-hours-settings"
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Clock, Ban } from "lucide-react";
+import { checkUserRole } from "@/lib/admin-actions";
+import { TimeBlockingForm } from "@/components/barber/time-blocking-form";
+import { WorkingHoursSettings } from "@/components/barber/working-hours-settings";
 
 export default async function BarberSchedule() {
   // Check if user has barber role
-  const userRole = await checkUserRole()
-  if (!userRole || userRole.role !== 'BARBER') {
-    redirect('/auth/login')
+  const userRole = await checkUserRole();
+  if (!userRole || userRole.role !== "BARBER") {
+    redirect("/auth/login");
   }
 
   return (
@@ -26,8 +26,12 @@ export default async function BarberSchedule() {
               </Link>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Zaman Yönetimi</h1>
-              <p className="mt-2 text-gray-600">Çalışma saatleri ve müsaitlik ayarları</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Zaman Yönetimi
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Çalışma saatleri ve müsaitlik ayarları
+              </p>
             </div>
           </div>
         </div>
@@ -71,5 +75,5 @@ export default async function BarberSchedule() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -28,17 +28,17 @@ interface Appointment {
   startTime: string
   endTime: string
   status: string
-  notes?: string
-  manualCustomerName?: string
-  manualCustomerPhone?: string
+  notes?: string | null
+  manualCustomerName?: string | null
+  manualCustomerPhone?: string | null
   customer?: {
-    firstName: string
-    lastName: string
-    phone?: string
-  }
+    firstName: string | null
+    lastName: string | null
+    phone?: string | null
+  } | null
   staff: {
-    firstName: string
-    lastName: string
+    firstName: string | null
+    lastName: string | null
   }
   createdAt: Date
 }
@@ -136,8 +136,8 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                     <TableCell>
                       <div className="font-medium">
                         {appointment.customer
-                          ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
-                          : appointment.manualCustomerName
+                          ? `${appointment.customer.firstName || ''} ${appointment.customer.lastName || ''}`.trim()
+                          : appointment.manualCustomerName || 'Bilinmeyen Müşteri'
                         }
                       </div>
                       <div className="text-xs text-gray-500">
@@ -160,7 +160,7 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {appointment.staff.firstName} {appointment.staff.lastName}
+                        {`${appointment.staff.firstName || ''} ${appointment.staff.lastName || ''}`.trim() || 'Bilinmeyen Personel'}
                       </div>
                     </TableCell>
                     <TableCell>

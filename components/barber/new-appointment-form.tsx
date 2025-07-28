@@ -1,141 +1,177 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
-import { 
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar as CalendarIcon, Clock, User, Save, Search } from "lucide-react"
-import { format, addDays, isAfter, isBefore, isSameDay } from "date-fns"
-import { tr } from "date-fns/locale"
-import { cn } from "@/lib/utils"
-import { BUSINESS_RULES } from "@/lib/constants"
+} from "@/components/ui/popover";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  User,
+  Save,
+  Search,
+} from "lucide-react";
+import { format, addDays, isAfter, isBefore } from "date-fns";
+import { tr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { BUSINESS_RULES } from "@/lib/constants";
 
 interface TimeSlot {
-  time: string
-  available: boolean
+  time: string;
+  available: boolean;
 }
 
 interface Staff {
-  id: string
-  firstName: string
-  lastName: string
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 export function NewAppointmentForm() {
-  const router = useRouter()
-  const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedTime, setSelectedTime] = useState<string>()
-  const [selectedStaff, setSelectedStaff] = useState<string>()
-  const [customerType, setCustomerType] = useState<'existing' | 'new'>('new')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+  const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>();
+  const [selectedStaff, setSelectedStaff] = useState<string>();
+  const [customerType, setCustomerType] = useState<"existing" | "new">("new");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Form data
   const [formData, setFormData] = useState({
-    customerName: '',
-    customerPhone: '',
-    existingCustomerId: '',
-    notes: ''
-  })
+    customerName: "",
+    customerPhone: "",
+    existingCustomerId: "",
+    notes: "",
+  });
 
-  // Mock data - in real app, fetch from API
-  const [staff] = useState<Staff[]>([
-    { id: '1', firstName: 'Mehmet', lastName: 'Berber' },
-    { id: '2', firstName: 'Ali', lastName: 'Saç' },
-    { id: '3', firstName: 'Osman', lastName: 'Traş' }
-  ])
+  // Fetch staff from database
+  const [staff, setStaff] = useState<Staff[]>([]);
 
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([])
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
 
-  // Generate time slots based on business rules
+  // Fetch staff members on component mount
+  useEffect(() => {
+    async function fetchStaff() {
+      try {
+        const response = await fetch("/api/staff");
+        if (response.ok) {
+          const staffData = await response.json();
+          setStaff(staffData);
+        }
+      } catch (error) {
+        console.error("Error fetching staff:", error);
+      }
+    }
+
+    fetchStaff();
+  }, []);
+
+  // Fetch available time slots when date and staff change
   useEffect(() => {
     if (!selectedDate || !selectedStaff) {
-      setTimeSlots([])
-      return
+      setTimeSlots([]);
+      return;
     }
 
-    const slots: TimeSlot[] = []
-    const startHour = 9
-    const startMinute = 30
-    const endHour = 21
-    const endMinute = 30
-    const duration = BUSINESS_RULES.APPOINTMENT_DURATION
+    async function fetchTimeSlots() {
+      try {
+        const dateStr = format(selectedDate!, "yyyy-MM-dd");
+        const response = await fetch(
+          `/api/time-slots?date=${dateStr}&staffId=${selectedStaff}`
+        );
 
-    let currentTime = new Date()
-    currentTime.setHours(startHour, startMinute, 0, 0)
-    
-    const endTime = new Date()
-    endTime.setHours(endHour, endMinute, 0, 0)
-
-    while (currentTime < endTime) {
-      const timeString = format(currentTime, 'HH:mm')
-      
-      // Mock availability check - in real app, check against existing appointments
-      const isAvailable = Math.random() > 0.3 // 70% chance of being available
-      
-      slots.push({
-        time: timeString,
-        available: isAvailable
-      })
-
-      currentTime.setMinutes(currentTime.getMinutes() + duration)
+        if (response.ok) {
+          const availableSlots = await response.json();
+          const slots: TimeSlot[] = availableSlots.map((time: string) => ({
+            time,
+            available: true,
+          }));
+          setTimeSlots(slots);
+        }
+      } catch (error) {
+        console.error("Error fetching time slots:", error);
+        setTimeSlots([]);
+      }
     }
 
-    setTimeSlots(slots)
-  }, [selectedDate, selectedStaff])
+    fetchTimeSlots();
+  }, [selectedDate, selectedStaff]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!selectedDate || !selectedTime || !selectedStaff) {
-      alert('Lütfen tüm gerekli alanları doldurun.')
-      return
+      alert("Lütfen tüm gerekli alanları doldurun.");
+      return;
     }
 
-    if (customerType === 'new' && (!formData.customerName || !formData.customerPhone)) {
-      alert('Lütfen müşteri adı ve telefon numarasını girin.')
-      return
+    if (
+      customerType === "new" &&
+      (!formData.customerName || !formData.customerPhone)
+    ) {
+      alert("Lütfen müşteri adı ve telefon numarasını girin.");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-      // Mock API call - in real app, create appointment
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      alert('Randevu başarıyla oluşturuldu!')
-      router.push('/barber/appointments')
+      const response = await fetch('/api/barber/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          date: format(selectedDate!, 'yyyy-MM-dd'),
+          staffId: selectedStaff,
+          startTime: selectedTime,
+          customerType,
+          customerName: customerType === 'new' ? formData.customerName : undefined,
+          customerPhone: customerType === 'new' ? formData.customerPhone : undefined,
+          existingCustomerId: customerType === 'existing' ? formData.existingCustomerId : undefined,
+          notes: formData.notes
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert("Randevu başarıyla oluşturuldu!");
+        router.push("/barber/appointments");
+      } else {
+        alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
+      }
     } catch (error) {
-      alert('Randevu oluşturulurken bir hata oluştu.')
+      console.error('Error creating appointment:', error);
+      alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Date validation - only allow future dates within booking window
   const isDateDisabled = (date: Date) => {
-    const today = new Date()
-    const maxDate = addDays(today, BUSINESS_RULES.BOOKING_WINDOW_DAYS)
-    const isSunday = date.getDay() === 0 // Sunday is closed
-    
-    return isBefore(date, today) || isAfter(date, maxDate) || isSunday
-  }
+    const today = new Date();
+    const maxDate = addDays(today, BUSINESS_RULES.BOOKING_WINDOW_DAYS);
+    const isSunday = date.getDay() === 0; // Sunday is closed
+
+    return isBefore(date, today) || isAfter(date, maxDate) || isSunday;
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -216,7 +252,9 @@ export function NewAppointmentForm() {
                     <Button
                       key={slot.time}
                       type="button"
-                      variant={selectedTime === slot.time ? "default" : "outline"}
+                      variant={
+                        selectedTime === slot.time ? "default" : "outline"
+                      }
                       size="sm"
                       disabled={!slot.available}
                       onClick={() => setSelectedTime(slot.time)}
@@ -254,31 +292,38 @@ export function NewAppointmentForm() {
                 <div className="flex gap-2">
                   <Button
                     type="button"
-                    variant={customerType === 'new' ? 'default' : 'outline'}
+                    variant={customerType === "new" ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setCustomerType('new')}
+                    onClick={() => setCustomerType("new")}
                   >
                     Yeni Müşteri
                   </Button>
                   <Button
                     type="button"
-                    variant={customerType === 'existing' ? 'default' : 'outline'}
+                    variant={
+                      customerType === "existing" ? "default" : "outline"
+                    }
                     size="sm"
-                    onClick={() => setCustomerType('existing')}
+                    onClick={() => setCustomerType("existing")}
                   >
                     Mevcut Müşteri
                   </Button>
                 </div>
               </div>
 
-              {customerType === 'new' ? (
+              {customerType === "new" ? (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="customerName">Müşteri Adı</Label>
                     <Input
                       id="customerName"
                       value={formData.customerName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          customerName: e.target.value,
+                        }))
+                      }
                       placeholder="Müşteri adını girin"
                       required
                     />
@@ -289,7 +334,12 @@ export function NewAppointmentForm() {
                       id="customerPhone"
                       type="tel"
                       value={formData.customerPhone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          customerPhone: e.target.value,
+                        }))
+                      }
                       placeholder="05XX XXX XX XX"
                       required
                     />
@@ -312,7 +362,9 @@ export function NewAppointmentForm() {
                 <Textarea
                   id="notes"
                   value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                  }
                   placeholder="Randevu ile ilgili notlar..."
                   rows={3}
                 />
@@ -335,25 +387,35 @@ export function NewAppointmentForm() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Saat:</span>
-                  <span className="font-medium">{selectedTime} - {
-                    format(new Date(`2000-01-01T${selectedTime}:00`).getTime() + 45 * 60000, "HH:mm")
-                  }</span>
+                  <span className="font-medium">
+                    {selectedTime} -{" "}
+                    {format(
+                      new Date(`2000-01-01T${selectedTime}:00`).getTime() +
+                        45 * 60000,
+                      "HH:mm"
+                    )}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Berber:</span>
                   <span className="font-medium">
-                    {staff.find(s => s.id === selectedStaff)?.firstName} {staff.find(s => s.id === selectedStaff)?.lastName}
+                    {staff.find((s) => s.id === selectedStaff)?.firstName}{" "}
+                    {staff.find((s) => s.id === selectedStaff)?.lastName}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Süre:</span>
-                  <span className="font-medium">{BUSINESS_RULES.APPOINTMENT_DURATION} dakika</span>
+                  <span className="font-medium">
+                    {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
+                  </span>
                 </div>
                 {(formData.customerName || formData.existingCustomerId) && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Müşteri:</span>
                     <span className="font-medium">
-                      {customerType === 'new' ? formData.customerName : 'Mevcut müşteri'}
+                      {customerType === "new"
+                        ? formData.customerName
+                        : "Mevcut müşteri"}
                     </span>
                   </div>
                 )}
@@ -370,9 +432,9 @@ export function NewAppointmentForm() {
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? 'Oluşturuluyor...' : 'Randevu Oluştur'}
+          {isSubmitting ? "Oluşturuluyor..." : "Randevu Oluştur"}
         </Button>
       </div>
     </form>
-  )
+  );
 }

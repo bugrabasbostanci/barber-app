@@ -1,22 +1,24 @@
-import { PrismaClient } from '@prisma/client'
-import { createClient } from '@/lib/supabase/server'
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-export async function createUserInDatabase(authUserId: string, userData: {
-  email: string
-  firstName: string
-  lastName: string
-  phone?: string
-}) {
+export async function createUserInDatabase(
+  authUserId: string,
+  userData: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+  }
+) {
   try {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { id: authUserId }
-    })
+      where: { id: authUserId },
+    });
 
     if (existingUser) {
-      return { success: true, user: existingUser }
+      return { success: true, user: existingUser };
     }
 
     // Create user in our database
@@ -27,45 +29,45 @@ export async function createUserInDatabase(authUserId: string, userData: {
         firstName: userData.firstName,
         lastName: userData.lastName,
         phone: userData.phone,
-        role: 'CUSTOMER'
-      }
-    })
+        role: "CUSTOMER",
+      },
+    });
 
-    return { success: true, user }
+    return { success: true, user };
   } catch (error) {
-    console.error('Error creating user in database:', error)
-    return { success: false, error: 'Failed to create user in database' }
+    console.error("Error creating user in database:", error);
+    return { success: false, error: "Failed to create user in database" };
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }
 
 export async function syncExistingUsers() {
   try {
-    const supabase = await createClient()
-    
+    // const supabase = await createClient()
+
     // Get all Supabase auth users (admin function - requires service role key)
     // This is a one-time sync function
-    console.log('Sync function called - implement admin sync if needed')
-    
-    return { success: true }
+    console.log("Sync function called - implement admin sync if needed");
+
+    return { success: true };
   } catch (error) {
-    console.error('Error syncing users:', error)
-    return { success: false, error: 'Failed to sync users' }
+    console.error("Error syncing users:", error);
+    return { success: false, error: "Failed to sync users" };
   }
 }
 
 export async function getUserFromDatabase(authUserId: string) {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: authUserId }
-    })
+      where: { id: authUserId },
+    });
 
-    return { success: true, user }
+    return { success: true, user };
   } catch (error) {
-    console.error('Error getting user from database:', error)
-    return { success: false, error: 'Failed to get user from database' }
+    console.error("Error getting user from database:", error);
+    return { success: false, error: "Failed to get user from database" };
   } finally {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   }
 }

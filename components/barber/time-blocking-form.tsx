@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { 
@@ -13,15 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { 
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar as CalendarIcon, Plus, Trash2, Clock } from "lucide-react"
-import { format, addDays, isAfter, isBefore } from "date-fns"
+import { Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react"
+import { format, isBefore } from "date-fns"
 import { tr } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 
@@ -49,20 +47,51 @@ export function TimeBlockingForm() {
   const [endTime, setEndTime] = useState('')
   const [reason, setReason] = useState('')
   const [blockedTimes, setBlockedTimes] = useState<BlockedTime[]>([])
+  const [staff, setStaff] = useState<Staff[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Mock staff data
-  const staff: Staff[] = [
-    { id: '1', firstName: 'Mehmet', lastName: 'Berber' },
-    { id: '2', firstName: 'Ali', lastName: 'Saç' },
-    { id: '3', firstName: 'Osman', lastName: 'Traş' }
-  ]
+  // Fetch staff and existing time blocks from database
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch staff
+        const staffResponse = await fetch('/api/staff')
+        if (staffResponse.ok) {
+          const staffData = await staffResponse.json()
+          setStaff(staffData)
+        }
+
+        // Fetch existing time blocks
+        const blocksResponse = await fetch('/api/time-blocks')
+        if (blocksResponse.ok) {
+          const blocksData = await blocksResponse.json()
+          const formattedBlocks = blocksData.map((block: {id: string; date: string; startTime: string | null; endTime: string | null; reason: string; isFullDay: boolean; staffId: string}) => ({
+            id: block.id,
+            date: new Date(block.date),
+            startTime: block.startTime,
+            endTime: block.endTime,
+            reason: block.reason,
+            isFullDay: block.isFullDay,
+            staffId: block.staffId
+          }))
+          setBlockedTimes(formattedBlocks)
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [])
 
   const timeOptions = [
     '09:30', '10:15', '11:00', '11:45', '12:30', '13:15', '14:00', 
     '14:45', '15:30', '16:15', '17:00', '17:45', '18:30', '19:15', '20:00', '20:45', '21:30'
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!selectedDate || !selectedStaff || !reason) {
@@ -75,29 +104,78 @@ export function TimeBlockingForm() {
       return
     }
 
-    const newBlock: BlockedTime = {
-      id: Date.now().toString(),
-      date: selectedDate,
-      startTime: blockType === 'full-day' ? undefined : startTime,
-      endTime: blockType === 'full-day' ? undefined : endTime,
-      reason,
-      isFullDay: blockType === 'full-day',
-      staffId: selectedStaff
-    }
+    try {
+      const response = await fetch('/api/time-blocks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          date: selectedDate.toISOString().split('T')[0],
+          staffId: selectedStaff,
+          startTime: blockType === 'full-day' ? null : startTime,
+          endTime: blockType === 'full-day' ? null : endTime,
+          reason,
+          isFullDay: blockType === 'full-day'
+        })
+      })
 
-    setBlockedTimes(prev => [...prev, newBlock])
-    
-    // Reset form
-    setSelectedDate(undefined)
-    setSelectedStaff('')
-    setStartTime('')
-    setEndTime('')
-    setReason('')
-    setBlockType('time-range')
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        // Add to local state
+        const newBlock: BlockedTime = {
+          id: result.timeBlock.id,
+          date: selectedDate,
+          startTime: result.timeBlock.startTime,
+          endTime: result.timeBlock.endTime,
+          reason: result.timeBlock.reason,
+          isFullDay: result.timeBlock.isFullDay,
+          staffId: result.timeBlock.staffId
+        }
+
+        setBlockedTimes(prev => [...prev, newBlock])
+        
+        // Reset form
+        setSelectedDate(undefined)
+        setSelectedStaff('')
+        setStartTime('')
+        setEndTime('')
+        setReason('')
+        setBlockType('time-range')
+
+        alert('Zaman bloğu başarıyla oluşturuldu!')
+      } else {
+        alert(result.error || 'Zaman bloğu oluşturulurken bir hata oluştu.')
+      }
+    } catch (error) {
+      console.error('Error creating time block:', error)
+      alert('Zaman bloğu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.')
+    }
   }
 
-  const removeBlockedTime = (id: string) => {
-    setBlockedTimes(prev => prev.filter(block => block.id !== id))
+  const removeBlockedTime = async (id: string) => {
+    if (!confirm('Bu zaman bloğunu silmek istediğinizden emin misiniz?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/time-blocks/${id}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setBlockedTimes(prev => prev.filter(block => block.id !== id))
+        alert('Zaman bloğu başarıyla silindi!')
+      } else {
+        alert(result.error || 'Zaman bloğu silinirken bir hata oluştu.')
+      }
+    } catch (error) {
+      console.error('Error deleting time block:', error)
+      alert('Zaman bloğu silinirken bir hata oluştu. Lütfen tekrar deneyin.')
+    }
   }
 
   const getStaffName = (staffId: string) => {
@@ -154,14 +232,24 @@ export function TimeBlockingForm() {
             <Label>Personel</Label>
             <Select value={selectedStaff} onValueChange={setSelectedStaff}>
               <SelectTrigger>
-                <SelectValue placeholder="Personel seçin" />
+                <SelectValue placeholder={loading ? "Personeller yükleniyor..." : "Personel seçin"} />
               </SelectTrigger>
               <SelectContent>
-                {staff.map((person) => (
-                  <SelectItem key={person.id} value={person.id}>
-                    {person.firstName} {person.lastName}
+                {loading ? (
+                  <SelectItem value="loading" disabled>
+                    Yükleniyor...
                   </SelectItem>
-                ))}
+                ) : staff.length === 0 ? (
+                  <SelectItem value="no-staff" disabled>
+                    Personel bulunamadı
+                  </SelectItem>
+                ) : (
+                  staff.map((person) => (
+                    <SelectItem key={person.id} value={person.id}>
+                      {person.firstName} {person.lastName}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

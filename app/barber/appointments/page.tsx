@@ -1,21 +1,20 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Plus, Search, Filter } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { checkUserRole, getRecentAppointments } from "@/lib/admin-actions"
-import { AppointmentsList } from "@/components/barber/appointments-list"
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Plus, Search, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { checkUserRole, getRecentAppointments } from "@/lib/admin-actions";
+import { AppointmentsList } from "@/components/barber/appointments-list";
 
 export default async function BarberAppointments() {
   // Check if user has barber role
-  const userRole = await checkUserRole()
-  if (!userRole || userRole.role !== 'BARBER') {
-    redirect('/auth/login')
+  const userRole = await checkUserRole();
+  if (!userRole || userRole.role !== "BARBER") {
+    redirect("/auth/login");
   }
 
-  const appointments = await getRecentAppointments(50)
+  const appointments = await getRecentAppointments(50);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
@@ -30,8 +29,12 @@ export default async function BarberAppointments() {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Randevu Yönetimi</h1>
-                <p className="mt-2 text-gray-600">Tüm randevuları görüntüleyin ve yönetin</p>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Randevu Yönetimi
+                </h1>
+                <p className="mt-2 text-gray-600">
+                  Tüm randevuları görüntüleyin ve yönetin
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -55,7 +58,10 @@ export default async function BarberAppointments() {
                 <div className="flex-1">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input placeholder="Müşteri adı veya telefon ile arama yapın..." className="pl-10" />
+                    <Input
+                      placeholder="Müşteri adı veya telefon ile arama yapın..."
+                      className="pl-10"
+                    />
                   </div>
                 </div>
                 <Button variant="outline">
@@ -70,5 +76,5 @@ export default async function BarberAppointments() {
         <AppointmentsList appointments={appointments} />
       </div>
     </div>
-  )
+  );
 }

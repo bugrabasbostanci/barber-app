@@ -69,70 +69,26 @@ export default function MyAppointmentsPage() {
     }
   }, [searchParams]);
 
-  // Sample data - production'da API'den gelecek
+  // Fetch appointments from API
   useEffect(() => {
     if (user) {
-      // Mock appointments data
-      const mockAppointments: Appointment[] = [
-        {
-          id: "1",
-          date: "2024-01-30",
-          startTime: "14:00",
-          endTime: "14:45",
-          status: "CONFIRMED",
-          notes: "",
-          staff: {
-            id: "staff-1",
-            firstName: "Ahmet",
-            lastName: "Yılmaz",
-            role: "BARBER",
-          },
-          shop: {
-            name: "BerberApp Salon",
-            address: "Çankaya, Ankara",
-          },
-          createdAt: "2024-01-25T10:00:00Z",
-        },
-        {
-          id: "2",
-          date: "2024-01-15",
-          startTime: "16:30",
-          endTime: "17:15",
-          status: "COMPLETED",
-          notes: "Saç kesimi ve sakal traşı",
-          staff: {
-            id: "staff-3",
-            firstName: "Mustafa",
-            lastName: "Demir",
-            role: "BARBER",
-          },
-          shop: {
-            name: "BerberApp Salon",
-            address: "Çankaya, Ankara",
-          },
-          createdAt: "2024-01-10T09:30:00Z",
-        },
-        {
-          id: "3",
-          date: "2024-02-05",
-          startTime: "11:00",
-          endTime: "11:45",
-          status: "SCHEDULED",
-          notes: "",
-          staff: {
-            id: "staff-2",
-            firstName: "Mehmet",
-            lastName: "Kaya",
-            role: "EMPLOYEE",
-          },
-          shop: {
-            name: "BerberApp Salon",
-            address: "Çankaya, Ankara",
-          },
-          createdAt: "2024-01-28T14:20:00Z",
-        },
-      ];
-      setAppointments(mockAppointments);
+      async function fetchAppointments() {
+        try {
+          const response = await fetch('/api/my-appointments')
+          if (response.ok) {
+            const appointmentsData = await response.json()
+            setAppointments(appointmentsData)
+          } else {
+            console.error('Failed to fetch appointments')
+            setAppointments([])
+          }
+        } catch (error) {
+          console.error('Error fetching appointments:', error)
+          setAppointments([])
+        }
+      }
+      
+      fetchAppointments()
     }
   }, [user]);
 
@@ -219,14 +175,14 @@ export default function MyAppointmentsPage() {
     switch (filter) {
       case "upcoming":
         return appointments.filter((apt) => {
-          const aptDate = new Date(`${apt.date}T${apt.startTime}`);
+          const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
           return (
-            aptDate > now && !["CANCELLED", "NO_SHOW"].includes(apt.status)
+            aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status)
           );
         });
       case "past":
         return appointments.filter((apt) => {
-          const aptDate = new Date(`${apt.date}T${apt.startTime}`);
+          const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
           return (
             aptDate <= now ||
             ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(apt.status)
@@ -243,25 +199,36 @@ export default function MyAppointmentsPage() {
     setCancellingId(appointmentId);
 
     try {
-      // In production, this would be an API call
-      // const response = await fetch(`/api/appointments/${appointmentId}/cancel`, { method: 'POST' });
+      const response = await fetch(`/api/appointments/${appointmentId}/cancel`, { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const result = await response.json();
 
-      // Update the appointment status locally
-      setAppointments((prev) =>
-        prev.map((apt) =>
-          apt.id === appointmentId
-            ? { ...apt, status: "CANCELLED" as const }
-            : apt
-        )
-      );
+      if (response.ok && result.success) {
+        // Update the appointment status locally
+        setAppointments((prev) =>
+          prev.map((apt) =>
+            apt.id === appointmentId
+              ? { ...apt, status: "CANCELLED" as const }
+              : apt
+          )
+        );
 
-      setShowCancelDialog(null);
+        setShowCancelDialog(null);
+        
+        // Optional: Show success message
+        alert("Randevunuz başarıyla iptal edildi.");
+      } else {
+        // Show error message from API
+        alert(result.error || "Randevu iptal edilirken bir hata oluştu.");
+      }
     } catch (error) {
       console.error("Randevu iptal edilirken hata oluştu:", error);
-      // In production, show error toast/notification
+      alert("Randevu iptal edilirken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setCancellingId(null);
     }
