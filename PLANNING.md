@@ -337,10 +337,86 @@ components/
 - Real-time data integration
 - API authentication/authorization
 
+## 🕐 Timezone Management Strategy
+
+### Current Implementation Status: ✅ COMPLETE
+
+The project already has a comprehensive timezone handling system that follows the exact strategy you outlined:
+
+#### Architecture Overview
+- **UI Side**: Always works with Europe/Istanbul timezone
+- **Database**: Stores all datetime values in UTC (PostgreSQL/Supabase)
+- **Conversion**: Automatic UTC ↔ Local timezone conversion on data input/output
+
+#### Existing Infrastructure (`lib/date-time.ts`)
+
+**Core Conversion Functions:**
+```typescript
+// Convert local date/time to UTC for database storage
+localDateToUTC(dateStr: string, timezone = "Europe/Istanbul"): Date
+localDateTimeToUTC(dateStr: string, timeStr: string, timezone = "Europe/Istanbul"): Date
+
+// Convert UTC back to local for UI display
+utcToLocalDate(utcDate: Date, timezone = "Europe/Istanbul"): string
+utcToLocalTime(utcDate: Date, timezone = "Europe/Istanbul"): string
+utcToLocalDateTime(utcDate: Date, timezone = "Europe/Istanbul"): {date: string, time: string}
+```
+
+**Time-Only Functions:**
+```typescript
+createUTCTime(timeStr: string): Date  // "14:30" → UTC Date (2000-01-01 base)
+extractTimeString(utcTime: Date): string  // UTC Date → "14:30"
+```
+
+**Business Logic Functions:**
+```typescript
+isAppointmentPast(dateStr: string, timeStr: string): boolean
+canCancelAppointment(dateStr: string, timeStr: string, cancellationHours: number): boolean
+getHoursDifference(date1: Date, date2: Date): number
+```
+
+#### Current Usage Pattern (API Routes)
+```typescript
+// ✅ Input: Convert local time to UTC for storage
+const appointmentDateUTC = localDateToUTC(date, timezone);
+const startTimeUTC = createUTCTime(startTime);
+
+// Store in database as UTC
+await prisma.appointment.create({
+  data: {
+    date: appointmentDateUTC,
+    startTime: startTimeUTC,
+    // ...
+  }
+});
+
+// ✅ Output: Convert UTC back to local for response
+const responseAppointment = {
+  date: utcToLocalDate(appointment.date, timezone),
+  startTime: extractTimeString(appointment.startTime),
+  timezone: timezone,
+};
+```
+
+#### Benefits of Current System
+1. **Consistent**: All datetime handling follows the same pattern
+2. **Scalable**: Easy to add support for other timezones in the future
+3. **Reliable**: Uses native JavaScript Intl API for timezone calculations
+4. **Business-Aware**: Appointment logic respects local business hours
+5. **DST-Safe**: Automatically handles daylight saving time transitions
+
+#### Constants
+```typescript
+export const TURKEY_TZ = "Europe/Istanbul";
+export const DEFAULT_TZ = TURKEY_TZ;
+```
+
+**Status**: ✅ **FULLY IMPLEMENTED** - No action required. The timezone strategy is complete and working correctly.
+
 ## 📝 Notlar
 
 - **Dil**: Türkçe UI, İngilizce kod
-- **Timezone**: Turkey (UTC+3)
+- **Timezone**: Europe/Istanbul (UI) → UTC (Database) - Full conversion system implemented
 - **Currency**: TRY (gelecek ödemeler için)
 - **Business Hours**: 09:30-21:30 (fixed)
 - **Appointment Duration**: 45 min (fixed for MVP)

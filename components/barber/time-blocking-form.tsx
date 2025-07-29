@@ -19,8 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react"
-import { format, isBefore } from "date-fns"
-import { tr } from "date-fns/locale"
+import { formatTurkishDate, dateToLocalString } from "@/lib/date-time"
 import { cn } from "@/lib/utils"
 
 interface BlockedTime {
@@ -111,7 +110,7 @@ export function TimeBlockingForm() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          date: selectedDate.toISOString().split('T')[0],
+          date: dateToLocalString(selectedDate),
           staffId: selectedStaff,
           startTime: blockType === 'full-day' ? null : startTime,
           endTime: blockType === 'full-day' ? null : endTime,
@@ -187,7 +186,7 @@ export function TimeBlockingForm() {
   const isDateDisabled = (date: Date) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    return isBefore(date, today)
+    return date < today
   }
 
   return (
@@ -209,7 +208,7 @@ export function TimeBlockingForm() {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? (
-                    format(selectedDate, "PPP", { locale: tr })
+                    formatTurkishDate(dateToLocalString(selectedDate))
                   ) : (
                     <span>Tarih seçin</span>
                   )}
@@ -345,7 +344,7 @@ export function TimeBlockingForm() {
                 <div key={block.id} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
                   <div>
                     <div className="font-medium">
-                      {format(block.date, "dd MMMM yyyy", { locale: tr })}
+                      {formatTurkishDate(dateToLocalString(block.date))}
                     </div>
                     <div className="text-sm text-gray-600">
                       <span className="font-medium">{getStaffName(block.staffId)}</span>

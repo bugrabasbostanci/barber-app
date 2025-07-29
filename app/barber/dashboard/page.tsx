@@ -15,8 +15,7 @@ import {
   getTodayAppointments,
   checkUserRole,
 } from "@/lib/admin-actions";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+// date-fns replaced with native Intl.DateTimeFormat
 
 // Force dynamic rendering since we use cookies for auth
 export const dynamic = "force-dynamic";
@@ -52,7 +51,11 @@ export default async function BarberDashboard() {
                 </Link>
               </Button>
               <Badge variant="secondary" className="px-3 py-1">
-                {format(new Date(), "dd MMMM yyyy", { locale: tr })}
+                {new Intl.DateTimeFormat('tr-TR', {
+                  day: '2-digit',
+                  month: 'long', 
+                  year: 'numeric'
+                }).format(new Date())}
               </Badge>
             </div>
           </div>
@@ -211,10 +214,7 @@ export default async function BarberDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="font-medium">
-                          {format(
-                            new Date(`2000-01-01T${appointment.startTime}`),
-                            "HH:mm"
-                          )}
+                          {appointment.startTime}
                         </p>
                         <Badge
                           variant={

@@ -19,8 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2, Check, X, Phone } from "lucide-react"
-import { format } from "date-fns"
-import { tr } from "date-fns/locale"
+import { formatTurkishDateShort } from "@/lib/date-time"
 
 interface Appointment {
   id: string
@@ -141,7 +140,7 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                         }
                       </div>
                       <div className="text-xs text-gray-500">
-                        {format(appointment.createdAt, "dd/MM/yyyy", { locale: tr })} tarihinde oluşturuldu
+                        {new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(appointment.createdAt)} tarihinde oluşturuldu
                       </div>
                     </TableCell>
                     <TableCell>
@@ -165,18 +164,18 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {format(appointment.date, "dd MMM yyyy", { locale: tr })}
+                        {formatTurkishDateShort(appointment.date.toISOString().split('T')[0])}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {format(appointment.date, "EEEE", { locale: tr })}
+                        {new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(appointment.date)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {format(new Date(`2000-01-01T${appointment.startTime}`), "HH:mm")}
+                        {appointment.startTime}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {format(new Date(`2000-01-01T${appointment.endTime}`), "HH:mm")} kadar
+                        {appointment.endTime} kadar
                       </div>
                     </TableCell>
                     <TableCell>

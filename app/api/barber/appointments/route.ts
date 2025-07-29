@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/date-time";
+// Luxon replaced with native Date
 
 const prisma = new PrismaClient();
 
@@ -79,17 +81,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate end time (45 minutes later)
-    const startDateTime = new Date(`2000-01-01T${startTime}:00`);
-    const endDateTime = new Date(startDateTime.getTime() + 45 * 60000); // Add 45 minutes
-    const endTime = endDateTime.toTimeString().substring(0, 5);
+    // Calculate end time (45 minutes later) using native Date
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const startDate = new Date(2000, 0, 1, hours, minutes);
+    const endDate = new Date(startDate.getTime() + 45 * 60 * 1000); // +45 minutes
+    const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
 
     // Check if time slot is still available
     const existingAppointment = await prisma.appointment.findFirst({
       where: {
         staffId,
-        date: new Date(date),
-        startTime: new Date(`2000-01-01T${startTime}:00`),
+        date: localDateToUTC(date),
+        startTime: createUTCTime(startTime),
       },
     });
 
@@ -118,9 +121,9 @@ export async function POST(request: NextRequest) {
         shopId: shop.id,
         customerId: customerId,
         staffId,
-        date: new Date(date),
-        startTime: new Date(`2000-01-01T${startTime}:00`),
-        endTime: new Date(`2000-01-01T${endTime}:00`),
+        date: localDateToUTC(date),
+        startTime: createUTCTime(startTime),
+        endTime: createUTCTime(endTime),
         status: "CONFIRMED", // Manual appointments are auto-confirmed
         notes: notes || null,
         manualCustomerName: customerType === "new" ? customerName : null,
@@ -157,9 +160,9 @@ export async function POST(request: NextRequest) {
       message: "Manual appointment created successfully",
       appointment: {
         id: appointment.id,
-        date: appointment.date.toISOString().split("T")[0],
-        startTime: appointment.startTime.toTimeString().substring(0, 5),
-        endTime: appointment.endTime.toTimeString().substring(0, 5),
+        date: utcToLocalDate(appointment.date), // YYYY-MM-DD format in local timezone
+        startTime: extractTimeString(appointment.startTime),
+        endTime: extractTimeString(appointment.endTime),
         status: appointment.status,
         customerName:
           appointment.manualCustomerName ||

@@ -27,8 +27,7 @@ import {
   Save,
   Search,
 } from "lucide-react";
-import { format, addDays, isAfter, isBefore } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatTurkishDate, dateToLocalString } from "@/lib/date-time";
 import { cn } from "@/lib/utils";
 import { BUSINESS_RULES } from "@/lib/constants";
 
@@ -90,7 +89,7 @@ export function NewAppointmentForm() {
 
     async function fetchTimeSlots() {
       try {
-        const dateStr = format(selectedDate!, "yyyy-MM-dd");
+        const dateStr = dateToLocalString(selectedDate!);
         const response = await fetch(
           `/api/time-slots?date=${dateStr}&staffId=${selectedStaff}`
         );
@@ -137,7 +136,7 @@ export function NewAppointmentForm() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          date: format(selectedDate!, 'yyyy-MM-dd'),
+          date: dateToLocalString(selectedDate!),
           staffId: selectedStaff,
           startTime: selectedTime,
           customerType,
@@ -167,10 +166,11 @@ export function NewAppointmentForm() {
   // Date validation - only allow future dates within booking window
   const isDateDisabled = (date: Date) => {
     const today = new Date();
-    const maxDate = addDays(today, BUSINESS_RULES.BOOKING_WINDOW_DAYS);
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + BUSINESS_RULES.BOOKING_WINDOW_DAYS);
     const isSunday = date.getDay() === 0; // Sunday is closed
 
-    return isBefore(date, today) || isAfter(date, maxDate) || isSunday;
+    return date < today || date > maxDate || isSunday;
   };
 
   return (
@@ -200,7 +200,7 @@ export function NewAppointmentForm() {
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {selectedDate ? (
-                        format(selectedDate, "PPP", { locale: tr })
+                        formatTurkishDate(dateToLocalString(selectedDate))
                       ) : (
                         <span>Tarih seçin</span>
                       )}
@@ -382,18 +382,18 @@ export function NewAppointmentForm() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tarih:</span>
                   <span className="font-medium">
-                    {format(selectedDate, "dd MMMM yyyy, EEEE", { locale: tr })}
+                    {formatTurkishDate(dateToLocalString(selectedDate))}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Saat:</span>
                   <span className="font-medium">
                     {selectedTime} -{" "}
-                    {format(
-                      new Date(`2000-01-01T${selectedTime}:00`).getTime() +
-                        45 * 60000,
-                      "HH:mm"
-                    )}
+                    {(() => {
+                      const endTime = new Date(`2000-01-01T${selectedTime}:00`);
+                      endTime.setMinutes(endTime.getMinutes() + 45);
+                      return endTime.toTimeString().slice(0, 5);
+                    })()}
                   </span>
                 </div>
                 <div className="flex justify-between">

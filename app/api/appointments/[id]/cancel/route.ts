@@ -1,6 +1,15 @@
-import { PrismaClient } from '@prisma/client';
+// app/api/appointments/[id]/cancel/route.ts
+
+import { PrismaClient } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  utcToLocalDate,
+  extractTimeString,
+  getHoursDifference,
+} from "@/lib/date-time";
+// Luxon replaced with native Date
+import { BUSINESS_RULES } from "@/lib/constants";
 
 const prisma = new PrismaClient();
 
@@ -49,21 +58,14 @@ export async function POST(
     }
 
     // Check if appointment can be cancelled (within business rules)
-    const appointmentDateTime = new Date(
-      `${appointment.date.toISOString().split("T")[0]}T${appointment.startTime
-        .toTimeString()
-        .substring(0, 8)}`
-    );
     const now = new Date();
-    const hoursDiff =
-      (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const appointmentDateTime = appointment.date; // Already in UTC
+    const hoursDiff = getHoursDifference(appointmentDateTime, now);
 
-    if (hoursDiff < 2) {
-      // BUSINESS_RULES.CANCELLATION_HOURS = 2
+    if (hoursDiff < BUSINESS_RULES.CANCELLATION_HOURS) {
       return NextResponse.json(
         {
-          error:
-            "Appointments can only be cancelled at least 2 hours in advance",
+          error: `Appointments can only be cancelled at least ${BUSINESS_RULES.CANCELLATION_HOURS} hours in advance`,
         },
         { status: 400 }
       );
@@ -101,14 +103,26 @@ export async function POST(
       },
     });
 
+    // Parse request body safely for future extensibility
+    let requestBody = {};
+    try {
+      const bodyText = await request.text();
+      if (bodyText.trim()) {
+        requestBody = JSON.parse(bodyText);
+      }
+    } catch (error) {
+      // Ignore JSON parse errors for empty or invalid bodies
+      console.log('Could not parse request body:', error);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Appointment cancelled successfully",
       appointment: {
         id: updatedAppointment.id,
-        date: updatedAppointment.date.toISOString().split("T")[0],
-        startTime: updatedAppointment.startTime.toTimeString().substring(0, 5),
-        endTime: updatedAppointment.endTime.toTimeString().substring(0, 5),
+        date: utcToLocalDate(updatedAppointment.date),
+        startTime: extractTimeString(updatedAppointment.startTime),
+        endTime: extractTimeString(updatedAppointment.endTime),
         status: updatedAppointment.status,
         staff: updatedAppointment.staff,
         shop: updatedAppointment.shop,

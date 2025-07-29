@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { extractTimeString, utcToLocalDate } from "@/lib/date-time";
+// Luxon replaced with native Date
 
 const prisma = new PrismaClient();
 
@@ -43,9 +45,9 @@ export async function GET() {
     // Format the response to match the expected interface
     const formattedAppointments = appointments.map((appointment) => ({
       id: appointment.id,
-      date: appointment.date.toISOString().split("T")[0], // YYYY-MM-DD format
-      startTime: appointment.startTime.toTimeString().substring(0, 5), // HH:MM format
-      endTime: appointment.endTime.toTimeString().substring(0, 5), // HH:MM format
+      date: utcToLocalDate(appointment.date), // YYYY-MM-DD format in local timezone
+      startTime: extractTimeString(appointment.startTime), // HH:MM format
+      endTime: extractTimeString(appointment.endTime), // HH:MM format
       status: appointment.status,
       notes: appointment.notes,
       staff: {

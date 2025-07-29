@@ -8,8 +8,15 @@
       "WebFetch(domain:nextjs.org)",
       "WebFetch(domain:www.prisma.io)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn-ui"
+  ]
 }

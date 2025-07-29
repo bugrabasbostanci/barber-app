@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { BUSINESS_RULES } from "@/lib/constants";
-import { addDays, isSunday, isAfter, startOfDay } from "date-fns";
+import { formatTurkishDate, dateToLocalString } from "@/lib/date-time";
 
 interface BookingData {
   date: string;
@@ -40,17 +40,17 @@ export default function BookAppointmentPage() {
     setIsBooking(true);
 
     try {
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: bookingData.date,
           staffId: bookingData.staffId,
-          startTime: bookingData.timeSlot
-        })
+          startTime: bookingData.timeSlot,
+        }),
       });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (response.ok && result.success) {
         // Redirect to success page
@@ -222,21 +222,23 @@ function DateSelection({
 }) {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
     Date | undefined
-  >(selectedDate ? new Date(selectedDate) : undefined);
+  >(selectedDate ? new Date(selectedDate + 'T00:00:00') : undefined);
 
   const today = new Date();
-  const maxDate = addDays(today, BUSINESS_RULES.BOOKING_WINDOW_DAYS - 1);
+  const maxDate = new Date();
+  maxDate.setDate(today.getDate() + BUSINESS_RULES.BOOKING_WINDOW_DAYS - 1);
 
   // Business rules: Disable Sundays and dates outside booking window
   const isDateDisabled = (date: Date) => {
-    // Pazarları kapat (CLOSED_DAYS: [0])
-    if (isSunday(date)) return true;
+    // Pazarları kapat (JavaScript: 0=Sunday)
+    if (date.getDay() === 0) return true;
 
-    // Bugünden önceki tarihler
-    if (!isAfter(date, startOfDay(addDays(today, -1)))) return true;
+    // Bugünden önceki tarihler (günün başlangıcından itibaren)
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (date < todayStart) return true;
 
-    // 7 günden sonraki tarihler
-    if (isAfter(date, maxDate)) return true;
+    // Maximum booking window'dan sonraki tarihler
+    if (date > maxDate) return true;
 
     return false;
   };
@@ -244,41 +246,13 @@ function DateSelection({
   const handleDateSelect = (date: Date | undefined) => {
     if (date && !isDateDisabled(date)) {
       setSelectedCalendarDate(date);
-      onDateSelect(date.toISOString().split("T")[0]); // YYYY-MM-DD format
+      // Native JavaScript ile timezone-safe dönüşüm
+      onDateSelect(dateToLocalString(date)); // YYYY-MM-DD format (local timezone korunur)
     }
   };
 
   const formatDisplayDate = (dateStr: string) => {
-    const date = new Date(dateStr + "T00:00:00");
-    const days = [
-      "Pazar",
-      "Pazartesi",
-      "Salı",
-      "Çarşamba",
-      "Perşembe",
-      "Cuma",
-      "Cumartesi",
-    ];
-    const months = [
-      "Ocak",
-      "Şubat",
-      "Mart",
-      "Nisan",
-      "Mayıs",
-      "Haziran",
-      "Temmuz",
-      "Ağustos",
-      "Eylül",
-      "Ekim",
-      "Kasım",
-      "Aralık",
-    ];
-
-    const dayName = days[date.getDay()];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-
-    return `${day} ${month} ${dayName}`;
+    return formatTurkishDate(dateStr);
   };
 
   return (
@@ -302,37 +276,15 @@ function DateSelection({
             onSelect={handleDateSelect}
             disabled={isDateDisabled}
             className="w-full"
-            styles={{
-              month: { width: "100%" },
-              table: { width: "100%" },
-              head_cell: {
-                textAlign: "center",
-                fontWeight: "normal",
-                color: "#6b7280",
-                fontSize: "0.875rem",
-              },
-              cell: {
-                textAlign: "center",
-                padding: "2px",
-              },
-              day: {
-                width: "36px",
-                height: "36px",
-                fontSize: "0.875rem",
-                borderRadius: "6px",
-              },
-              day_today: {
-                backgroundColor: "#f3f4f6",
-                fontWeight: "bold",
-              },
-              day_selected: {
-                backgroundColor: "#3b82f6",
-                color: "white",
-              },
-              day_disabled: {
-                color: "#d1d5db",
-                cursor: "not-allowed",
-              },
+            classNames={{
+              month: "w-full",
+              table: "w-full",
+              head_cell: "text-center font-normal text-gray-500 text-sm",
+              cell: "text-center p-0.5",
+              day: "h-9 w-9 text-sm rounded-md",
+              day_today: "bg-gray-100 font-bold",
+              day_selected: "bg-blue-500 text-white hover:bg-blue-500",
+              day_disabled: "text-gray-300 cursor-not-allowed opacity-50",
             }}
           />
         </div>
@@ -355,7 +307,7 @@ function DateSelection({
 
 interface Staff {
   id: string;
-  firstName: string;  
+  firstName: string;
   lastName: string;
   role: string;
 }
@@ -367,37 +319,42 @@ function StaffSelection({
   selectedStaff: string;
   onStaffSelect: (staffId: string) => void;
 }) {
-  const [staffMembers, setStaffMembers] = useState<Staff[]>([])
-  const [loading, setLoading] = useState(true)
+  const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch staff from database
   useEffect(() => {
     async function fetchStaff() {
       try {
-        const response = await fetch('/api/staff')
+        const response = await fetch("/api/staff");
         if (response.ok) {
-          const staffData = await response.json()
-          setStaffMembers(staffData)
+          const staffData = await response.json();
+          setStaffMembers(staffData);
         }
       } catch (error) {
-        console.error('Error fetching staff:', error)
+        console.error("Error fetching staff:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    
-    fetchStaff()
-  }, [])
+
+    fetchStaff();
+  }, []);
 
   if (loading) {
     return (
       <div className="space-y-4">
         <div className="text-center mb-4">
-          <p className="text-sm text-gray-600">Personel listesi yükleniyor...</p>
+          <p className="text-sm text-gray-600">
+            Personel listesi yükleniyor...
+          </p>
         </div>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 animate-pulse">
+            <div
+              key={i}
+              className="w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 animate-pulse"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
                 <div className="flex-1">
@@ -409,7 +366,7 @@ function StaffSelection({
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -494,35 +451,37 @@ function TimeSelection({
   date: string;
   staffId: string;
 }) {
-  const [timeSlots, setTimeSlots] = useState<string[]>([])
-  const [loading, setLoading] = useState(true)
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Fetch available time slots from API
   useEffect(() => {
     if (!date || !staffId) {
-      setTimeSlots([])
-      setLoading(false)
-      return
+      setTimeSlots([]);
+      setLoading(false);
+      return;
     }
 
     async function fetchTimeSlots() {
-      setLoading(true)
+      setLoading(true);
       try {
-        const response = await fetch(`/api/time-slots?date=${date}&staffId=${staffId}`)
+        const response = await fetch(
+          `/api/time-slots?date=${date}&staffId=${staffId}`
+        );
         if (response.ok) {
-          const availableSlots = await response.json()
-          setTimeSlots(availableSlots)
+          const availableSlots = await response.json();
+          setTimeSlots(availableSlots);
         }
       } catch (error) {
-        console.error('Error fetching time slots:', error)
-        setTimeSlots([])
+        console.error("Error fetching time slots:", error);
+        setTimeSlots([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    
-    fetchTimeSlots()
-  }, [date, staffId])
+
+    fetchTimeSlots();
+  }, [date, staffId]);
 
   if (loading) {
     return (
@@ -532,42 +491,18 @@ function TimeSelection({
         </div>
         <div className="grid grid-cols-3 gap-2">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-10 bg-gray-200 rounded animate-pulse"></div>
+            <div
+              key={i}
+              className="h-10 bg-gray-200 rounded animate-pulse"
+            ></div>
           ))}
         </div>
       </div>
-    )
+    );
   }
 
   const formatDateDisplay = (dateStr: string) => {
-    const date = new Date(dateStr + "T00:00:00");
-    const days = [
-      "Pazar",
-      "Pazartesi",
-      "Salı",
-      "Çarşamba",
-      "Perşembe",
-      "Cuma",
-      "Cumartesi",
-    ];
-    const months = [
-      "Ocak",
-      "Şubat",
-      "Mart",
-      "Nisan",
-      "Mayıs",
-      "Haziran",
-      "Temmuz",
-      "Ağustos",
-      "Eylül",
-      "Ekim",
-      "Kasım",
-      "Aralık",
-    ];
-
-    return `${date.getDate()} ${months[date.getMonth()]} ${
-      days[date.getDay()]
-    }`;
+    return formatTurkishDate(dateStr);
   };
 
   return (

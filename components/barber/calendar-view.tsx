@@ -9,15 +9,7 @@ import {
   ChevronRight,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import {
-  format,
-  addDays,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
-  isSameDay,
-} from "date-fns";
-import { tr } from "date-fns/locale";
+import { dateToLocalString } from "@/lib/date-time";
 import { cn } from "@/lib/utils";
 
 type ViewType = "day" | "week" | "month";
@@ -65,9 +57,17 @@ export function CalendarView() {
 
   const navigateDate = (direction: "prev" | "next") => {
     if (viewType === "day") {
-      setCurrentDate((prev) => addDays(prev, direction === "next" ? 1 : -1));
+      setCurrentDate((prev) => {
+        const newDate = new Date(prev);
+        newDate.setDate(prev.getDate() + (direction === "next" ? 1 : -1));
+        return newDate;
+      });
     } else if (viewType === "week") {
-      setCurrentDate((prev) => addDays(prev, direction === "next" ? 7 : -7));
+      setCurrentDate((prev) => {
+        const newDate = new Date(prev);
+        newDate.setDate(prev.getDate() + (direction === "next" ? 7 : -7));
+        return newDate;
+      });
     } else {
       setCurrentDate((prev) => {
         const newDate = new Date(prev);
@@ -79,27 +79,50 @@ export function CalendarView() {
 
   const getDateTitle = () => {
     if (viewType === "day") {
-      return format(currentDate, "dd MMMM yyyy, EEEE", { locale: tr });
+      return new Intl.DateTimeFormat('tr-TR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        weekday: 'long'
+      }).format(currentDate);
     } else if (viewType === "week") {
-      const start = startOfWeek(currentDate, { weekStartsOn: 1 });
-      const end = endOfWeek(currentDate, { weekStartsOn: 1 });
-      return `${format(start, "dd MMM", { locale: tr })} - ${format(
-        end,
-        "dd MMM yyyy",
-        { locale: tr }
-      )}`;
+      const start = new Date(currentDate);
+      const day = start.getDay();
+      const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
+      start.setDate(diff);
+      
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      
+      const startStr = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short' }).format(start);
+      const endStr = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end);
+      
+      return `${startStr} - ${endStr}`;
     } else {
-      return format(currentDate, "MMMM yyyy", { locale: tr });
+      return new Intl.DateTimeFormat('tr-TR', {
+        month: 'long',
+        year: 'numeric'
+      }).format(currentDate);
     }
   };
 
   const getWeekDays = () => {
-    const start = startOfWeek(currentDate, { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end: addDays(start, 6) });
+    const start = new Date(currentDate);
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
+    start.setDate(diff);
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(start);
+      day.setDate(start.getDate() + i);
+      days.push(day);
+    }
+    return days;
   };
 
   const getAppointmentsForDate = (date: Date) => {
-    const dateStr = format(date, "yyyy-MM-dd");
+    const dateStr = dateToLocalString(date);
     return appointments.filter((apt) => apt.date === dateStr);
   };
 
@@ -272,17 +295,17 @@ export function CalendarView() {
               {getWeekDays().map((day) => (
                 <div key={day.toISOString()} className="p-2 text-center">
                   <div className="text-sm font-medium">
-                    {format(day, "EEE", { locale: tr })}
+                    {new Intl.DateTimeFormat('tr-TR', { weekday: 'short' }).format(day)}
                   </div>
                   <div
                     className={cn(
                       "text-lg font-bold",
-                      isSameDay(day, new Date())
+                      dateToLocalString(day) === dateToLocalString(new Date())
                         ? "text-blue-600"
                         : "text-gray-900"
                     )}
                   >
-                    {format(day, "dd")}
+                    {day.getDate().toString().padStart(2, '0')}
                   </div>
                 </div>
               ))}

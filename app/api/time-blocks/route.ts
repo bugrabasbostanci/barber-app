@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { localDateToUTC, createUTCTime, extractTimeString } from "@/lib/date-time";
+// Luxon replaced with native Date
 
 const prisma = new PrismaClient();
 
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (date) {
-      whereClause.date = new Date(date);
+      whereClause.date = localDateToUTC(date);
     }
 
     const timeBlocks = await prisma.employeeUnavailableTime.findMany({
@@ -47,12 +49,12 @@ export async function GET(request: NextRequest) {
     // Format the response
     const formattedBlocks = timeBlocks.map((block) => ({
       id: block.id,
-      date: block.date.toISOString().split("T")[0],
+      date: block.date.toISOString().split('T')[0], // YYYY-MM-DD format
       startTime: block.startTime
-        ? block.startTime.toTimeString().substring(0, 5)
+        ? extractTimeString(block.startTime)
         : null,
       endTime: block.endTime
-        ? block.endTime.toTimeString().substring(0, 5)
+        ? extractTimeString(block.endTime)
         : null,
       reason: block.reason,
       isFullDay: !block.startTime || !block.endTime,
@@ -141,9 +143,9 @@ export async function POST(request: NextRequest) {
     const timeBlock = await prisma.employeeUnavailableTime.create({
       data: {
         staffId,
-        date: new Date(date),
-        startTime: isFullDay ? null : new Date(`2000-01-01T${startTime}:00`),
-        endTime: isFullDay ? null : new Date(`2000-01-01T${endTime}:00`),
+        date: localDateToUTC(date),
+        startTime: isFullDay ? null : createUTCTime(startTime),
+        endTime: isFullDay ? null : createUTCTime(endTime),
         reason,
       },
       include: {
@@ -161,12 +163,12 @@ export async function POST(request: NextRequest) {
       message: "Time block created successfully",
       timeBlock: {
         id: timeBlock.id,
-        date: timeBlock.date.toISOString().split("T")[0],
+        date: timeBlock.date.toISOString().split('T')[0], // YYYY-MM-DD format
         startTime: timeBlock.startTime
-          ? timeBlock.startTime.toTimeString().substring(0, 5)
+          ? extractTimeString(timeBlock.startTime)
           : null,
         endTime: timeBlock.endTime
-          ? timeBlock.endTime.toTimeString().substring(0, 5)
+          ? extractTimeString(timeBlock.endTime)
           : null,
         reason: timeBlock.reason,
         isFullDay: !timeBlock.startTime || !timeBlock.endTime,
