@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // GET - Fetch time blocks
 export async function GET(request: NextRequest) {

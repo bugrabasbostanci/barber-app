@@ -54,6 +54,8 @@ export async function syncExistingUsers() {
   } catch (error) {
     console.error("Error syncing users:", error);
     return { success: false, error: "Failed to sync users" };
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

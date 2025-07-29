@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client'
-import { createClient } from '@/lib/supabase/server'
 
 const prisma = new PrismaClient()
+import { createClient } from '@/lib/supabase/server'
 
 export async function getDashboardStats() {
   try {
@@ -48,6 +48,8 @@ export async function getDashboardStats() {
       activeStaff: 0,
       capacityUsage: 0
     }
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -103,6 +105,8 @@ export async function getTodayAppointments() {
   } catch (error) {
     console.error('Error fetching today appointments:', error)
     return []
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -149,6 +153,8 @@ export async function getRecentAppointments(limit = 10) {
   } catch (error) {
     console.error('Error fetching recent appointments:', error)
     return []
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -201,5 +207,7 @@ export async function checkUserRole() {
   } catch (error) {
     console.error('Error checking user role:', error)
     return null
+  } finally {
+    await prisma.$disconnect()
   }
 }
