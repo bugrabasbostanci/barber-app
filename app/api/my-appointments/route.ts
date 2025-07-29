@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { PrismaClient } from '@prisma/client';
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {

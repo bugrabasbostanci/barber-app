@@ -4,8 +4,7 @@ const nextConfig: NextConfig = {
   // Optimize for Cloudflare Pages deployment
   output: "standalone",
   
-  // External packages for server components
-  serverExternalPackages: ["@prisma/client"],
+  // Remove Prisma from external packages for Edge Runtime compatibility
   
   // Disable automatic runtime selection to prevent conflicts
   experimental: {
