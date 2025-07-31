@@ -212,7 +212,8 @@ export function CalendarView() {
 
   const getAppointmentsForDate = (date: Date) => {
     const dateStr = dateToLocalString(date);
-    return appointments.filter((apt) => apt.date === dateStr);
+    const filtered = appointments.filter((apt) => apt.date === dateStr);
+    return filtered;
   };
 
   const handleAppointmentClick = (appointment: Appointment) => {
@@ -442,11 +443,25 @@ export function CalendarView() {
                       {staffMembers.map((staff) => {
                         const staffAppointments = getAppointmentsForDate(
                           currentDate
-                        ).filter(
-                          (apt) =>
-                            apt.startTime.substring(0, 5) === timeSlot &&
-                            apt.staff.id === staff.id
-                        );
+                        ).filter((apt) => {
+                          // Exact match first
+                          if (apt.startTime.substring(0, 5) === timeSlot && apt.staff.id === staff.id) {
+                            return true;
+                          }
+                          
+                          // Flexible time matching for appointments that don't match exact slots
+                          const appointmentTime = apt.startTime.substring(0, 5);
+                          const [aptHour, aptMin] = appointmentTime.split(':').map(Number);
+                          const [slotHour, slotMin] = timeSlot.split(':').map(Number);
+                          
+                          const aptMinutes = aptHour * 60 + aptMin;
+                          const slotMinutes = slotHour * 60 + slotMin;
+                          
+                          // Show appointment in the closest time slot (within 30 minutes)
+                          const timeDiff = Math.abs(aptMinutes - slotMinutes);
+                          return timeDiff <= 30 && apt.staff.id === staff.id;
+                        });
+
 
                         return (
                           <div
@@ -560,9 +575,25 @@ export function CalendarView() {
                         {getWeekDays().map((day) => {
                           const dayAppointments = getAppointmentsForDate(
                             day
-                          ).filter(
-                            (apt) => apt.startTime.substring(0, 5) === timeSlot
-                          );
+                          ).filter((apt) => {
+                            // Exact match first
+                            if (apt.startTime.substring(0, 5) === timeSlot) {
+                              return true;
+                            }
+                            
+                            // Flexible time matching for appointments that don't match exact slots
+                            const appointmentTime = apt.startTime.substring(0, 5);
+                            const [aptHour, aptMin] = appointmentTime.split(':').map(Number);
+                            const [slotHour, slotMin] = timeSlot.split(':').map(Number);
+                            
+                            const aptMinutes = aptHour * 60 + aptMin;
+                            const slotMinutes = slotHour * 60 + slotMin;
+                            
+                            // Show appointment in the closest time slot (within 30 minutes)
+                            const timeDiff = Math.abs(aptMinutes - slotMinutes);
+                            return timeDiff <= 30;
+                          });
+
 
                           return (
                             <div
