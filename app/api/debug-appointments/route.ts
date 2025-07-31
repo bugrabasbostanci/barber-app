@@ -34,16 +34,34 @@ export async function GET(request: NextRequest) {
     // Get all shops
     const shops = await prisma.shop.findMany();
 
-    // Get all users
-    const allUsers = await prisma.user.findMany({
+    // Get all appointments with details
+    const allAppointments = await prisma.appointment.findMany({
       select: {
         id: true,
-        email: true,
-        role: true,
-        firstName: true,
-        lastName: true,
+        date: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        manualCustomerName: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        staff: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
       },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
     });
+
+    // Get today's date for comparison
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
 
     return NextResponse.json({
       environment: process.env.NODE_ENV,
@@ -56,10 +74,19 @@ export async function GET(request: NextRequest) {
         totalAppointments,
         activeAppointments,
         totalShops: shops.length,
-        totalUsers: allUsers.length,
       },
+      dateInfo: {
+        serverTime: new Date().toISOString(),
+        todayStr,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      appointments: allAppointments.map(apt => ({
+        ...apt,
+        date: apt.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        startTime: apt.startTime.toISOString().split('T')[1].slice(0, 5), // Format as HH:MM
+        endTime: apt.endTime.toISOString().split('T')[1].slice(0, 5),
+      })),
       shops,
-      users: allUsers,
     });
   } catch (error) {
     console.error("Debug error:", error);
