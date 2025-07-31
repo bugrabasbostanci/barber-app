@@ -14,6 +14,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get query parameters to simulate calendar request
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+
     // Get user from database
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
@@ -63,6 +68,47 @@ export async function GET(request: NextRequest) {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
 
+    // If date range is provided, test the same filtering logic
+    let filteredAppointments = allAppointments;
+    if (startDate && endDate) {
+      const { localDateToUTC } = await import("@/lib/date-time");
+      const startUTC = localDateToUTC(startDate);
+      const endUTC = localDateToUTC(endDate);
+      
+      filteredAppointments = await prisma.appointment.findMany({
+        where: {
+          status: {
+            notIn: ["CANCELLED"],
+          },
+          date: {
+            gte: startUTC,
+            lte: endUTC,
+          },
+        },
+        select: {
+          id: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          status: true,
+          manualCustomerName: true,
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+          staff: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      });
+    }
+
     return NextResponse.json({
       environment: process.env.NODE_ENV,
       currentUser: {
@@ -79,6 +125,7 @@ export async function GET(request: NextRequest) {
         serverTime: new Date().toISOString(),
         todayStr,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        queryParams: { startDate, endDate },
       },
       appointments: allAppointments.map(apt => ({
         ...apt,
@@ -86,6 +133,12 @@ export async function GET(request: NextRequest) {
         startTime: apt.startTime.toISOString().split('T')[1].slice(0, 5), // Format as HH:MM
         endTime: apt.endTime.toISOString().split('T')[1].slice(0, 5),
       })),
+      filteredAppointments: startDate && endDate ? filteredAppointments.map(apt => ({
+        ...apt,
+        date: apt.date.toISOString().split('T')[0],
+        startTime: apt.startTime.toISOString().split('T')[1].slice(0, 5),
+        endTime: apt.endTime.toISOString().split('T')[1].slice(0, 5),
+      })) : null,
       shops,
     });
   } catch (error) {
