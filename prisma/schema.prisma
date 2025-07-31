@@ -74,7 +74,8 @@ model Appointment {
   staff     User  @relation("StaffAppointments", fields: [staffId], references: [id])
   createdBy User? @relation("CreatedAppointments", fields: [createdById], references: [id])
 
-  @@unique([staffId, date, startTime])
+  // Removed unique constraint to allow rebooking after cancellation
+  // Business logic will handle conflicts for active appointments
   @@map("appointments")
 }
 

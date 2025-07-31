@@ -64,16 +64,16 @@ export function utcToLocalDateTime(date: Date): {
 }
 
 /**
- * Sadece saat bilgisi için Date oluşturur (2000-01-01 bazlı)
+ * Sadece saat bilgisi için Date oluşturur (1970-01-01 bazlı)
  * @param timeStr - "14:30" formatında saat
  */
 export function createUTCTime(timeStr: string): Date {
-  return new Date(`2000-01-01T${timeStr}:00`);
+  return new Date(`1970-01-01T${timeStr}:00`);
 }
 
 /**
  * Date objesinden saat string'i çıkarır
- * @param date - Date objesi (2000-01-01 bazlı)
+ * @param date - Date objesi (1970-01-01 bazlı)
  */
 export function extractTimeString(date: Date): string {
   return utcToLocalTime(date);

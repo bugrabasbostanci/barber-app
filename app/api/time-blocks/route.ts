@@ -19,6 +19,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user has BARBER or ADMIN role
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    });
+
+    if (!dbUser || !["BARBER", "ADMIN"].includes(dbUser.role)) {
+      return NextResponse.json(
+        { error: "Bu işlemi gerçekleştirmek için berber yetkisi gerekli" },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const staffId = searchParams.get("staffId");
     const date = searchParams.get("date");

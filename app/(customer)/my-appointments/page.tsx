@@ -4,17 +4,10 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/hooks/useAuth";
+import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import { BUSINESS_RULES } from "@/lib/constants";
 import {
   Calendar,
@@ -48,18 +41,20 @@ interface Appointment {
 }
 
 function MyAppointmentsContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAuthorized } = useRequireCustomer();
   const searchParams = useSearchParams();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("upcoming");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Check for success parameter and show success message
   useEffect(() => {
-    const success = searchParams.get('success');
-    if (success === 'true') {
+    const success = searchParams.get("success");
+    if (success === "true") {
+      setSuccessMessage("Randevunuz başarıyla oluşturuldu!");
       setShowSuccessMessage(true);
       // Hide success message after 5 seconds
       const timer = setTimeout(() => {
@@ -74,21 +69,21 @@ function MyAppointmentsContent() {
     if (user) {
       async function fetchAppointments() {
         try {
-          const response = await fetch('/api/my-appointments')
+          const response = await fetch("/api/my-appointments");
           if (response.ok) {
-            const appointmentsData = await response.json()
-            setAppointments(appointmentsData)
+            const appointmentsData = await response.json();
+            setAppointments(appointmentsData);
           } else {
-            console.error('Failed to fetch appointments')
-            setAppointments([])
+            console.error("Failed to fetch appointments");
+            setAppointments([]);
           }
         } catch (error) {
-          console.error('Error fetching appointments:', error)
-          setAppointments([])
+          console.error("Error fetching appointments:", error);
+          setAppointments([]);
         }
       }
-      
-      fetchAppointments()
+
+      fetchAppointments();
     }
   }, [user]);
 
@@ -117,11 +112,7 @@ function MyAppointmentsContent() {
     };
 
     const config = statusConfig[status];
-    return (
-      <Badge variant={config.variant}>
-        {config.label}
-      </Badge>
-    );
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   const formatDate = (dateStr: string) => {
@@ -199,12 +190,15 @@ function MyAppointmentsContent() {
     setCancellingId(appointmentId);
 
     try {
-      const response = await fetch(`/api/appointments/${appointmentId}/cancel`, { 
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `/api/appointments/${appointmentId}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       const result = await response.json();
 
@@ -219,9 +213,11 @@ function MyAppointmentsContent() {
         );
 
         setShowCancelDialog(null);
-        
-        // Optional: Show success message
-        alert("Randevunuz başarıyla iptal edildi.");
+
+        // Show success message in a better way
+        setSuccessMessage("Randevunuz başarıyla iptal edildi");
+        setShowSuccessMessage(true);
+        setTimeout(() => setShowSuccessMessage(false), 3000);
       } else {
         // Show error message from API
         alert(result.error || "Randevu iptal edilirken bir hata oluştu.");
@@ -245,58 +241,44 @@ function MyAppointmentsContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <header className="bg-white shadow-sm sticky top-0 z-50">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-8 w-16" />
-              <Skeleton className="h-6 w-24" />
-              <Skeleton className="h-8 w-20" />
-            </div>
+        <div className="max-w-4xl mx-auto py-6 px-4">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-2 text-gray-600">
+              Yetkilendirme kontrol ediliyor...
+            </p>
           </div>
-        </header>
-        <main className="px-4 py-6 max-w-4xl mx-auto">
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <Card key={i}>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </main>
+        </div>
       </div>
     );
   }
 
-  if (!user) {
+  // Show error if not authorized
+  if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center">
-        <Card className="w-full max-w-md mx-4">
-          <CardHeader className="text-center">
-            <CardTitle>Giriş Gerekli</CardTitle>
-            <CardDescription>
-              Randevularınızı görmek için giriş yapmalısınız
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Link href="/auth/login">
-              <Button className="w-full">Giriş Yap</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="max-w-4xl mx-auto py-6 px-4">
+          <Alert variant="destructive" className="mt-4">
+            <AlertDescription>
+              Bu sayfaya erişim yetkiniz bulunmuyor. Randevularınızı
+              görüntüleyebilmek için müşteri hesabı ile giriş yapmanız
+              gerekiyor.
+            </AlertDescription>
+          </Alert>
+          <div className="mt-4 text-center">
+            <Button asChild>
+              <Link href="/auth/login">Giriş Yap</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-background">
       {/* Mobile Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <Link href="/">
@@ -304,9 +286,7 @@ function MyAppointmentsContent() {
                 ← Ana Sayfa
               </Button>
             </Link>
-            <h1 className="text-lg font-semibold text-gray-900">
-              Randevularım
-            </h1>
+            <h1 className="text-lg font-semibold">Randevularım</h1>
             <Link href="/book-appointment">
               <Button size="sm">+ Yeni Randevu</Button>
             </Link>
@@ -315,92 +295,94 @@ function MyAppointmentsContent() {
       </header>
 
       <main className="px-4 py-6 max-w-4xl mx-auto">
-        {/* Success Message */}
+        {/* Modern Success Message */}
         {showSuccessMessage && (
-          <Alert className="mb-6">
-            <CheckCircle className="h-4 w-4" />
-            <AlertDescription>
-              <div className="flex items-center justify-between">
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </div>
                 <div>
-                  <strong>Randevunuz Başarıyla Oluşturuldu!</strong>
-                  <p className="text-sm mt-1">
-                    Randevunuz sistem tarafından onaylandı. Detayları aşağıda görebilirsiniz.
+                  <p className="font-medium text-green-800">{successMessage}</p>
+                  <p className="text-sm text-green-600 mt-1">
+                    İşlem başarıyla tamamlandı
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowSuccessMessage(false)}
-                  className="ml-auto"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
-            </AlertDescription>
-          </Alert>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSuccessMessage(false)}
+                className="text-green-600 hover:text-green-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6 bg-white p-1 rounded-lg shadow-sm">
+        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-lg">
           {[
-            { key: "upcoming", label: "Yaklaşan" },
+            { key: "upcoming", label: "Aktif" },
             { key: "past", label: "Geçmiş" },
             { key: "all", label: "Tümü" },
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setFilter(tab.key as typeof filter)}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
                 filter === tab.key
-                  ? "bg-blue-500 text-white"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {tab.label} ({filterAppointments(appointments).length})
+              {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Appointments List */}
+        {/* Empty State */}
         {filteredAppointments.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="text-center py-12 space-y-4">
+            <Calendar className="mx-auto h-16 w-16 text-muted-foreground" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium">
                 {filter === "upcoming"
-                  ? "Yaklaşan randevunuz yok"
+                  ? "Aktif randevunuz yok"
                   : filter === "past"
                   ? "Geçmiş randevunuz yok"
                   : "Randevunuz yok"}
               </h3>
-              <p className="text-gray-500 mb-6">
-                Yeni bir randevu oluşturmak için aşağıdaki butona tıklayın
+              <p className="text-muted-foreground">
+                Yeni randevu oluşturmak için butona tıklayın
               </p>
-              <Link href="/book-appointment">
-                <Button>Randevu Al</Button>
-              </Link>
-            </CardContent>
-          </Card>
+            </div>
+            <Button asChild>
+              <Link href="/book-appointment">Randevu Al</Link>
+            </Button>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filteredAppointments.map((appointment) => (
-              <Card key={appointment.id} className="overflow-hidden">
+              <Card
+                key={appointment.id}
+                className="border-l-4 border-l-foreground"
+              >
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-gray-900">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">
                           {formatDate(appointment.date)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">
                           {appointment.startTime} - {appointment.endTime}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({BUSINESS_RULES.APPOINTMENT_DURATION} dk)
                         </span>
                       </div>
                     </div>
@@ -409,75 +391,68 @@ function MyAppointmentsContent() {
 
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
                         {appointment.staff.firstName}{" "}
                         {appointment.staff.lastName}
                       </span>
-                      <Badge
-                        variant={appointment.staff.role === "BARBER" ? "secondary" : "outline"}
-                      >
-                        {appointment.staff.role === "BARBER"
-                          ? "Usta Berber"
-                          : "Berber"}
-                      </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-700">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
                         {appointment.shop.address}
                       </span>
                     </div>
                   </div>
 
                   {appointment.notes && (
-                    <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                      <p className="text-sm text-gray-700">
-                        {appointment.notes}
-                      </p>
+                    <div className="bg-muted p-3 rounded-lg mb-4">
+                      <p className="text-sm">{appointment.notes}</p>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2 pt-2 border-t">
-                    {canCancelAppointment(appointment) && (
+                  {canCancelAppointment(appointment) && (
+                    <div className="pt-3 border-t">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="w-full text-destructive hover:text-destructive"
                         onClick={() => openCancelDialog(appointment.id)}
                         disabled={cancellingId === appointment.id}
                       >
-                        <AlertCircle className="h-4 w-4 mr-1" />
+                        <AlertCircle className="h-4 w-4 mr-2" />
                         {cancellingId === appointment.id
                           ? "İptal Ediliyor..."
-                          : "İptal Et"}
+                          : "Randevuyu İptal Et"}
                       </Button>
-                    )}
-                    <Button variant="outline" size="sm">
-                      Detaylar
-                    </Button>
-                  </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
 
-        {/* Cancellation Confirmation Dialog */}
+        {/* Modern Cancellation Dialog */}
         {showCancelDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
-            <Card className="w-full max-w-md">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-3">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm animate-in fade-in-0 zoom-in-95 duration-200">
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                    <AlertCircle className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Randevuyu İptal Et
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Bu işlem geri alınamaz
+                    </p>
+                  </div>
                 </div>
-                <CardTitle className="text-lg">Randevuyu İptal Et</CardTitle>
-                <CardDescription>
-                  Bu randevuyu iptal etmek istediğinizden emin misiniz?
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+
                 {(() => {
                   const appointment = appointments.find(
                     (apt) => apt.id === showCancelDialog
@@ -485,31 +460,20 @@ function MyAppointmentsContent() {
                   if (!appointment) return null;
 
                   return (
-                    <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                      <div className="text-sm space-y-1">
-                        <p>
-                          <strong>Tarih:</strong> {formatDate(appointment.date)}
-                        </p>
-                        <p>
-                          <strong>Saat:</strong> {appointment.startTime} -{" "}
-                          {appointment.endTime}
-                        </p>
-                        <p>
-                          <strong>Personel:</strong>{" "}
+                    <div className="bg-gray-50 rounded-lg p-3 mb-6">
+                      <div className="text-sm text-gray-700">
+                        <div className="font-medium">
+                          {formatDate(appointment.date)} •{" "}
+                          {appointment.startTime}
+                        </div>
+                        <div className="text-gray-600 mt-1">
                           {appointment.staff.firstName}{" "}
                           {appointment.staff.lastName}
-                        </p>
+                        </div>
                       </div>
                     </div>
                   );
                 })()}
-
-                <Alert variant="destructive" className="mb-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    <strong>Uyarı:</strong> İptal edilen randevular geri alınamaz.
-                  </AlertDescription>
-                </Alert>
 
                 <div className="flex gap-3">
                   <Button
@@ -518,30 +482,28 @@ function MyAppointmentsContent() {
                     className="flex-1"
                     disabled={cancellingId === showCancelDialog}
                   >
-                    <X className="h-4 w-4 mr-1" />
                     Vazgeç
                   </Button>
                   <Button
-                    variant="destructive"
+                    className="flex-1 bg-red-600 hover:bg-red-700"
                     onClick={() =>
                       showCancelDialog &&
                       handleCancelAppointment(showCancelDialog)
                     }
-                    className="flex-1"
                     disabled={cancellingId === showCancelDialog}
                   >
                     {cancellingId === showCancelDialog ? (
-                      "İptal Ediliyor..."
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        İptal Ediliyor
+                      </div>
                     ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Evet, İptal Et
-                      </>
+                      "İptal Et"
                     )}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
       </main>
@@ -551,20 +513,22 @@ function MyAppointmentsContent() {
 
 export default function MyAppointmentsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <header className="bg-white shadow-sm sticky top-0 z-50">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-center">
-              <div className="text-lg font-semibold text-gray-900">
-                Yükleniyor...
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+          <header className="bg-white shadow-sm sticky top-0 z-50">
+            <div className="px-4 py-3">
+              <div className="flex items-center justify-center">
+                <div className="text-lg font-semibold text-gray-900">
+                  Yükleniyor...
+                </div>
               </div>
             </div>
-          </div>
-        </header>
-      </div>
-    }>
+          </header>
+        </div>
+      }
+    >
       <MyAppointmentsContent />
     </Suspense>
-  )
+  );
 }

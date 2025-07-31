@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Calendar } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
 import { CalendarView } from "@/components/barber/calendar-view";
 
@@ -16,28 +16,25 @@ export default async function BarberCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild>
                 <Link href="/barber/dashboard">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Geri
                 </Link>
               </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Takvim Yönetimi
-                </h1>
-                <p className="mt-2 text-gray-600">
-                  Randevuları görüntüleyin ve yönetin
-                </p>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                <h1 className="text-xl font-semibold">Takvim</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button asChild>
+              <Button asChild size="sm">
                 <Link href="/barber/appointments/new">
                   <Plus className="h-4 w-4 mr-2" />
                   Yeni Randevu
@@ -46,9 +43,12 @@ export default async function BarberCalendar() {
             </div>
           </div>
         </div>
+      </header>
 
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <CalendarView />
-      </div>
+      </main>
     </div>
   );
 }

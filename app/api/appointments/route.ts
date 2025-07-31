@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import {
   localDateToUTC,
-  localDateTimeToUTC,
   createUTCTime,
   extractTimeString,
   utcToLocalDate,
@@ -80,10 +79,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Only CUSTOMER role users can create appointments
+    if (dbUser.role !== 'CUSTOMER') {
+      return NextResponse.json(
+        { error: "Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı" },
+        { status: 403 }
+      );
+    }
+
     // Convert local date/time to UTC for storage
     const appointmentDateUTC = localDateToUTC(date);
-    const appointmentStartDateTime = localDateTimeToUTC(date, startTime);
-    const appointmentEndDateTime = localDateTimeToUTC(date, endTime);
 
     // Check if time slot is still available
     const existingAppointment = await prisma.appointment.findFirst({

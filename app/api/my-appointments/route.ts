@@ -18,6 +18,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user exists and has CUSTOMER role
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    });
+
+    if (!dbUser || dbUser.role !== 'CUSTOMER') {
+      return NextResponse.json(
+        { error: "Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı" },
+        { status: 403 }
+      );
+    }
+
     // Get user's appointments
     const appointments = await prisma.appointment.findMany({
       where: {

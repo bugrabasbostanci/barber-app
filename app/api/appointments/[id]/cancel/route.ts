@@ -28,6 +28,18 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if user has CUSTOMER role
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    });
+
+    if (!dbUser || dbUser.role !== 'CUSTOMER') {
+      return NextResponse.json(
+        { error: "Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı" },
+        { status: 403 }
+      );
+    }
+
     const { id: appointmentId } = await params;
 
     // Find the appointment and verify ownership
@@ -104,11 +116,10 @@ export async function POST(
     });
 
     // Parse request body safely for future extensibility
-    let requestBody = {};
     try {
       const bodyText = await request.text();
       if (bodyText.trim()) {
-        requestBody = JSON.parse(bodyText);
+        JSON.parse(bodyText);
       }
     } catch (error) {
       // Ignore JSON parse errors for empty or invalid bodies

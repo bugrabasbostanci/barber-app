@@ -6,6 +6,110 @@ import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from
 
 const prisma = new PrismaClient();
 
+// GET - Fetch appointments for barber dashboard
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user has BARBER or ADMIN role
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    });
+
+    if (!dbUser || !["BARBER", "ADMIN"].includes(dbUser.role)) {
+      return NextResponse.json(
+        {
+          error: "Only barbers and admins can view appointments",
+        },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+
+    // Build where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const whereClause: any = {
+      status: {
+        notIn: ["CANCELLED" as const],
+      },
+    };
+
+    // Add date range filter if provided
+    if (startDate && endDate) {
+      whereClause.date = {
+        gte: localDateToUTC(startDate),
+        lte: localDateToUTC(endDate),
+      };
+    }
+
+    // Get appointments
+    const appointments = await prisma.appointment.findMany({
+      where: whereClause,
+      include: {
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+        staff: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
+        shop: {
+          select: {
+            name: true,
+            address: true,
+          },
+        },
+      },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
+    });
+
+    // Format the response
+    const formattedAppointments = appointments.map((appointment) => ({
+      id: appointment.id,
+      date: utcToLocalDate(appointment.date),
+      startTime: extractTimeString(appointment.startTime),
+      endTime: extractTimeString(appointment.endTime),
+      status: appointment.status,
+      notes: appointment.notes,
+      customer: appointment.customer,
+      manualCustomerName: appointment.manualCustomerName,
+      manualCustomerPhone: appointment.manualCustomerPhone,
+      staff: appointment.staff,
+      shop: appointment.shop,
+      createdAt: appointment.createdAt.toISOString(),
+    }));
+
+    return NextResponse.json(formattedAppointments);
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -52,7 +156,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (customerType === "new" && (!customerName || !customerPhone)) {
+    if (customerType === "new" && (!customerName?.trim() || !customerPhone?.trim())) {
       return NextResponse.json(
         {
           error: "Customer name and phone are required for new customers",
@@ -125,9 +229,9 @@ export async function POST(request: NextRequest) {
         startTime: createUTCTime(startTime),
         endTime: createUTCTime(endTime),
         status: "CONFIRMED", // Manual appointments are auto-confirmed
-        notes: notes || null,
-        manualCustomerName: customerType === "new" ? customerName : null,
-        manualCustomerPhone: customerType === "new" ? customerPhone : null,
+        notes: notes?.trim() || null,
+        manualCustomerName: customerType === "new" ? customerName?.trim() : null,
+        manualCustomerPhone: customerType === "new" ? customerPhone?.trim() : null,
       },
       include: {
         customer:

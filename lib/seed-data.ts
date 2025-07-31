@@ -67,36 +67,6 @@ export async function seedTestData() {
   }
 }
 
-export async function getStaffMembers() {
-  try {
-    const staff = await prisma.user.findMany({
-      where: {
-        role: {
-          in: ["EMPLOYEE", "BARBER"],
-        },
-        isActive: true,
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-      },
-      orderBy: [
-        { role: "desc" }, // BARBER first
-        { firstName: "asc" },
-      ],
-    });
-
-    return staff;
-  } catch (error) {
-    console.error("Error fetching staff members:", error);
-    return [];
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
 export async function getAvailableTimeSlots(
   dateStr: string,
   staffId: string,
@@ -123,6 +93,7 @@ export async function getAvailableTimeSlots(
       },
     });
 
+
     // Get unavailable times for this staff member
     const unavailableTimes = await prisma.employeeUnavailableTime.findMany({
       where: {
@@ -137,24 +108,35 @@ export async function getAvailableTimeSlots(
 
     // Generate all possible time slots
     const allSlots: string[] = [];
-    
+
     // Parse working hours properly
-    const [startHour, startMinute] = BUSINESS_RULES.WORKING_HOURS.start.split(":").map(Number);
-    const [endHour, endMinute] = BUSINESS_RULES.WORKING_HOURS.end.split(":").map(Number);
-    
+    const [startHour, startMinute] = BUSINESS_RULES.WORKING_HOURS.start
+      .split(":")
+      .map(Number);
+    const [endHour, endMinute] = BUSINESS_RULES.WORKING_HOURS.end
+      .split(":")
+      .map(Number);
+
     // Convert to minutes from midnight for easier calculation
     const startMinutes = startHour * 60 + startMinute; // 09:30 = 570 minutes
     const endMinutes = endHour * 60 + endMinute; // 21:30 = 1290 minutes
-    
+
     // Generate slots from start time
-    for (let currentMinutes = startMinutes; currentMinutes < endMinutes; currentMinutes += BUSINESS_RULES.APPOINTMENT_DURATION) {
+    for (
+      let currentMinutes = startMinutes;
+      currentMinutes < endMinutes;
+      currentMinutes += BUSINESS_RULES.APPOINTMENT_DURATION
+    ) {
       // Check if slot + duration fits within working hours
-      const slotEndMinutes = currentMinutes + BUSINESS_RULES.APPOINTMENT_DURATION;
-      
+      const slotEndMinutes =
+        currentMinutes + BUSINESS_RULES.APPOINTMENT_DURATION;
+
       if (slotEndMinutes <= endMinutes) {
         const hour = Math.floor(currentMinutes / 60);
         const minute = currentMinutes % 60;
-        const timeStr = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+        const timeStr = `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`;
         allSlots.push(timeStr);
       }
     }
@@ -211,6 +193,36 @@ export async function getAvailableTimeSlots(
     return availableSlots;
   } catch (error) {
     console.error("Error getting available time slots:", error);
+    return [];
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function getStaffMembers() {
+  const prisma = new PrismaClient();
+
+  try {
+    const staff = await prisma.user.findMany({
+      where: {
+        role: {
+          in: ["EMPLOYEE", "BARBER"],
+        },
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      },
+      orderBy: {
+        firstName: "asc",
+      },
+    });
+
+    return staff;
+  } catch (error) {
+    console.error("Error fetching staff members:", error);
     return [];
   } finally {
     await prisma.$disconnect();

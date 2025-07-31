@@ -178,46 +178,50 @@ export function WorkingHoursSettings() {
         {Object.entries(schedule).map(([day, daySchedule]) => (
           <Card key={day}>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-24">
-                    <Label className="text-base font-medium">
-                      {dayNames[day as keyof typeof dayNames]}
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={daySchedule.isOpen}
-                      onCheckedChange={(checked) =>
-                        updateDaySchedule(
-                          day as keyof WeekSchedule,
-                          "isOpen",
-                          checked
-                        )
-                      }
-                    />
-                    {daySchedule.isOpen ? (
-                      <Badge
-                        variant="outline"
-                        className="text-green-600 border-green-600"
-                      >
-                        Açık
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="text-red-600 border-red-600"
-                      >
-                        Kapalı
-                      </Badge>
-                    )}
+              <div className="space-y-4">
+                {/* Day name and status */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-24">
+                      <Label className="text-base font-medium">
+                        {dayNames[day as keyof typeof dayNames]}
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={daySchedule.isOpen}
+                        onCheckedChange={(checked) =>
+                          updateDaySchedule(
+                            day as keyof WeekSchedule,
+                            "isOpen",
+                            checked
+                          )
+                        }
+                      />
+                      {daySchedule.isOpen ? (
+                        <Badge
+                          variant="outline"
+                          className="text-green-600 border-green-600"
+                        >
+                          Açık
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-red-600 border-red-600"
+                        >
+                          Kapalı
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
+                {/* Time inputs - responsive layout */}
                 {daySchedule.isOpen && (
-                  <div className="flex items-center gap-4">
+                  <div className="sm:ml-28 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor={`${day}-start`} className="text-sm">
+                      <Label htmlFor={`${day}-start`} className="text-sm whitespace-nowrap w-16">
                         Başlangıç:
                       </Label>
                       <Input
@@ -231,11 +235,11 @@ export function WorkingHoursSettings() {
                             e.target.value
                           )
                         }
-                        className="w-32"
+                        className="flex-1 max-w-32"
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <Label htmlFor={`${day}-end`} className="text-sm">
+                      <Label htmlFor={`${day}-end`} className="text-sm whitespace-nowrap w-16">
                         Bitiş:
                       </Label>
                       <Input
@@ -249,7 +253,7 @@ export function WorkingHoursSettings() {
                             e.target.value
                           )
                         }
-                        className="w-32"
+                        className="flex-1 max-w-32"
                       />
                     </div>
                   </div>

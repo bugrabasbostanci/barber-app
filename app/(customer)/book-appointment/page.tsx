@@ -1,18 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { formatTurkishDate, dateToLocalString } from "@/lib/date-time";
+import { useRequireCustomer } from "@/hooks/useRequireAuth";
 
 interface BookingData {
   date: string;
@@ -20,7 +18,12 @@ interface BookingData {
   timeSlot: string;
 }
 
+interface UserProfile {
+  phone: string | null;
+}
+
 export default function BookAppointmentPage() {
+  const { loading, isAuthorized } = useRequireCustomer();
   const [currentStep, setCurrentStep] = useState(1);
   const [bookingData, setBookingData] = useState<BookingData>({
     date: "",
@@ -28,6 +31,66 @@ export default function BookAppointmentPage() {
     timeSlot: "",
   });
   const [isBooking, setIsBooking] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile>({ phone: null });
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [notes, setNotes] = useState("");
+
+  // Fetch user profile to check phone number
+  useEffect(() => {
+    async function fetchUserProfile() {
+      try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const profile = await response.json();
+          setUserProfile(profile);
+          setPhoneNumber(profile.phone || "");
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    }
+
+    if (isAuthorized) {
+      fetchUserProfile();
+    }
+  }, [isAuthorized]);
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="max-w-4xl mx-auto py-6 px-4">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-2 text-gray-600">
+              Yetkilendirme kontrol ediliyor...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if not authorized
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+        <div className="max-w-4xl mx-auto py-6 px-4">
+          <Alert variant="destructive" className="mt-4">
+            <AlertDescription>
+              Bu sayfaya erişim yetkiniz bulunmuyor. Randevu alabilmek için
+              müşteri hesabı ile giriş yapmanız gerekiyor.
+            </AlertDescription>
+          </Alert>
+          <div className="mt-4 text-center">
+            <Button asChild>
+              <Link href="/auth/login">Giriş Yap</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const updateBookingData = (field: keyof BookingData, value: string) => {
     setBookingData((prev) => ({ ...prev, [field]: value }));
@@ -40,6 +103,21 @@ export default function BookAppointmentPage() {
     setIsBooking(true);
 
     try {
+      // If phone number is provided and different from profile, update profile first
+      if (phoneNumber && phoneNumber !== userProfile.phone) {
+        const profileResponse = await fetch("/api/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: phoneNumber }),
+        });
+
+        if (!profileResponse.ok) {
+          alert("Telefon numarası güncellenemedi.");
+          setIsBooking(false);
+          return;
+        }
+      }
+
       const response = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,6 +125,7 @@ export default function BookAppointmentPage() {
           date: bookingData.date,
           staffId: bookingData.staffId,
           startTime: bookingData.timeSlot,
+          notes: notes.trim() || null,
         }),
       });
 
@@ -67,9 +146,9 @@ export default function BookAppointmentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+    <div className="min-h-screen bg-background">
       {/* Mobile Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <Link href="/">
@@ -77,40 +156,40 @@ export default function BookAppointmentPage() {
                 ← Ana Sayfa
               </Button>
             </Link>
-            <h1 className="text-lg font-semibold text-gray-900">Randevu Al</h1>
+            <h1 className="text-lg font-semibold">Randevu Al</h1>
             <div className="w-20"></div>
           </div>
         </div>
       </header>
 
       {/* Progress Steps */}
-      <div className="px-4 py-4">
-        <div className="max-w-md mx-auto">
+      <div className="px-4 py-4 border-b">
+        <div className="max-w-sm mx-auto">
           <div className="flex items-center justify-between">
             {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
                     step <= currentStep
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-500"
+                      ? "bg-foreground text-background"
+                      : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {step}
                 </div>
                 {step < 4 && (
                   <div
-                    className={`w-12 h-1 mx-2 ${
-                      step < currentStep ? "bg-blue-500" : "bg-gray-200"
+                    className={`w-8 h-0.5 mx-2 ${
+                      step < currentStep ? "bg-foreground" : "bg-muted"
                     }`}
                   />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-2 text-xs text-gray-500">
+          <div className="flex justify-between mt-3 text-xs text-muted-foreground">
             <span>Tarih</span>
-            <span>Personel</span>
+            <span>Kişi</span>
             <span>Saat</span>
             <span>Onay</span>
           </div>
@@ -118,24 +197,27 @@ export default function BookAppointmentPage() {
       </div>
 
       {/* Main Content */}
-      <main className="px-4 pb-8">
-        <div className="max-w-md mx-auto">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-xl">
+      <main className="px-4 py-6">
+        <div className="max-w-sm mx-auto">
+          <div className="space-y-6">
+            {/* Step Title */}
+            <div className="text-center space-y-2">
+              <h2 className="text-xl font-semibold">
                 {currentStep === 1 && "Tarih Seçin"}
                 {currentStep === 2 && "Personel Seçin"}
                 {currentStep === 3 && "Saat Seçin"}
                 {currentStep === 4 && "Randevunuzu Onaylayın"}
-              </CardTitle>
-              <CardDescription>
+              </h2>
+              <p className="text-sm text-muted-foreground">
                 {currentStep === 1 && "Randevu almak istediğiniz tarihi seçin"}
                 {currentStep === 2 && "Sizinle ilgilenecek personeli seçin"}
                 {currentStep === 3 && "Uygun saat dilimini seçin"}
                 {currentStep === 4 && "Randevu bilgilerinizi kontrol edin"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </p>
+            </div>
+
+            {/* Step Content */}
+            <div className="space-y-4">
               {/* Step 1: Date Selection */}
               {currentStep === 1 && (
                 <DateSelection
@@ -166,16 +248,23 @@ export default function BookAppointmentPage() {
 
               {/* Step 4: Confirmation */}
               {currentStep === 4 && (
-                <BookingConfirmation bookingData={bookingData} />
+                <BookingConfirmation 
+                  bookingData={bookingData}
+                  phoneNumber={phoneNumber}
+                  onPhoneChange={setPhoneNumber}
+                  hasExistingPhone={!!userProfile.phone}
+                  notes={notes}
+                  onNotesChange={setNotes}
+                />
               )}
 
               {/* Navigation Buttons */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-6">
                 {currentStep > 1 && (
                   <Button
                     variant="outline"
                     onClick={prevStep}
-                    className="flex-1"
+                    className="flex-1 h-12"
                   >
                     Geri
                   </Button>
@@ -183,7 +272,7 @@ export default function BookAppointmentPage() {
                 {currentStep < 4 ? (
                   <Button
                     onClick={nextStep}
-                    className="flex-1"
+                    className="flex-1 h-12"
                     disabled={
                       (currentStep === 1 && !bookingData.date) ||
                       (currentStep === 2 && !bookingData.staffId) ||
@@ -194,18 +283,16 @@ export default function BookAppointmentPage() {
                   </Button>
                 ) : (
                   <Button
-                    className="flex-1"
+                    className="flex-1 h-12"
                     onClick={handleBookingConfirmation}
-                    disabled={isBooking}
+                    disabled={isBooking || !phoneNumber.trim()}
                   >
-                    {isBooking
-                      ? "Randevu Oluşturuluyor..."
-                      : "Randevuyu Onayla"}
+                    {isBooking ? "Oluşturuluyor..." : "Onayla"}
                   </Button>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -222,23 +309,58 @@ function DateSelection({
 }) {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
     Date | undefined
-  >(selectedDate ? new Date(selectedDate + 'T00:00:00') : undefined);
+  >(selectedDate ? new Date(selectedDate + "T00:00:00") : undefined);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
 
-  const today = new Date();
-  const maxDate = new Date();
-  maxDate.setDate(today.getDate() + BUSINESS_RULES.BOOKING_WINDOW_DAYS - 1);
+  const today = useMemo(() => new Date(), []);
+  const maxDate = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + BUSINESS_RULES.BOOKING_WINDOW_DAYS - 1);
+    return date;
+  }, []);
 
-  // Business rules: Disable Sundays and dates outside booking window
+  // Fetch blocked dates
+  useEffect(() => {
+    async function fetchBlockedDates() {
+      try {
+        const startDate = dateToLocalString(today);
+        const endDate = dateToLocalString(maxDate);
+        const response = await fetch(`/api/blocked-dates?startDate=${startDate}&endDate=${endDate}`);
+        if (response.ok) {
+          const blocks = await response.json();
+          // Extract dates that are fully blocked
+          const fullyBlockedDates = blocks
+            .filter((block: { isFullDay: boolean }) => block.isFullDay)
+            .map((block: { date: string }) => block.date);
+          setBlockedDates(fullyBlockedDates);
+        }
+      } catch (error) {
+        console.error("Error fetching blocked dates:", error);
+      }
+    }
+
+    fetchBlockedDates();
+  }, [maxDate, today]);
+
+  // Business rules: Disable Sundays, dates outside booking window, and blocked dates
   const isDateDisabled = (date: Date) => {
     // Pazarları kapat (JavaScript: 0=Sunday)
     if (date.getDay() === 0) return true;
 
     // Bugünden önceki tarihler (günün başlangıcından itibaren)
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
     if (date < todayStart) return true;
 
     // Maximum booking window'dan sonraki tarihler
     if (date > maxDate) return true;
+
+    // Blocked dates (berber tarafından kapatılan günler)
+    const dateStr = dateToLocalString(date);
+    if (blockedDates.includes(dateStr)) return true;
 
     return false;
   };
@@ -256,47 +378,77 @@ function DateSelection({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="text-center mb-4">
-        <p className="text-sm text-gray-600">
-          Çalışma saatleri: {BUSINESS_RULES.WORKING_HOURS.start} -{" "}
+    <div className="space-y-6">
+      <div className="text-center space-y-1">
+        <p className="text-sm text-muted-foreground">
+          {BUSINESS_RULES.WORKING_HOURS.start} -{" "}
           {BUSINESS_RULES.WORKING_HOURS.end}
         </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Pazartesi - Cumartesi arası randevu alabilirsiniz
-        </p>
+        <p className="text-xs text-muted-foreground">Pazartesi - Cumartesi</p>
       </div>
 
-      {/* Monthly Calendar */}
-      <div className="flex justify-center px-4">
-        <div className="border rounded-lg bg-white p-3 shadow-sm">
-          <Calendar
-            mode="single"
-            selected={selectedCalendarDate}
-            onSelect={handleDateSelect}
-            disabled={isDateDisabled}
-            className="w-full"
-            classNames={{
-              month: "w-full",
-              table: "w-full",
-              head_cell: "text-center font-normal text-gray-500 text-sm",
-              cell: "text-center p-0.5",
-              day: "h-9 w-9 text-sm rounded-md",
-              day_today: "bg-gray-100 font-bold",
-              day_selected: "bg-blue-500 text-white hover:bg-blue-500",
-              day_disabled: "text-gray-300 cursor-not-allowed opacity-50",
-            }}
-          />
+      {/* Mobile Calendar */}
+      <div className="border rounded-lg bg-card p-4">
+        <Calendar
+          mode="single"
+          selected={selectedCalendarDate}
+          onSelect={handleDateSelect}
+          disabled={isDateDisabled}
+          className="w-full"
+          weekStartsOn={1}
+          formatters={{
+            formatWeekdayName: (date: Date) => {
+              const days = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+              return days[date.getDay()];
+            },
+            formatMonthCaption: (date: Date) => {
+              const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+              return `${months[date.getMonth()]} ${date.getFullYear()}`;
+            }
+          }}
+          classNames={{
+            month: "w-full",
+            table: "w-full",
+            head_cell: "text-center font-medium text-muted-foreground text-sm",
+            cell: "text-center p-1",
+            day: "h-10 w-10 text-sm rounded-md",
+            day_today: "bg-muted font-semibold",
+            day_selected: "bg-foreground text-background hover:bg-foreground",
+            day_disabled: "text-muted-foreground cursor-not-allowed opacity-50",
+          }}
+          modifiers={{
+            blocked: (date) => {
+              const dateStr = dateToLocalString(date);
+              return blockedDates.includes(dateStr);
+            },
+            sunday: (date) => date.getDay() === 0,
+          }}
+          modifiersClassNames={{
+            blocked: "bg-red-100 text-red-600 line-through",
+            sunday: "bg-gray-100 text-gray-400",
+          }}
+        />
+      </div>
+
+      {/* Calendar Legend */}
+      <div className="space-y-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-red-100 border border-red-200 rounded"></div>
+          <span>Kapalı günler (berber müsait değil)</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-gray-100 border border-gray-200 rounded"></div>
+          <span>Pazar günleri (hizmet verilmiyor)</span>
         </div>
       </div>
 
       {/* Selected date confirmation */}
       {selectedDate && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-3 bg-muted rounded-lg border">
           <div className="flex items-center gap-2">
-            <div className="text-green-600">✓</div>
-            <div className="text-sm text-green-700">
-              <strong>Seçilen tarih:</strong> {formatDisplayDate(selectedDate)}
+            <div className="text-foreground">✓</div>
+            <div className="text-sm">
+              <strong>Seçilen:</strong> {formatDisplayDate(selectedDate)}
             </div>
           </div>
         </div>
@@ -371,19 +523,9 @@ function StaffSelection({
 
   return (
     <div className="space-y-4">
-      <div className="text-center mb-4">
-        <p className="text-sm text-gray-600">
-          Sizinle ilgilenecek personeli seçin
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Tüm personellerimiz deneyimli ve sertifikalıdır
-        </p>
-      </div>
-
-      <div className="space-y-3">
+      <div className="space-y-4">
         {staffMembers.map((staff) => {
           const isSelected = selectedStaff === staff.id;
-          const avatar = staff.role === "BARBER" ? "👨‍💼" : "👨‍🔧";
 
           return (
             <button
@@ -391,32 +533,22 @@ function StaffSelection({
               onClick={() => onStaffSelect(staff.id)}
               className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                 isSelected
-                  ? "border-blue-500 bg-blue-50 shadow-md"
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
+                  ? "border-foreground bg-muted"
+                  : "border-border bg-card hover:border-muted-foreground"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">{avatar}</div>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-xl">
+                  {staff.firstName.charAt(0)}
+                  {staff.lastName.charAt(0)}
+                </div>
                 <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-semibold text-gray-900">
-                      {staff.firstName} {staff.lastName}
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        staff.role === "BARBER"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-green-100 text-green-700"
-                      }`}
-                    >
-                      {staff.role === "BARBER" ? "Usta Berber" : "Berber"}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      Deneyimli personel
-                    </span>
-                  </div>
+                  <h3 className="font-medium">
+                    {staff.firstName} {staff.lastName}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {staff.role === "BARBER" ? "Usta Berber" : "Berber"}
+                  </p>
                 </div>
               </div>
             </button>
@@ -425,11 +557,11 @@ function StaffSelection({
       </div>
 
       {selectedStaff && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-3 bg-muted rounded-lg border">
           <div className="flex items-center gap-2">
-            <div className="text-green-600">✓</div>
-            <div className="text-sm text-green-700">
-              <strong>Seçilen personel:</strong>{" "}
+            <div className="text-foreground">✓</div>
+            <div className="text-sm">
+              <strong>Seçilen:</strong>{" "}
               {staffMembers.find((s) => s.id === selectedStaff)?.firstName}{" "}
               {staffMembers.find((s) => s.id === selectedStaff)?.lastName}
             </div>
@@ -438,6 +570,12 @@ function StaffSelection({
       )}
     </div>
   );
+}
+
+interface TimeSlotStatus {
+  time: string;
+  available: boolean;
+  reason?: string; // "Dolu", "Kapalı", "Zaman Bloğu" vb.
 }
 
 function TimeSelection({
@@ -451,10 +589,10 @@ function TimeSelection({
   date: string;
   staffId: string;
 }) {
-  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlotStatus[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch available time slots from API
+  // Fetch available time slots and blocked times
   useEffect(() => {
     if (!date || !staffId) {
       setTimeSlots([]);
@@ -465,13 +603,72 @@ function TimeSelection({
     async function fetchTimeSlots() {
       setLoading(true);
       try {
-        const response = await fetch(
+        // Fetch available slots (already filtered by existing appointments)
+        const slotsResponse = await fetch(
           `/api/time-slots?date=${date}&staffId=${staffId}`
         );
-        if (response.ok) {
-          const availableSlots = await response.json();
-          setTimeSlots(availableSlots);
+        
+        // Fetch blocked times for this specific date and staff
+        const blockedResponse = await fetch(
+          `/api/blocked-dates?staffId=${staffId}&startDate=${date}&endDate=${date}`
+        );
+        
+        let availableSlots: string[] = [];
+        let blockedTimes: { 
+          startTime: string; 
+          endTime: string; 
+          isFullDay?: boolean;
+          reason?: string;
+        }[] = [];
+        
+        if (slotsResponse.ok) {
+          availableSlots = await slotsResponse.json();
         }
+        
+        if (blockedResponse.ok) {
+          blockedTimes = await blockedResponse.json();
+        }
+
+        // Generate all possible time slots for the day
+        const allTimeSlots = [
+          '09:30', '10:15', '11:00', '11:45', '12:30', '13:15', '14:00', 
+          '14:45', '15:30', '16:15', '17:00', '17:45', '18:30', '19:15', '20:00', '20:45'
+        ];
+
+        // Create time slot status array
+        const timeSlotStatuses: TimeSlotStatus[] = allTimeSlots.map(time => {
+          const isAvailable = availableSlots.includes(time);
+          
+          if (isAvailable) {
+            return { time, available: true };
+          }
+          
+          // Check if this time is blocked by a time block (not full day)
+          const timeBlock = blockedTimes.find(block => 
+            !block.isFullDay && 
+            block.startTime && 
+            block.endTime && 
+            time >= block.startTime && 
+            time < block.endTime
+          );
+          
+          if (timeBlock) {
+            return { 
+              time, 
+              available: false, 
+              reason: timeBlock.reason || "Kapalı" 
+            };
+          }
+          
+          // Otherwise it's booked or past time
+          return { 
+            time, 
+            available: false, 
+            reason: "Dolu" 
+          };
+        });
+
+        setTimeSlots(timeSlotStatuses);
       } catch (error) {
         console.error("Error fetching time slots:", error);
         setTimeSlots([]);
@@ -507,58 +704,93 @@ function TimeSelection({
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-4">
-        <p className="text-sm text-gray-600">
-          <strong>{formatDateDisplay(date)}</strong> tarihinde müsait saatler
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          Randevu süresi: {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
+      <div className="text-center space-y-1">
+        <p className="text-sm font-medium">{formatDateDisplay(date)}</p>
+        <p className="text-xs text-muted-foreground">
+          {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
         </p>
       </div>
 
-      {/* All Time Slots */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Time Slots Grid */}
+      <div className="grid grid-cols-2 gap-3">
         {timeSlots.map((slot) => {
-          const isSelected = selectedTime === slot;
+          const isSelected = selectedTime === slot.time;
+          const isAvailable = slot.available;
 
           return (
             <button
-              key={slot}
-              onClick={() => onTimeSelect(slot)}
-              className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                isSelected
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:shadow-sm"
+              key={slot.time}
+              onClick={() => isAvailable && onTimeSelect(slot.time)}
+              disabled={!isAvailable}
+              className={`p-4 rounded-lg border-2 text-sm font-medium transition-all ${
+                isSelected && isAvailable
+                  ? "border-foreground bg-muted"
+                  : isAvailable
+                  ? "border-border bg-card hover:border-muted-foreground hover:shadow-sm"
+                  : "border-red-200 bg-red-50 cursor-not-allowed opacity-75"
               }`}
             >
-              <div>{slot}</div>
-              <div className="text-xs opacity-75">Müsait</div>
+              <div className={`font-medium ${!isAvailable ? "text-red-600" : ""}`}>
+                {slot.time}
+              </div>
+              <div className={`text-xs mt-1 ${
+                isAvailable 
+                  ? "text-muted-foreground" 
+                  : "text-red-500 font-medium"
+              }`}>
+                {isAvailable ? "Müsait" : slot.reason}
+              </div>
             </button>
           );
         })}
       </div>
 
+      {/* Time Slot Legend */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-blue-800">Saat Durumları:</span>
+          </div>
+          <div className="grid grid-cols-1 gap-1 text-blue-700">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-card border border-border rounded"></div>
+              <span>Müsait</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-50 border border-red-200 rounded"></div>
+              <span>Dolu/Kapalı</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Selected time confirmation */}
       {selectedTime && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-3 bg-muted rounded-lg border">
           <div className="flex items-center gap-2">
-            <div className="text-green-600">✓</div>
-            <div className="text-sm text-green-700">
-              <strong>Seçilen saat:</strong> {selectedTime} (
-              {BUSINESS_RULES.APPOINTMENT_DURATION} dakika)
+            <div className="text-foreground">✓</div>
+            <div className="text-sm">
+              <strong>Seçilen:</strong> {selectedTime}
             </div>
           </div>
         </div>
       )}
 
       {/* No available slots message */}
-      {timeSlots.length === 0 && (
-        <div className="text-center p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-800 font-medium">
-            Bu tarihte müsait saat bulunmuyor
+      {timeSlots.length > 0 && timeSlots.every(slot => !slot.available) && (
+        <div className="text-center p-6 bg-amber-50 rounded-lg border border-amber-200">
+          <p className="font-medium text-amber-800">Bu tarihte müsait saat yok</p>
+          <p className="text-xs text-amber-600 mt-1">
+            Farklı tarih veya personel seçin
           </p>
-          <p className="text-xs text-yellow-600 mt-1">
-            Lütfen farklı bir tarih veya personel seçin
+        </div>
+      )}
+      
+      {timeSlots.length === 0 && !loading && (
+        <div className="text-center p-6 bg-muted rounded-lg border">
+          <p className="font-medium">Saat bilgisi yüklenemedi</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Lütfen tekrar deneyin
           </p>
         </div>
       )}
@@ -566,26 +798,93 @@ function TimeSelection({
   );
 }
 
-function BookingConfirmation({ bookingData }: { bookingData: BookingData }) {
+function BookingConfirmation({ 
+  bookingData, 
+  phoneNumber, 
+  onPhoneChange, 
+  hasExistingPhone,
+  notes,
+  onNotesChange
+}: { 
+  bookingData: BookingData;
+  phoneNumber: string;
+  onPhoneChange: (phone: string) => void;
+  hasExistingPhone: boolean;
+  notes: string;
+  onNotesChange: (notes: string) => void;
+}) {
   return (
-    <div className="space-y-4">
-      <div className="text-center p-4 bg-gray-50 rounded-lg">
-        <h3 className="font-medium text-gray-900">Randevu Özeti</h3>
-        <div className="mt-3 space-y-2 text-sm text-gray-600">
-          <p>📅 Tarih: {bookingData.date || "Seçilmedi"}</p>
-          <p>👤 Personel: {bookingData.staffId || "Seçilmedi"}</p>
-          <p>⏰ Saat: {bookingData.timeSlot || "Seçilmedi"}</p>
-          <p>⌚ Süre: {BUSINESS_RULES.APPOINTMENT_DURATION} dakika</p>
+    <div className="space-y-6">
+      <div className="p-4 bg-muted rounded-lg border">
+        <h3 className="font-medium text-center mb-4">Randevu Özeti</h3>
+        <div className="space-y-3 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Tarih:</span>
+            <span className="font-medium">
+              {bookingData.date ? formatTurkishDate(bookingData.date) : "Seçilmedi"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Saat:</span>
+            <span className="font-medium">
+              {bookingData.timeSlot || "Seçilmedi"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Süre:</span>
+            <span className="font-medium">
+              {BUSINESS_RULES.APPOINTMENT_DURATION} dk
+            </span>
+          </div>
         </div>
       </div>
-      <div className="text-xs text-gray-500 text-center">
+
+      {/* Phone Number Input */}
+      <div className="space-y-3">
+        <Label htmlFor="phone" className="text-sm font-medium">
+          Telefon Numarası {!hasExistingPhone && <span className="text-red-500">*</span>}
+        </Label>
+        <div className="text-xs text-muted-foreground mb-2">
+          {hasExistingPhone 
+            ? "Mevcut telefon numaranızı değiştirebilirsiniz"
+            : "Acil durumlar için berberinizin sizinle iletişim kurabilmesi için telefon numaranız gereklidir"
+          }
+        </div>
+        <Input
+          id="phone"
+          type="tel"
+          placeholder="05XX XXX XX XX"
+          value={phoneNumber}
+          onChange={(e) => onPhoneChange(e.target.value)}
+          className="w-full"
+        />
+      </div>
+
+      {/* Notes Input */}
+      <div className="space-y-3">
+        <Label htmlFor="notes" className="text-sm font-medium">
+          Not (Opsiyonel)
+        </Label>
+        <div className="text-xs text-muted-foreground mb-2">
+          Randevunuz hakkında berberinizle paylaşmak istediğiniz özel isteklerinizi yazabilirsiniz
+        </div>
+        <Textarea
+          id="notes"
+          placeholder="Örn: Saç boyası, özel kesim talebi, alerjiler vb."
+          value={notes}
+          onChange={(e) => onNotesChange(e.target.value)}
+          className="w-full min-h-[80px] resize-none"
+          maxLength={500}
+        />
+        <div className="text-xs text-muted-foreground text-right">
+          {notes.length}/500 karakter
+        </div>
+      </div>
+
+      <div className="text-xs text-muted-foreground text-center space-y-1">
         <p>
-          • Randevunuzu {BUSINESS_RULES.CANCELLATION_HOURS} saat öncesine kadar
-          iptal edebilirsiniz
-        </p>
-        <p>
-          • Randevu tarihinden {BUSINESS_RULES.BOOKING_WINDOW_DAYS} gün öncesine
-          kadar rezervasyon yapabilirsiniz
+          {BUSINESS_RULES.CANCELLATION_HOURS} saat öncesine kadar iptal
+          edilebilir
         </p>
       </div>
     </div>

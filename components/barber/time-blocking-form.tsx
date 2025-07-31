@@ -58,6 +58,9 @@ export function TimeBlockingForm() {
         if (staffResponse.ok) {
           const staffData = await staffResponse.json()
           setStaff(staffData)
+        } else {
+          console.error('Failed to fetch staff:', staffResponse.statusText)
+          setStaff([])
         }
 
         // Fetch existing time blocks
@@ -74,9 +77,14 @@ export function TimeBlockingForm() {
             staffId: block.staffId
           }))
           setBlockedTimes(formattedBlocks)
+        } else {
+          console.error('Failed to fetch time blocks:', blocksResponse.statusText)
+          setBlockedTimes([])
         }
       } catch (error) {
         console.error('Error fetching data:', error)
+        setStaff([])
+        setBlockedTimes([])
       } finally {
         setLoading(false)
       }
@@ -221,6 +229,17 @@ export function TimeBlockingForm() {
                   onSelect={setSelectedDate}
                   disabled={isDateDisabled}
                   initialFocus
+                  weekStartsOn={1}
+                  formatters={{
+                    formatWeekdayName: (date: Date) => {
+                      const days = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+                      return days[date.getDay()];
+                    },
+                    formatMonthCaption: (date: Date) => {
+                      const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+                      return `${months[date.getMonth()]} ${date.getFullYear()}`;
+                    }
+                  }}
                 />
               </PopoverContent>
             </Popover>

@@ -4,10 +4,24 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
+  Clock,
+  User,
+  Grid3X3,
+  List,
+  Phone,
+  MessageSquare,
 } from "lucide-react";
 import { dateToLocalString } from "@/lib/date-time";
 import { cn } from "@/lib/utils";
@@ -20,12 +34,16 @@ interface Appointment {
   startTime: string;
   endTime: string;
   status: string;
+  notes?: string;
   customer?: {
     firstName: string;
     lastName: string;
+    phone?: string;
   };
   manualCustomerName?: string;
+  manualCustomerPhone?: string;
   staff: {
+    id: string;
     firstName: string;
     lastName: string;
   };
@@ -36,14 +54,78 @@ export function CalendarView() {
   const [viewType, setViewType] = useState<ViewType>("week");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [staffMembers, setStaffMembers] = useState<
+    Array<{ id: string; firstName: string; lastName: string; role: string }>
+  >([]);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch staff members
+  useEffect(() => {
+    async function fetchStaff() {
+      try {
+        const response = await fetch("/api/staff");
+        if (response.ok) {
+          const staffData = await response.json();
+          setStaffMembers(staffData);
+        }
+      } catch (error) {
+        console.error("Error fetching staff:", error);
+      }
+    }
+    fetchStaff();
+  }, []);
 
   // Fetch appointments from API
   useEffect(() => {
     async function fetchAppointments() {
       try {
-        // In a real app, you'd fetch appointments based on the current view and date range
-        // For now, we'll show empty state since we don't have appointments yet
-        setAppointments([]);
+        setLoading(true);
+
+        // Calculate date range based on view type
+        let startDate: string;
+        let endDate: string;
+
+        if (viewType === "day") {
+          startDate = dateToLocalString(currentDate);
+          endDate = dateToLocalString(currentDate);
+        } else if (viewType === "week") {
+          const start = new Date(currentDate);
+          const day = start.getDay();
+          const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
+          start.setDate(diff);
+
+          const end = new Date(start);
+          end.setDate(start.getDate() + 6);
+
+          startDate = dateToLocalString(start);
+          endDate = dateToLocalString(end);
+        } else {
+          // month
+          const year = currentDate.getFullYear();
+          const month = currentDate.getMonth();
+
+          // Get first and last day of month
+          const firstDay = new Date(year, month, 1);
+          const lastDay = new Date(year, month + 1, 0);
+
+          startDate = dateToLocalString(firstDay);
+          endDate = dateToLocalString(lastDay);
+        }
+
+        const response = await fetch(
+          `/api/barber/appointments?startDate=${startDate}&endDate=${endDate}`
+        );
+
+        if (response.ok) {
+          const appointmentsData = await response.json();
+          setAppointments(appointmentsData);
+        } else {
+          console.error("Failed to fetch appointments:", response.statusText);
+          setAppointments([]);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching appointments:", error);
@@ -79,29 +161,36 @@ export function CalendarView() {
 
   const getDateTitle = () => {
     if (viewType === "day") {
-      return new Intl.DateTimeFormat('tr-TR', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        weekday: 'long'
+      return new Intl.DateTimeFormat("tr-TR", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        weekday: "long",
       }).format(currentDate);
     } else if (viewType === "week") {
       const start = new Date(currentDate);
       const day = start.getDay();
       const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
       start.setDate(diff);
-      
+
       const end = new Date(start);
       end.setDate(start.getDate() + 6);
-      
-      const startStr = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short' }).format(start);
-      const endStr = new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }).format(end);
-      
+
+      const startStr = new Intl.DateTimeFormat("tr-TR", {
+        day: "2-digit",
+        month: "short",
+      }).format(start);
+      const endStr = new Intl.DateTimeFormat("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(end);
+
       return `${startStr} - ${endStr}`;
     } else {
-      return new Intl.DateTimeFormat('tr-TR', {
-        month: 'long',
-        year: 'numeric'
+      return new Intl.DateTimeFormat("tr-TR", {
+        month: "long",
+        year: "numeric",
       }).format(currentDate);
     }
   };
@@ -111,7 +200,7 @@ export function CalendarView() {
     const day = start.getDay();
     const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
     start.setDate(diff);
-    
+
     const days = [];
     for (let i = 0; i < 7; i++) {
       const day = new Date(start);
@@ -124,6 +213,49 @@ export function CalendarView() {
   const getAppointmentsForDate = (date: Date) => {
     const dateStr = dateToLocalString(date);
     return appointments.filter((apt) => apt.date === dateStr);
+  };
+
+  const handleAppointmentClick = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedAppointment(null);
+  };
+
+  // Calculate daily capacity for each staff member
+  const calculateDayCapacity = (date: Date, staffId?: string) => {
+    const dayAppointments = getAppointmentsForDate(date);
+    const totalSlots = 16; // 09:30-20:45, 45-minute intervals
+
+    if (staffId) {
+      // Individual staff capacity
+      const staffAppointments = dayAppointments.filter(
+        (apt) => apt.staff.id === staffId
+      );
+      return {
+        occupied: staffAppointments.length,
+        total: totalSlots,
+        percentage: Math.round((staffAppointments.length / totalSlots) * 100),
+      };
+    } else {
+      // Overall capacity across all staff
+      const totalCapacity = totalSlots * staffMembers.length;
+      return {
+        occupied: dayAppointments.length,
+        total: totalCapacity,
+        percentage: Math.round((dayAppointments.length / totalCapacity) * 100),
+      };
+    }
+  };
+
+  const getCapacityColor = (percentage: number) => {
+    if (percentage >= 90) return "text-red-600 bg-red-50";
+    if (percentage >= 70) return "text-orange-600 bg-orange-50";
+    if (percentage >= 40) return "text-blue-600 bg-blue-50";
+    return "text-green-600 bg-green-50";
   };
 
   const timeSlots = [
@@ -149,7 +281,10 @@ export function CalendarView() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center py-8">Yükleniyor...</div>
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
+            <span className="ml-3 text-muted-foreground">Yükleniyor...</span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -159,14 +294,16 @@ export function CalendarView() {
     <div className="space-y-6">
       {/* Calendar Header */}
       <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+        <CardHeader>
+          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+            {/* Navigation and Title */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigateDate("prev")}
+                  className="h-9 w-9 p-0"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -174,35 +311,47 @@ export function CalendarView() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigateDate("next")}
+                  className="h-9 w-9 p-0 ml-1"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               <div>
-                <h2 className="text-xl font-semibold">{getDateTitle()}</h2>
+                <h2 className="text-lg font-semibold">{getDateTitle()}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {appointments.length} randevu
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            {/* View Toggle */}
+            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
               <Button
-                variant={viewType === "day" ? "default" : "outline"}
+                variant={viewType === "day" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewType("day")}
+                className="h-8 px-3"
               >
-                Gün
+                <List className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Gün</span>
               </Button>
               <Button
-                variant={viewType === "week" ? "default" : "outline"}
+                variant={viewType === "week" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewType("week")}
+                className="h-8 px-3"
               >
-                Hafta
+                <Grid3X3 className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Hafta</span>
               </Button>
               <Button
-                variant={viewType === "month" ? "default" : "outline"}
+                variant={viewType === "month" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewType("month")}
+                className="h-8 px-3"
               >
-                Ay
+                <CalendarIcon className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Ay</span>
               </Button>
             </div>
           </div>
@@ -213,67 +362,148 @@ export function CalendarView() {
       {viewType === "day" && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Günlük Görünüm
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {timeSlots.map((timeSlot) => {
-                const appointmentsAtTime = getAppointmentsForDate(
-                  currentDate
-                ).filter((apt) => apt.startTime.substring(0, 5) === timeSlot);
-
-                return (
-                  <div
-                    key={timeSlot}
-                    className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50"
-                  >
-                    <div className="w-16 text-sm font-medium text-gray-600">
-                      {timeSlot}
-                    </div>
-                    <div className="flex-1">
-                      {appointmentsAtTime.length > 0 ? (
-                        appointmentsAtTime.map((appointment) => (
-                          <div
-                            key={appointment.id}
-                            className="flex items-center justify-between p-2 bg-blue-50 rounded border-l-4 border-blue-500"
-                          >
-                            <div>
-                              <p className="font-medium">
-                                {appointment.customer
-                                  ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
-                                  : appointment.manualCustomerName}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                {appointment.staff.firstName}{" "}
-                                {appointment.staff.lastName}
-                              </p>
-                            </div>
-                            <Badge
-                              variant={
-                                appointment.status === "CONFIRMED"
-                                  ? "default"
-                                  : appointment.status === "SCHEDULED"
-                                  ? "secondary"
-                                  : "outline"
-                              }
-                            >
-                              {appointment.status === "CONFIRMED"
-                                ? "Onaylandı"
-                                : "Planlandı"}
-                            </Badge>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-gray-400 text-sm">Boş</div>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Clock className="h-4 w-4" />
+                Günlük Program
+              </CardTitle>
+              {staffMembers.length > 0 && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {staffMembers.map((staff, index) => (
+                    <div key={staff.id} className="flex items-center gap-1">
+                      <div
+                        className={cn(
+                          "w-2 h-2 rounded-full",
+                          staff.role === "BARBER"
+                            ? "bg-primary"
+                            : "bg-secondary"
+                        )}
+                      />
+                      <span>{staff.firstName}</span>
+                      {index < staffMembers.length - 1 && (
+                        <span className="mx-1">•</span>
                       )}
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              )}
             </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="h-[600px] w-full">
+              <div className="divide-y divide-border">
+                {/* Header Row */}
+                <div className="flex bg-muted/30">
+                  <div className="w-16 p-2 flex-shrink-0 border-r">
+                    <div className="text-xs font-medium text-center text-muted-foreground">
+                      Saat
+                    </div>
+                  </div>
+                  {staffMembers.map((staff) => (
+                    <div
+                      key={staff.id}
+                      className="flex-1 p-2 border-r last:border-r-0"
+                    >
+                      <div className="text-xs font-medium text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <div
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              staff.role === "BARBER"
+                                ? "bg-primary"
+                                : "bg-secondary"
+                            )}
+                          />
+                          {staff.firstName} {staff.lastName}
+                        </div>
+                        <div className="text-muted-foreground mt-1">
+                          {staff.role === "BARBER" ? "Berber" : "Çalışan"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time Slots */}
+                {timeSlots.map((timeSlot) => {
+                  return (
+                    <div
+                      key={timeSlot}
+                      className="flex hover:bg-muted/20 transition-colors"
+                    >
+                      {/* Time Column */}
+                      <div className="w-16 p-3 flex-shrink-0 border-r">
+                        <div className="text-sm font-medium text-center">
+                          {timeSlot}
+                        </div>
+                      </div>
+
+                      {/* Staff Columns */}
+                      {staffMembers.map((staff) => {
+                        const staffAppointments = getAppointmentsForDate(
+                          currentDate
+                        ).filter(
+                          (apt) =>
+                            apt.startTime.substring(0, 5) === timeSlot &&
+                            apt.staff.id === staff.id
+                        );
+
+                        return (
+                          <div
+                            key={staff.id}
+                            className="flex-1 p-2 border-r last:border-r-0"
+                          >
+                            {staffAppointments.length > 0 ? (
+                              staffAppointments.map((appointment) => (
+                                <div
+                                  key={appointment.id}
+                                  onClick={() =>
+                                    handleAppointmentClick(appointment)
+                                  }
+                                  className="flex items-center gap-2 p-2 bg-card border rounded hover:shadow-sm transition-all group cursor-pointer"
+                                >
+                                  <div className="w-5 h-5 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <User className="h-3 w-3 text-primary" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-sm truncate leading-tight">
+                                      {appointment.customer
+                                        ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
+                                        : appointment.manualCustomerName}
+                                    </p>
+                                    {appointment.notes && (
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {appointment.notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div
+                                    className={cn(
+                                      "w-2 h-2 rounded-full flex-shrink-0",
+                                      appointment.status === "CONFIRMED"
+                                        ? "bg-green-500"
+                                        : appointment.status === "SCHEDULED"
+                                        ? "bg-blue-500"
+                                        : "bg-muted-foreground/50"
+                                    )}
+                                  />
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center py-2">
+                                <div className="text-muted-foreground text-xs">
+                                  —
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       )}
@@ -281,72 +511,91 @@ export function CalendarView() {
       {viewType === "week" && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Haftalık Görünüm
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Grid3X3 className="h-4 w-4" />
+              Haftalık Program
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-8 gap-1">
-              {/* Time column header */}
-              <div className="p-2"></div>
+          <CardContent className="p-0">
+            <ScrollArea className="h-[600px] w-full">
+              <div className="overflow-x-auto">
+                <div className="min-w-[800px]">
+                  <div className="grid grid-cols-8 gap-px bg-border">
+                    {/* Time column header */}
+                    <div className="bg-background p-3 text-xs font-medium text-muted-foreground">
+                      Saat
+                    </div>
 
-              {/* Day headers */}
-              {getWeekDays().map((day) => (
-                <div key={day.toISOString()} className="p-2 text-center">
-                  <div className="text-sm font-medium">
-                    {new Intl.DateTimeFormat('tr-TR', { weekday: 'short' }).format(day)}
-                  </div>
-                  <div
-                    className={cn(
-                      "text-lg font-bold",
-                      dateToLocalString(day) === dateToLocalString(new Date())
-                        ? "text-blue-600"
-                        : "text-gray-900"
-                    )}
-                  >
-                    {day.getDate().toString().padStart(2, '0')}
-                  </div>
-                </div>
-              ))}
-
-              {/* Time slots and appointments */}
-              {timeSlots.map((timeSlot) => (
-                <div key={timeSlot} className="contents">
-                  <div className="p-2 text-xs text-gray-600 border-r">
-                    {timeSlot}
-                  </div>
-                  {getWeekDays().map((day) => {
-                    const dayAppointments = getAppointmentsForDate(day).filter(
-                      (apt) => apt.startTime.substring(0, 5) === timeSlot
-                    );
-
-                    return (
+                    {/* Day headers */}
+                    {getWeekDays().map((day) => (
                       <div
-                        key={`${day.toISOString()}-${timeSlot}`}
-                        className="p-1 border-r border-b min-h-[60px]"
+                        key={day.toISOString()}
+                        className="bg-background p-3 text-center"
                       >
-                        {dayAppointments.map((appointment) => (
-                          <div
-                            key={appointment.id}
-                            className="text-xs p-1 bg-blue-100 rounded mb-1 hover:bg-blue-200 cursor-pointer"
-                          >
-                            <div className="font-medium truncate">
-                              {appointment.customer
-                                ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
-                                : appointment.manualCustomerName}
-                            </div>
-                            <div className="text-gray-600 truncate">
-                              {appointment.staff.firstName}
-                            </div>
-                          </div>
-                        ))}
+                        <div className="text-xs font-medium text-muted-foreground">
+                          {new Intl.DateTimeFormat("tr-TR", {
+                            weekday: "short",
+                          }).format(day)}
+                        </div>
+                        <div
+                          className={cn(
+                            "text-sm font-semibold mt-1",
+                            dateToLocalString(day) ===
+                              dateToLocalString(new Date())
+                              ? "text-primary"
+                              : "text-foreground"
+                          )}
+                        >
+                          {day.getDate().toString().padStart(2, "0")}
+                        </div>
                       </div>
-                    );
-                  })}
+                    ))}
+
+                    {/* Time slots and appointments */}
+                    {timeSlots.map((timeSlot) => (
+                      <div key={timeSlot} className="contents">
+                        <div className="bg-background p-3 text-xs font-medium text-muted-foreground border-r">
+                          {timeSlot}
+                        </div>
+                        {getWeekDays().map((day) => {
+                          const dayAppointments = getAppointmentsForDate(
+                            day
+                          ).filter(
+                            (apt) => apt.startTime.substring(0, 5) === timeSlot
+                          );
+
+                          return (
+                            <div
+                              key={`${day.toISOString()}-${timeSlot}`}
+                              className="bg-background p-2 min-h-[50px] hover:bg-muted/50 transition-colors"
+                            >
+                              {dayAppointments.map((appointment) => (
+                                <div
+                                  key={appointment.id}
+                                  onClick={() =>
+                                    handleAppointmentClick(appointment)
+                                  }
+                                  className="text-xs p-2 bg-card border rounded mb-1 hover:shadow-sm cursor-pointer transition-shadow"
+                                >
+                                  <div className="font-medium truncate text-foreground">
+                                    {appointment.customer
+                                      ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
+                                      : appointment.manualCustomerName}
+                                  </div>
+                                  <div className="text-muted-foreground truncate">
+                                    {appointment.staff.firstName}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       )}
@@ -354,18 +603,344 @@ export function CalendarView() {
       {viewType === "month" && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <CalendarIcon className="h-4 w-4" />
               Aylık Görünüm
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-gray-500">
-              Aylık görünüm yakında eklenecek...
-            </div>
+            <MonthlyCalendar
+              currentDate={currentDate}
+              getAppointmentsForDate={getAppointmentsForDate}
+              onAppointmentClick={handleAppointmentClick}
+              staffMembers={staffMembers}
+              calculateDayCapacity={calculateDayCapacity}
+              getCapacityColor={getCapacityColor}
+            />
           </CardContent>
         </Card>
       )}
+
+      {/* Appointment Details Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              Randevu Detayları
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedAppointment && (
+            <div className="space-y-4">
+              {/* Customer Info */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">
+                      {selectedAppointment.customer
+                        ? `${selectedAppointment.customer.firstName} ${selectedAppointment.customer.lastName}`
+                        : selectedAppointment.manualCustomerName}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">Müşteri</p>
+                  </div>
+                </div>
+
+                {/* Customer Phone */}
+                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Telefon</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedAppointment.customer?.phone ||
+                        selectedAppointment.manualCustomerPhone ||
+                        "Telefon numarası yok"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Appointment Info */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Tarih</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Intl.DateTimeFormat("tr-TR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                        weekday: "long",
+                      }).format(
+                        new Date(selectedAppointment.date + "T00:00:00")
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Saat</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedAppointment.startTime} -{" "}
+                      {selectedAppointment.endTime}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium">Berber</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedAppointment.staff.firstName}{" "}
+                    {selectedAppointment.staff.lastName}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium">Durum</p>
+                  <Badge
+                    variant={
+                      selectedAppointment.status === "CONFIRMED"
+                        ? "default"
+                        : selectedAppointment.status === "SCHEDULED"
+                        ? "secondary"
+                        : "outline"
+                    }
+                    className="mt-1"
+                  >
+                    {selectedAppointment.status === "CONFIRMED"
+                      ? "Onaylandı"
+                      : selectedAppointment.status === "SCHEDULED"
+                      ? "Planlandı"
+                      : selectedAppointment.status === "COMPLETED"
+                      ? "Tamamlandı"
+                      : selectedAppointment.status === "CANCELLED"
+                      ? "İptal Edildi"
+                      : "Gelmedi"}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedAppointment.notes && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium">Not</p>
+                    </div>
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        {selectedAppointment.notes}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={handleModalClose}
+                  className="flex-1"
+                >
+                  Kapat
+                </Button>
+                {/* Future: Add edit/cancel buttons here */}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Monthly Calendar Component
+function MonthlyCalendar({
+  currentDate,
+  getAppointmentsForDate,
+  onAppointmentClick,
+  staffMembers,
+  calculateDayCapacity,
+  getCapacityColor,
+}: {
+  currentDate: Date;
+  getAppointmentsForDate: (date: Date) => Appointment[];
+  onAppointmentClick: (appointment: Appointment) => void;
+  staffMembers: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+  }>;
+  calculateDayCapacity: (
+    date: Date,
+    staffId?: string
+  ) => { occupied: number; total: number; percentage: number };
+  getCapacityColor: (percentage: number) => string;
+}) {
+  // Get all days in the current month
+  const getMonthDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    // First day of month
+    const firstDay = new Date(year, month, 1);
+
+    // Start from Monday of the week containing first day
+    const startDate = new Date(firstDay);
+    const dayOfWeek = firstDay.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday = 0
+    startDate.setDate(firstDay.getDate() - daysToSubtract);
+
+    // Generate 6 weeks (42 days) to fill the calendar grid
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+      const day = new Date(startDate);
+      day.setDate(startDate.getDate() + i);
+      days.push(day);
+    }
+
+    return days;
+  };
+
+  const monthDays = getMonthDays();
+  const today = new Date();
+  const currentMonth = currentDate.getMonth();
+
+  return (
+    <div className="space-y-4">
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map((day) => (
+          <div
+            key={day}
+            className="p-3 text-center text-sm font-medium text-muted-foreground"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 gap-1 bg-border">
+        {monthDays.map((day, index) => {
+          const dayAppointments = getAppointmentsForDate(day);
+          const isToday = dateToLocalString(day) === dateToLocalString(today);
+          const isCurrentMonth = day.getMonth() === currentMonth;
+
+          return (
+            <div
+              key={index}
+              className={cn(
+                "min-h-[120px] p-2 bg-background hover:bg-muted/50 transition-colors",
+                !isCurrentMonth && "opacity-50",
+                isToday && "bg-primary/5 border-2 border-primary/20"
+              )}
+            >
+              {/* Day number */}
+              <div
+                className={cn(
+                  "text-sm font-medium mb-2 h-6 flex items-center justify-center w-6",
+                  isCurrentMonth ? "text-foreground" : "text-muted-foreground",
+                  isToday && "bg-primary text-primary-foreground rounded-full"
+                )}
+              >
+                {day.getDate()}
+              </div>
+
+              {/* Staff Capacity Display */}
+              <div className="space-y-1">
+                {staffMembers.map((staff) => {
+                  const capacity = calculateDayCapacity(day, staff.id);
+                  const colorClass = getCapacityColor(capacity.percentage);
+
+                  return (
+                    <div
+                      key={staff.id}
+                      className={cn(
+                        "text-xs p-1.5 rounded border flex items-center justify-between",
+                        colorClass
+                      )}
+                    >
+                      <div className="flex items-center gap-1">
+                        <div
+                          className={cn(
+                            "w-1.5 h-1.5 rounded-full",
+                            staff.role === "BARBER"
+                              ? "bg-primary"
+                              : "bg-secondary"
+                          )}
+                        />
+                        <span className="font-medium truncate">
+                          {staff.firstName}
+                        </span>
+                      </div>
+                      <div className="font-semibold">
+                        {capacity.occupied}/{capacity.total}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Total Appointments Indicator */}
+                {dayAppointments.length > 0 && (
+                  <div
+                    className="text-xs text-muted-foreground font-medium px-1 py-0.5 bg-muted/30 rounded cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      if (dayAppointments.length > 0) {
+                        onAppointmentClick(dayAppointments[0]);
+                      }
+                    }}
+                  >
+                    {dayAppointments.length} randevu
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="space-y-3 pt-4 border-t">
+        {/* Staff Legend */}
+        <div className="flex items-center justify-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-primary rounded-full"></div>
+            <span className="text-xs text-muted-foreground">Berber</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-secondary rounded-full"></div>
+            <span className="text-xs text-muted-foreground">Çalışan</span>
+          </div>
+        </div>
+
+        {/* Capacity Legend */}
+        <div className="flex items-center justify-center gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-50 border border-green-200 rounded"></div>
+            <span className="text-muted-foreground">%0-40</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-blue-50 border border-blue-200 rounded"></div>
+            <span className="text-muted-foreground">%40-70</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-orange-50 border border-orange-200 rounded"></div>
+            <span className="text-muted-foreground">%70-90</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-50 border border-red-200 rounded"></div>
+            <span className="text-muted-foreground">%90+</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
