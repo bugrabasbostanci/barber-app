@@ -1,29 +1,31 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Optimize for Cloudflare Pages deployment
-  output: "standalone",
-  
-  // Remove Prisma from external packages for Edge Runtime compatibility
-  
-  // Disable automatic runtime selection to prevent conflicts
   experimental: {
     serverMinification: false,
   },
-  
-  // Headers for API routes
-  async headers() {
-    return [
+
+  images: {
+    remotePatterns: [
       {
-        source: "/api/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "no-store, no-cache, must-revalidate",
-          },
-        ],
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
       },
-    ];
+      {
+        protocol: "https",
+        hostname: "j508qhyzqd.ufs.sh",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https", 
+        hostname: "developers.google.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

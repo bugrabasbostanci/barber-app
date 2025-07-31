@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -46,9 +47,11 @@ export default function Home() {
                         className="flex items-center gap-2 p-2"
                       >
                         {user.user_metadata?.avatar_url ? (
-                          <img
+                          <Image
                             src={user.user_metadata.avatar_url}
                             alt="Avatar"
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded-full object-cover"
                             onError={(e) => {
                               e.currentTarget.src =
@@ -61,9 +64,11 @@ export default function Home() {
                             {user.lastName.charAt(0)}
                           </div>
                         ) : (
-                          <img
+                          <Image
                             src="https://j508qhyzqd.ufs.sh/f/zFL6Zu9sI4C0PrTlIlRo6ZMBjNEkK8DbuR1VxXhmvcYqS7iU"
                             alt="Avatar"
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         )}

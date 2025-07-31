@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -233,9 +234,11 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-3">
                 {user?.user_metadata?.avatar_url ? (
-                  <img
+                  <Image
                     src={user.user_metadata.avatar_url}
                     alt="Profil Resmi"
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full object-cover"
                     onError={(e) => {
                       e.currentTarget.src =
@@ -248,9 +251,11 @@ export default function ProfilePage() {
                     {profile.lastName.charAt(0)}
                   </div>
                 ) : (
-                  <img
+                  <Image
                     src="https://j508qhyzqd.ufs.sh/f/zFL6Zu9sI4C0PrTlIlRo6ZMBjNEkK8DbuR1VxXhmvcYqS7iU"
                     alt="Profil Resmi"
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 )}
@@ -527,9 +532,11 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <img 
+                    <Image 
                       src="https://developers.google.com/identity/images/g-logo.png" 
                       alt="Google"
+                      width={20}
+                      height={20}
                       className="w-5 h-5"
                     />
                     <span className="text-sm font-medium text-blue-800">Google hesabı ile giriş yapıyorsunuz</span>
