@@ -1,6 +1,6 @@
 // app/api/appointments/[id]/cancel/route.ts
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -11,7 +11,6 @@ import {
 // Luxon replaced with native Date
 import { BUSINESS_RULES } from "@/lib/constants";
 
-const prisma = new PrismaClient();
 
 export async function POST(
   request: NextRequest,
@@ -147,7 +146,5 @@ export async function POST(
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

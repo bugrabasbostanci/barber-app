@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { extractTimeString, utcToLocalDate } from "@/lib/date-time";
 // Luxon replaced with native Date
 
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {
@@ -84,7 +83,5 @@ export async function GET() {
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

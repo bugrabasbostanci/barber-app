@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC } from "@/lib/date-time";
 
-const prisma = new PrismaClient();
 
 // GET - Fetch blocked dates for customers (public endpoint)
 export async function GET(request: NextRequest) {
@@ -71,7 +70,5 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
