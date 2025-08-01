@@ -1,17 +1,15 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { withAuth, requireAdmin, AuthenticatedUser } from "@/lib/middleware/api-auth";
 
-export async function GET(request: NextRequest) {
+async function debugAppointments(request: NextRequest, user: AuthenticatedUser) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Production security: Only allow in development or for admin users
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Debug endpoints are disabled in production for security" 
+      }, { status: 403 });
     }
 
     // Get query parameters to simulate calendar request
@@ -109,46 +107,54 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Sanitize sensitive appointment data
+    const sanitizeAppointments = (appointments: typeof allAppointments) => 
+      appointments.slice(0, 10).map(apt => ({ // Limit to 10 records
+        id: apt.id.slice(0, 8) + "...", // Partial ID
+        date: apt.date.toISOString().split('T')[0],
+        startTime: apt.startTime.toISOString().split('T')[1].slice(0, 5),
+        endTime: apt.endTime.toISOString().split('T')[1].slice(0, 5),
+        status: apt.status,
+        customerName: apt.customer ? 
+          apt.customer.firstName?.charAt(0) + "***" : 
+          apt.manualCustomerName?.charAt(0) + "***" || "Anonymous",
+        staffName: apt.staff ? 
+          apt.staff.firstName?.charAt(0) + "***" : "Unknown",
+      }));
+
     return NextResponse.json({
+      success: true,
       environment: process.env.NODE_ENV,
       currentUser: {
-        supabaseId: user.id,
-        email: user.email,
-        dbUser: dbUser,
+        role: user.role,
+        email: user.email.replace(/(.{2}).*@/, "$1***@"),
       },
-      database: {
+      statistics: {
         totalAppointments,
         activeAppointments,
         totalShops: shops.length,
       },
       dateInfo: {
         serverTime: new Date().toISOString(),
-        todayStr,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         queryParams: { startDate, endDate },
       },
-      appointments: allAppointments.map(apt => ({
-        ...apt,
-        date: apt.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        startTime: apt.startTime.toISOString().split('T')[1].slice(0, 5), // Format as HH:MM
-        endTime: apt.endTime.toISOString().split('T')[1].slice(0, 5),
-      })),
-      filteredAppointments: startDate && endDate ? filteredAppointments.map(apt => ({
-        ...apt,
-        date: apt.date.toISOString().split('T')[0],
-        startTime: apt.startTime.toISOString().split('T')[1].slice(0, 5),
-        endTime: apt.endTime.toISOString().split('T')[1].slice(0, 5),
-      })) : null,
-      shops,
+      sampleAppointments: sanitizeAppointments(allAppointments),
+      sampleFiltered: startDate && endDate ? 
+        sanitizeAppointments(filteredAppointments) : null,
+      note: "Showing sanitized sample data for debugging. Full data access restricted.",
     });
   } catch (error) {
     console.error("Debug error:", error);
     return NextResponse.json(
       {
-        error: "Debug failed",
-        details: error instanceof Error ? error.message : "Unknown error",
+        success: false,
+        error: "Internal server error",
       },
       { status: 500 }
     );
   }
 }
+
+// Export protected endpoint - admin only
+export const GET = withAuth(requireAdmin())(debugAppointments);

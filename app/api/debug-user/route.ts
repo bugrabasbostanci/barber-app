@@ -1,40 +1,46 @@
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withAuth, requireAdmin, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { checkUserRole } from "@/lib/admin-actions";
-import { NextResponse } from "next/server";
 
-export async function GET() {
+async function debugUser(req: NextRequest, user: AuthenticatedUser) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error) {
-      return NextResponse.json({ error: "Auth error", details: error.message });
-    }
-
-    if (!user) {
-      return NextResponse.json({ error: "No user found" });
+    // Production security: Only allow in development or for admin users
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ 
+        success: false, 
+        error: "Debug endpoints are disabled in production for security" 
+      }, { status: 403 });
     }
 
     // Check database user
     const dbUser = await checkUserRole();
 
+    // Sanitize sensitive data
+    const sanitizedUser = {
+      id: user.id,
+      email: user.email.replace(/(.{2}).*@/, "$1***@"), // Mask email
+      role: user.role,
+      isActive: user.isActive,
+    };
+
     return NextResponse.json({
-      supabaseUser: {
-        id: user.id,
-        email: user.email,
-        metadata: user.user_metadata,
-      },
-      databaseUser: dbUser,
       success: true,
+      environment: process.env.NODE_ENV,
+      user: sanitizedUser,
+      databaseUser: dbUser ? {
+        role: dbUser.role,
+        isActive: dbUser.isActive,
+      } : null,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Debug error:", error);
     return NextResponse.json({
+      success: false,
       error: "Internal server error",
-      details: error instanceof Error ? error.message : "Unknown error",
-    });
+    }, { status: 500 });
   }
 }
+
+// Export protected endpoint - admin only
+export const GET = withAuth(requireAdmin())(debugUser);
