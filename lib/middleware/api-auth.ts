@@ -140,7 +140,7 @@ export function requireStaff() {
 
 // Middleware composition types
 export type AuthMiddleware = (req: NextRequest) => Promise<AuthenticatedUser>;
-export type ApiHandler = (req: NextRequest, user?: AuthenticatedUser) => Promise<NextResponse>;
+export type ApiHandler = (req: NextRequest, context?: { user?: AuthenticatedUser; [key: string]: unknown }) => Promise<NextResponse>;
 
 /**
  * Compose middleware with API handler
@@ -150,7 +150,7 @@ export function withAuth(authMiddleware: AuthMiddleware) {
     return async (req: NextRequest) => {
       try {
         const user = await authMiddleware(req);
-        return await handler(req, user);
+        return await handler(req, { user });
       } catch (error) {
         if (error instanceof AuthError) {
           return NextResponse.json(
