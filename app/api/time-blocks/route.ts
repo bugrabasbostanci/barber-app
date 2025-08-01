@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC, createUTCTime, extractTimeString } from "@/lib/date-time";
+import { logger } from "@/lib/logger";
 // Luxon replaced with native Date
 
 
@@ -75,7 +76,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedBlocks);
   } catch (error) {
-    console.error("Error fetching time blocks:", error);
+    logger.api("Failed to fetch time blocks", {
+      method: "GET",
+      path: "/api/time-blocks",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -186,7 +193,13 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error creating time block:", error);
+    logger.api("Failed to create time block", {
+      method: "POST",
+      path: "/api/time-blocks",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",

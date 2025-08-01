@@ -1,5 +1,6 @@
 import { getAvailableTimeSlots } from "@/lib/seed-data";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +21,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(availableSlots);
   } catch (error) {
-    console.error("Error fetching time slots:", error);
+    logger.api("Failed to fetch available time slots", {
+      method: "GET",
+      path: "/api/time-slots",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",

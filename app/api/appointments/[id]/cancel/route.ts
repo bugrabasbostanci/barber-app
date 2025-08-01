@@ -10,6 +10,7 @@ import {
 } from "@/lib/date-time";
 // Luxon replaced with native Date
 import { BUSINESS_RULES } from "@/lib/constants";
+import { logger } from "@/lib/logger";
 
 
 export async function POST(
@@ -122,7 +123,11 @@ export async function POST(
       }
     } catch (error) {
       // Ignore JSON parse errors for empty or invalid bodies
-      console.log('Could not parse request body:', error);
+      logger.debug('Could not parse request body for cancellation', {
+        component: 'API',
+        action: 'parseRequestBody',
+        metadata: { error: error instanceof Error ? error.message : String(error) }
+      });
     }
 
     return NextResponse.json({
@@ -139,7 +144,13 @@ export async function POST(
       },
     });
   } catch (error) {
-    console.error("Error cancelling appointment:", error);
+    logger.api("Failed to cancel appointment", {
+      method: "POST",
+      path: `/api/appointments/${params.id}/cancel`,
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",

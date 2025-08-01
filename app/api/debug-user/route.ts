@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireAdmin, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { checkUserRole } from "@/lib/admin-actions";
+import { logger } from "@/lib/logger";
 
 async function debugUser(req: NextRequest, user: AuthenticatedUser) {
   try {
@@ -34,7 +35,14 @@ async function debugUser(req: NextRequest, user: AuthenticatedUser) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Debug error:", error);
+    logger.api("Debug user endpoint failed", {
+      method: "GET",
+      path: "/api/debug-user",
+      userId: user.id,
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json({
       success: false,
       error: "Internal server error",

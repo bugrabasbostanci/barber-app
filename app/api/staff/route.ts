@@ -2,6 +2,7 @@ import { getStaffMembers } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 
 export async function GET() {
@@ -33,7 +34,13 @@ export async function GET() {
 
     return NextResponse.json(staff);
   } catch (error) {
-    console.error("Error fetching staff:", error);
+    logger.api("Failed to fetch staff members", {
+      method: "GET",
+      path: "/api/staff",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         success: false,

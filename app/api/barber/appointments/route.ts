@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/date-time";
 import { withAuth, requireBarber, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import { logger } from "@/lib/logger";
 
 // GET - Fetch appointments for barber dashboard
 async function getAppointments(request: NextRequest, user: AuthenticatedUser) {
@@ -80,7 +81,14 @@ async function getAppointments(request: NextRequest, user: AuthenticatedUser) {
       data: formattedAppointments
     });
   } catch (error) {
-    console.error("Error fetching appointments:", error);
+    logger.api("Failed to fetch barber appointments", {
+      method: "GET",
+      path: "/api/barber/appointments",
+      userId: user.id,
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         success: false,
@@ -244,7 +252,14 @@ async function createManualAppointment(request: NextRequest, user: Authenticated
       },
     });
   } catch (error) {
-    console.error("Error creating manual appointment:", error);
+    logger.api("Failed to create manual appointment", {
+      method: "POST",
+      path: "/api/barber/appointments",
+      userId: user.id,
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         success: false,

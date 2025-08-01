@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireAdmin, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import { logger } from "@/lib/logger";
 
 async function debugAppointments(request: NextRequest, user: AuthenticatedUser) {
   try {
@@ -145,7 +146,14 @@ async function debugAppointments(request: NextRequest, user: AuthenticatedUser) 
       note: "Showing sanitized sample data for debugging. Full data access restricted.",
     });
   } catch (error) {
-    console.error("Debug error:", error);
+    logger.api("Debug appointments endpoint failed", {
+      method: "GET",
+      path: "/api/debug-appointments",
+      userId: user.id,
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         success: false,

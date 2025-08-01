@@ -8,6 +8,7 @@ import {
   TURKEY_TZ,
 } from "@/lib/date-time";
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import { logger } from "@/lib/logger";
 
 async function createAppointment(request: NextRequest, user: AuthenticatedUser) {
   try {
@@ -151,7 +152,14 @@ async function createAppointment(request: NextRequest, user: AuthenticatedUser) 
       appointment: responseAppointment,
     });
   } catch (error) {
-    console.error("Error creating appointment:", error);
+    logger.api("Failed to create appointment", {
+      method: "POST",
+      path: "/api/appointments",
+      userId: user.id,
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         success: false,

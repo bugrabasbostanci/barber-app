@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { extractTimeString, utcToLocalDate } from "@/lib/date-time";
+import { logger } from "@/lib/logger";
 // Luxon replaced with native Date
 
 
@@ -76,7 +77,13 @@ export async function GET() {
 
     return NextResponse.json(formattedAppointments);
   } catch (error) {
-    console.error("Error fetching appointments:", error);
+    logger.api("Failed to fetch user appointments", {
+      method: "GET",
+      path: "/api/my-appointments",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",

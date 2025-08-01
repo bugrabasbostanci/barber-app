@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // GET - Fetch user profile
 export async function GET() {
@@ -57,7 +58,13 @@ export async function GET() {
       createdAt: userProfile.createdAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error fetching profile:", error);
+    logger.api("Failed to fetch user profile", {
+      method: "GET",
+      path: "/api/profile",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -121,7 +128,13 @@ export async function PATCH(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
+    logger.api("Failed to update user profile", {
+      method: "POST",
+      path: "/api/profile",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Profil güncellenirken bir hata oluştu",
@@ -178,7 +191,13 @@ export async function PUT(request: NextRequest) {
       createdAt: updatedUser.createdAt.toISOString(),
     });
   } catch (error) {
-    console.error("Error updating profile:", error);
+    logger.api("Failed to update user profile", {
+      method: "POST",
+      path: "/api/profile",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Profil güncellenirken bir hata oluştu",

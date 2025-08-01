@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC } from "@/lib/date-time";
+import { logger } from "@/lib/logger";
 
 
 // GET - Fetch blocked dates for customers (public endpoint)
@@ -63,7 +64,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(formattedBlocks);
   } catch (error) {
-    console.error("Error fetching blocked dates:", error);
+    logger.api("Failed to fetch blocked dates", {
+      method: "GET",
+      path: "/api/blocked-dates",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
     return NextResponse.json(
       {
         error: "Internal server error",
