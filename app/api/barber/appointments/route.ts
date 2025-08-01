@@ -45,8 +45,8 @@ async function getAppointments(
   request: NextRequest, 
   context: { user: AuthenticatedUser; validatedQuery: z.infer<typeof getAppointmentsQuerySchema> }
 ) {
+  const user = context.user;
   try {
-    const user = context.user;
     const { startDate, endDate } = context.validatedQuery;
 
     // Build where clause
@@ -142,8 +142,8 @@ async function createManualAppointment(
   request: NextRequest, 
   context: { user: AuthenticatedUser; validatedBody: z.infer<typeof createManualAppointmentSchema> }
 ) {
+  const user = context.user;
   try {
-    const user = context.user;
     const {
       customerType,
       existingCustomerId,

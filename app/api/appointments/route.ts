@@ -26,8 +26,8 @@ async function createAppointment(
   request: NextRequest, 
   context: { user: AuthenticatedUser; validatedBody: z.infer<typeof createAppointmentSchema> }
 ) {
+  const user = context.user;
   try {
-    const user = context.user;
     const { 
       date,
       staffId,
