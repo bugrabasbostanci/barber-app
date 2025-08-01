@@ -9,26 +9,35 @@ import {
 } from "@/lib/date-time";
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { logger } from "@/lib/logger";
+import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { z } from "zod";
 
-async function createAppointment(request: NextRequest, user: AuthenticatedUser) {
+// Validation schema for appointment creation
+const createAppointmentSchema = z.object({
+  date: commonSchemas.date,
+  staffId: commonSchemas.uuid,
+  startTime: commonSchemas.time,
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
+  timezone: z.string().optional().default(TURKEY_TZ),
+});
+
+async function createAppointment(
+  request: NextRequest, 
+  context: { user: AuthenticatedUser; validatedBody: z.infer<typeof createAppointmentSchema> }
+) {
   try {
-
-    const {
+    const user = context.user;
+    const { 
       date,
       staffId,
       startTime,
       notes,
       timezone = TURKEY_TZ,
-    } = await request.json();
+    } = context.validatedBody;
 
-    if (!date || !staffId || !startTime) {
-      return NextResponse.json(
-        {
-          error: "Date, staffId, and startTime are required",
-        },
-        { status: 400 }
-      );
-    }
+    // Sanitize string inputs
+    const sanitizedNotes = notes ? sanitizeString(notes) : null;
 
     // Get default shop
     const shop = await prisma.shop.findFirst();
@@ -110,7 +119,7 @@ async function createAppointment(request: NextRequest, user: AuthenticatedUser) 
         startTime: createUTCTime(startTime),
         endTime: createUTCTime(endTime),
         status: "SCHEDULED",
-        notes: notes || null,
+        notes: sanitizedNotes,
       },
       include: {
         customer: {
@@ -170,5 +179,11 @@ async function createAppointment(request: NextRequest, user: AuthenticatedUser) 
   }
 }
 
-// Export protected endpoint
-export const POST = withAuth(requireCustomer())(createAppointment);
+// Export protected endpoint with validation and rate limiting
+export const POST = withRateLimit(rateLimiters.booking)(
+  withAuth(requireCustomer())(
+    withValidation({ 
+      body: createAppointmentSchema 
+    })(createAppointment)
+  )
+);

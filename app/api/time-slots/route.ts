@@ -1,21 +1,22 @@
 import { getAvailableTimeSlots } from "@/lib/seed-data";
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { withValidation, commonSchemas } from "@/lib/middleware/validation";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { z } from "zod";
 
-export async function GET(request: NextRequest) {
+// Validation schema for time slots query
+const timeSlotsQuerySchema = z.object({
+  date: commonSchemas.date,
+  staffId: commonSchemas.uuid,
+});
+
+async function getTimeSlots(
+  request: NextRequest,
+  context: { validatedQuery: z.infer<typeof timeSlotsQuerySchema> }
+) {
   try {
-    const { searchParams } = new URL(request.url);
-    const date = searchParams.get("date");
-    const staffId = searchParams.get("staffId");
-
-    if (!date || !staffId) {
-      return NextResponse.json(
-        {
-          error: "Date and staffId are required",
-        },
-        { status: 400 }
-      );
-    }
+    const { date, staffId } = context.validatedQuery;
 
     const availableSlots = await getAvailableTimeSlots(date, staffId);
 
@@ -36,3 +37,10 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Export with validation and rate limiting
+export const GET = withRateLimit(rateLimiters.api)(
+  withValidation({ 
+    query: timeSlotsQuerySchema 
+  })(getTimeSlots)
+);

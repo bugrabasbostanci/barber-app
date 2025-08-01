@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AuthenticatedUser } from './api-auth';
 
 /**
@@ -29,7 +29,7 @@ export function requireDebugAccess() {
 /**
  * Sanitize sensitive data for debug output
  */
-export function sanitizeForDebug<T extends Record<string, any>>(
+export function sanitizeForDebug<T extends Record<string, unknown>>(
   data: T,
   sensitiveFields: (keyof T)[] = ['email', 'phone', 'firstName', 'lastName']
 ): T {
@@ -61,7 +61,7 @@ export function limitArrayForDebug<T>(array: T[], maxSize: number = 10): T[] {
 /**
  * Create debug response with metadata
  */
-export function createDebugResponse(data: any, context?: string) {
+export function createDebugResponse(data: unknown, context?: string) {
   return {
     success: true,
     debug: true,

@@ -3,13 +3,51 @@ import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/date-time";
 import { withAuth, requireBarber, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { logger } from "@/lib/logger";
+import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { z } from "zod";
+
+// Validation schemas
+const getAppointmentsQuerySchema = z.object({
+  startDate: commonSchemas.date.optional(),
+  endDate: commonSchemas.date.optional(),
+}).refine(
+  (data) => !data.startDate || !data.endDate || data.startDate <= data.endDate,
+  { message: 'Start date must be before or equal to end date' }
+);
+
+const createManualAppointmentSchema = z.object({
+  customerType: z.enum(['new', 'existing'], { required_error: 'Customer type is required' }),
+  existingCustomerId: commonSchemas.uuid.optional(),
+  customerName: z.string().max(100, 'Customer name too long').optional(),
+  customerPhone: commonSchemas.phone.optional(),
+  date: commonSchemas.date,
+  staffId: commonSchemas.uuid,
+  startTime: commonSchemas.time, 
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
+}).refine(
+  (data) => {
+    if (data.customerType === 'new') {
+      return data.customerName?.trim() && data.customerPhone?.trim();
+    }
+    if (data.customerType === 'existing') {
+      return data.existingCustomerId;
+    }
+    return true;
+  },
+  {
+    message: 'For new customers, name and phone are required. For existing customers, customer ID is required.',
+  }
+);
 
 // GET - Fetch appointments for barber dashboard
-async function getAppointments(request: NextRequest, user: AuthenticatedUser) {
+async function getAppointments(
+  request: NextRequest, 
+  context: { user: AuthenticatedUser; validatedQuery: z.infer<typeof getAppointmentsQuerySchema> }
+) {
   try {
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    const user = context.user;
+    const { startDate, endDate } = context.validatedQuery;
 
     // Build where clause
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,48 +138,26 @@ async function getAppointments(request: NextRequest, user: AuthenticatedUser) {
 }
 
 // POST - Create manual appointment for barber
-async function createManualAppointment(request: NextRequest, user: AuthenticatedUser) {
+async function createManualAppointment(
+  request: NextRequest, 
+  context: { user: AuthenticatedUser; validatedBody: z.infer<typeof createManualAppointmentSchema> }
+) {
   try {
+    const user = context.user;
     const {
+      customerType,
+      existingCustomerId,
+      customerName,
+      customerPhone,
       date,
       staffId,
       startTime,
-      customerType,
-      customerName,
-      customerPhone,
-      existingCustomerId,
       notes,
-    } = await request.json();
+    } = context.validatedBody;
 
-    if (!date || !staffId || !startTime) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Date, staffId, and startTime are required",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (customerType === "new" && (!customerName?.trim() || !customerPhone?.trim())) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Customer name and phone are required for new customers",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (customerType === "existing" && !existingCustomerId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Customer ID is required for existing customers",
-        },
-        { status: 400 }
-      );
-    }
+    // Sanitize string inputs (customerName could be undefined for existing customers)
+    const sanitizedCustomerName = customerName ? sanitizeString(customerName) : null;
+    const sanitizedNotes = notes ? sanitizeString(notes) : null;
 
     // Get default shop
     const shop = await prisma.shop.findFirst();
@@ -200,9 +216,9 @@ async function createManualAppointment(request: NextRequest, user: Authenticated
         startTime: createUTCTime(startTime),
         endTime: createUTCTime(endTime),
         status: "CONFIRMED", // Manual appointments are auto-confirmed
-        notes: notes?.trim() || null,
-        manualCustomerName: customerType === "new" ? customerName?.trim() : null,
-        manualCustomerPhone: customerType === "new" ? customerPhone?.trim() : null,
+        notes: sanitizedNotes,
+        manualCustomerName: customerType === "new" ? sanitizedCustomerName : null,
+        manualCustomerPhone: customerType === "new" ? customerPhone : null,
       },
       include: {
         customer:
@@ -270,6 +286,19 @@ async function createManualAppointment(request: NextRequest, user: Authenticated
   }
 }
 
-// Export protected endpoints
-export const GET = withAuth(requireBarber())(getAppointments);
-export const POST = withAuth(requireBarber())(createManualAppointment);
+// Export protected endpoints with validation and rate limiting
+export const GET = withRateLimit(rateLimiters.api)(
+  withAuth(requireBarber())(
+    withValidation({ 
+      query: getAppointmentsQuerySchema 
+    })(getAppointments)
+  )
+);
+
+export const POST = withRateLimit(rateLimiters.booking)(
+  withAuth(requireBarber())(
+    withValidation({ 
+      body: createManualAppointmentSchema 
+    })(createManualAppointment)
+  )
+);
