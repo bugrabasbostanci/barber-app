@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import {
   localDateToUTC,
@@ -8,20 +7,10 @@ import {
   utcToLocalDate,
   TURKEY_TZ,
 } from "@/lib/date-time";
-// Luxon replaced with native Date
+import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
 
-
-export async function POST(request: NextRequest) {
+async function createAppointment(request: NextRequest, user: AuthenticatedUser) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const {
       date,
@@ -114,14 +103,13 @@ export async function POST(request: NextRequest) {
     const appointment = await prisma.appointment.create({
       data: {
         shopId: shop.id,
-        customerId: dbUser.id,
+        customerId: user.id, // Use authenticated user ID
         staffId,
         date: appointmentDateUTC,
         startTime: createUTCTime(startTime),
         endTime: createUTCTime(endTime),
         status: "SCHEDULED",
         notes: notes || null,
-        createdById: dbUser.id,
       },
       include: {
         customer: {
@@ -166,9 +154,13 @@ export async function POST(request: NextRequest) {
     console.error("Error creating appointment:", error);
     return NextResponse.json(
       {
+        success: false,
         error: "Internal server error",
       },
       { status: 500 }
     );
   }
 }
+
+// Export protected endpoint
+export const POST = withAuth(requireCustomer())(createAppointment);

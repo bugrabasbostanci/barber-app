@@ -1,37 +1,11 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/date-time";
-// Luxon replaced with native Date
-
+import { withAuth, requireBarber, AuthenticatedUser } from "@/lib/middleware/api-auth";
 
 // GET - Fetch appointments for barber dashboard
-export async function GET(request: NextRequest) {
+async function getAppointments(request: NextRequest, user: AuthenticatedUser) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user has BARBER or ADMIN role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser || !["BARBER", "ADMIN"].includes(dbUser.role)) {
-      return NextResponse.json(
-        {
-          error: "Only barbers and admins can view appointments",
-        },
-        { status: 403 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
@@ -101,11 +75,15 @@ export async function GET(request: NextRequest) {
       createdAt: appointment.createdAt.toISOString(),
     }));
 
-    return NextResponse.json(formattedAppointments);
+    return NextResponse.json({
+      success: true,
+      data: formattedAppointments
+    });
   } catch (error) {
     console.error("Error fetching appointments:", error);
     return NextResponse.json(
       {
+        success: false,
         error: "Internal server error",
       },
       { status: 500 }
@@ -113,32 +91,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST - Create manual appointment for barber
+async function createManualAppointment(request: NextRequest, user: AuthenticatedUser) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user has BARBER or ADMIN role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser || !["BARBER", "ADMIN"].includes(dbUser.role)) {
-      return NextResponse.json(
-        {
-          error: "Only barbers and admins can create manual appointments",
-        },
-        { status: 403 }
-      );
-    }
-
     const {
       date,
       staffId,
@@ -153,6 +108,7 @@ export async function POST(request: NextRequest) {
     if (!date || !staffId || !startTime) {
       return NextResponse.json(
         {
+          success: false,
           error: "Date, staffId, and startTime are required",
         },
         { status: 400 }
@@ -162,6 +118,7 @@ export async function POST(request: NextRequest) {
     if (customerType === "new" && (!customerName?.trim() || !customerPhone?.trim())) {
       return NextResponse.json(
         {
+          success: false,
           error: "Customer name and phone are required for new customers",
         },
         { status: 400 }
@@ -171,6 +128,7 @@ export async function POST(request: NextRequest) {
     if (customerType === "existing" && !existingCustomerId) {
       return NextResponse.json(
         {
+          success: false,
           error: "Customer ID is required for existing customers",
         },
         { status: 400 }
@@ -182,6 +140,7 @@ export async function POST(request: NextRequest) {
     if (!shop) {
       return NextResponse.json(
         {
+          success: false,
           error: "No shop found",
         },
         { status: 500 }
@@ -206,6 +165,7 @@ export async function POST(request: NextRequest) {
     if (existingAppointment) {
       return NextResponse.json(
         {
+          success: false,
           error: "This time slot is no longer available",
         },
         { status: 409 }
@@ -265,7 +225,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Manual appointment created successfully",
-      appointment: {
+      data: {
         id: appointment.id,
         date: utcToLocalDate(appointment.date), // YYYY-MM-DD format in local timezone
         startTime: extractTimeString(appointment.startTime),
@@ -287,9 +247,14 @@ export async function POST(request: NextRequest) {
     console.error("Error creating manual appointment:", error);
     return NextResponse.json(
       {
+        success: false,
         error: "Internal server error",
       },
       { status: 500 }
     );
   }
 }
+
+// Export protected endpoints
+export const GET = withAuth(requireBarber())(getAppointments);
+export const POST = withAuth(requireBarber())(createManualAppointment);
