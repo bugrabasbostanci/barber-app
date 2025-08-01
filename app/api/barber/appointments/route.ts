@@ -46,9 +46,13 @@ export async function GET(request: NextRequest) {
 
     // Add date range filter if provided
     if (startDate && endDate) {
+      // Create date range that covers the entire day in UTC
+      const startUTC = new Date(startDate + 'T00:00:00.000Z');
+      const endUTC = new Date(endDate + 'T23:59:59.999Z');
+      
       whereClause.date = {
-        gte: localDateToUTC(startDate),
-        lte: localDateToUTC(endDate),
+        gte: startUTC,
+        lte: endUTC,
       };
     }
 

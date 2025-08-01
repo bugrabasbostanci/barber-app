@@ -259,24 +259,17 @@ export function CalendarView() {
     return "text-green-600 bg-green-50";
   };
 
-  const timeSlots = [
-    "09:30",
-    "10:15",
-    "11:00",
-    "11:45",
-    "12:30",
-    "13:15",
-    "14:00",
-    "14:45",
-    "15:30",
-    "16:15",
-    "17:00",
-    "17:45",
-    "18:30",
-    "19:15",
-    "20:00",
-    "20:45",
-  ];
+  // Generate all possible time slots from 09:30 to 20:45 with 45-minute intervals
+  const timeSlots = [];
+  for (let hour = 9; hour <= 20; hour++) {
+    for (let minute = 0; minute < 60; minute += 45) {
+      if (hour === 9 && minute < 30) continue; // Start from 09:30
+      if (hour === 20 && minute > 45) break;   // End at 20:45
+      
+      const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      timeSlots.push(timeStr);
+    }
+  }
 
   if (loading) {
     return (
@@ -444,22 +437,9 @@ export function CalendarView() {
                         const staffAppointments = getAppointmentsForDate(
                           currentDate
                         ).filter((apt) => {
-                          // Exact match first
-                          if (apt.startTime.substring(0, 5) === timeSlot && apt.staff.id === staff.id) {
-                            return true;
-                          }
-                          
-                          // Flexible time matching for appointments that don't match exact slots
+                          // Extract time part (HH:MM) from appointment startTime and compare with timeSlot
                           const appointmentTime = apt.startTime.substring(0, 5);
-                          const [aptHour, aptMin] = appointmentTime.split(':').map(Number);
-                          const [slotHour, slotMin] = timeSlot.split(':').map(Number);
-                          
-                          const aptMinutes = aptHour * 60 + aptMin;
-                          const slotMinutes = slotHour * 60 + slotMin;
-                          
-                          // Show appointment in the closest time slot (within 30 minutes)
-                          const timeDiff = Math.abs(aptMinutes - slotMinutes);
-                          return timeDiff <= 30 && apt.staff.id === staff.id;
+                          return appointmentTime === timeSlot && apt.staff.id === staff.id;
                         });
 
 
@@ -576,22 +556,9 @@ export function CalendarView() {
                           const dayAppointments = getAppointmentsForDate(
                             day
                           ).filter((apt) => {
-                            // Exact match first
-                            if (apt.startTime.substring(0, 5) === timeSlot) {
-                              return true;
-                            }
-                            
-                            // Flexible time matching for appointments that don't match exact slots
+                            // Extract time part (HH:MM) from appointment startTime and compare with timeSlot
                             const appointmentTime = apt.startTime.substring(0, 5);
-                            const [aptHour, aptMin] = appointmentTime.split(':').map(Number);
-                            const [slotHour, slotMin] = timeSlot.split(':').map(Number);
-                            
-                            const aptMinutes = aptHour * 60 + aptMin;
-                            const slotMinutes = slotHour * 60 + slotMin;
-                            
-                            // Show appointment in the closest time slot (within 30 minutes)
-                            const timeDiff = Math.abs(aptMinutes - slotMinutes);
-                            return timeDiff <= 30;
+                            return appointmentTime === timeSlot;
                           });
 
 

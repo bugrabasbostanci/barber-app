@@ -68,7 +68,7 @@ export function utcToLocalDateTime(date: Date): {
  * @param timeStr - "14:30" formatında saat
  */
 export function createUTCTime(timeStr: string): Date {
-  return new Date(`1970-01-01T${timeStr}:00`);
+  return new Date(`1970-01-01T${timeStr}:00Z`);
 }
 
 /**
@@ -76,7 +76,10 @@ export function createUTCTime(timeStr: string): Date {
  * @param date - Date objesi (1970-01-01 bazlı)
  */
 export function extractTimeString(date: Date): string {
-  return utcToLocalTime(date);
+  // UTC saati olarak çıkar (timezone dönüşümü yapma)
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
 /**
