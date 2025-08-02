@@ -28,15 +28,17 @@ export default function UpdateRolePage() {
         body: JSON.stringify({ role: selectedRole })
       })
 
-      const data = await response.json()
-      setResult(data)
+      const result = await response.json()
+      setResult(result)
 
-      if (data.success) {
+      if (result.success) {
         alert(`Rol başarıyla ${selectedRole} olarak güncellendi!`)
         // Sayfayı yenile ki yeni rol aktif olsun
         setTimeout(() => {
           window.location.href = '/'
         }, 1000)
+      } else {
+        alert(result.error || 'Rol güncellenirken bir hata oluştu')
       }
     } catch (error) {
       console.error('Error:', error)

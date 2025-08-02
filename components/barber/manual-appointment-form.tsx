@@ -64,8 +64,12 @@ export function ManualAppointmentForm() {
       try {
         const response = await fetch("/api/staff");
         if (response.ok) {
-          const staffData = await response.json();
-          setStaff(staffData);
+          const result = await response.json();
+          if (result.success) {
+            setStaff(result.data);
+          } else {
+            console.error("Failed to fetch staff:", result.error);
+          }
         }
       } catch (error) {
         console.error("Error fetching staff:", error);
@@ -91,12 +95,17 @@ export function ManualAppointmentForm() {
         );
 
         if (response.ok) {
-          const availableSlots = await response.json();
-          const slots: TimeSlot[] = availableSlots.map((time: string) => ({
-            time,
-            available: true,
-          }));
-          setTimeSlots(slots);
+          const result = await response.json();
+          if (result.success) {
+            const slots: TimeSlot[] = result.data.map((time: string) => ({
+              time,
+              available: true,
+            }));
+            setTimeSlots(slots);
+          } else {
+            console.error("Failed to fetch time slots:", result.error);
+            setTimeSlots([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching time slots:", error);

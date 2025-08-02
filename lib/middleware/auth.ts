@@ -1,8 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-
-const prisma = new PrismaClient()
 
 export async function requireAuth() {
   const supabase = await createClient()
@@ -40,8 +38,6 @@ export async function requireCustomer() {
   } catch (error) {
     console.error('Database error in requireCustomer:', error)
     redirect('/auth/login?error=Veritabanı hatası oluştu')
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
@@ -70,7 +66,5 @@ export async function requireBarber() {
   } catch (error) {
     console.error('Database error in requireBarber:', error)
     redirect('/auth/login?error=Veritabanı hatası oluştu')
-  } finally {
-    await prisma.$disconnect()
   }
 }

@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { localDateToUTC, createUTCTime } from "@/lib/date-time";
 import { BUSINESS_RULES } from "@/lib/constants";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
+import { AppointmentStatus } from "@prisma/client";
 
 export async function seedTestData() {
   try {
@@ -62,8 +61,6 @@ export async function seedTestData() {
   } catch (error) {
     console.error("Error seeding data:", error);
     return { success: false, error };
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -72,8 +69,6 @@ export async function getAvailableTimeSlots(
   staffId: string,
   timezone: string = "Europe/Istanbul"
 ): Promise<string[]> {
-  const prisma = new PrismaClient();
-
   try {
     // Convert local date to UTC for database query
     const dateUTC = localDateToUTC(dateStr);
@@ -84,7 +79,7 @@ export async function getAvailableTimeSlots(
         staffId,
         date: dateUTC,
         status: {
-          notIn: ["CANCELLED"],
+          notIn: [AppointmentStatus.CANCELLED],
         },
       },
       select: {
@@ -222,14 +217,10 @@ export async function getAvailableTimeSlots(
   } catch (error) {
     console.error("Error getting available time slots:", error);
     return [];
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
 export async function getStaffMembers() {
-  const prisma = new PrismaClient();
-
   try {
     const staff = await prisma.user.findMany({
       where: {
@@ -252,7 +243,5 @@ export async function getStaffMembers() {
   } catch (error) {
     console.error("Error fetching staff members:", error);
     return [];
-  } finally {
-    await prisma.$disconnect();
   }
 }

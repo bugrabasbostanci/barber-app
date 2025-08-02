@@ -440,11 +440,16 @@ export default function BookAppointmentPage() {
 
       {currentStep === 5 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
-          <Link href="/">
-            <Button className="w-full h-14 text-base font-semibold">
-              Başka Randevu Al
-            </Button>
-          </Link>
+          <button
+            onClick={() => {
+              // Reset booking data and go to step 1
+              setBookingData({ date: "", staffId: "", timeSlot: "" });
+              setCurrentStep(1);
+            }}
+            className="w-full h-14 text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Başka Randevu Al
+          </button>
           <Link href="/my-appointments">
             <Button
               variant="outline"
@@ -462,17 +467,13 @@ export default function BookAppointmentPage() {
 // Staff Selection Component with Avatar Design
 function StaffSelectionNew({
   selectedStaff,
-  selectedDate,
   onStaffSelect,
 }: {
   selectedStaff: string;
-  selectedDate: string;
+  selectedDate?: string; // Optional for backward compatibility
   onStaffSelect: (staffId: string) => void;
 }) {
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
-  const [staffAvailability, setStaffAvailability] = useState<
-    Record<string, number>
-  >({});
   const [loading, setLoading] = useState(true);
 
   // Fetch staff from database
@@ -495,40 +496,6 @@ function StaffSelectionNew({
 
     fetchStaff();
   }, []);
-
-  // Fetch availability for each staff member when date is selected
-  useEffect(() => {
-    if (!selectedDate || staffMembers.length === 0) return;
-
-    async function fetchStaffAvailability() {
-      const availabilityMap: Record<string, number> = {};
-
-      // Fetch availability for each staff member
-      for (const staff of staffMembers) {
-        try {
-          const response = await fetch(
-            `/api/time-slots?date=${selectedDate}&staffId=${staff.id}`
-          );
-          if (response.ok) {
-            const slots = await response.json();
-            availabilityMap[staff.id] = Array.isArray(slots) ? slots.length : 0;
-          } else {
-            availabilityMap[staff.id] = 0;
-          }
-        } catch (error) {
-          console.error(
-            `Error fetching availability for staff ${staff.id}:`,
-            error
-          );
-          availabilityMap[staff.id] = 0;
-        }
-      }
-
-      setStaffAvailability(availabilityMap);
-    }
-
-    fetchStaffAvailability();
-  }, [selectedDate, staffMembers]);
 
   const getStaffTitle = (role: string) => {
     return role === "BARBER" ? "Berber" : "Çalışan";
@@ -571,18 +538,13 @@ function StaffSelectionNew({
     <div className="space-y-3">
       {staffMembers.map((staff) => {
         const isSelected = selectedStaff === staff.id;
-        const availableSlots = staffAvailability[staff.id];
-        const isUnavailable = Boolean(selectedDate && availableSlots === 0);
 
         return (
           <button
             key={staff.id}
-            onClick={() => !isUnavailable && onStaffSelect(staff.id)}
-            disabled={isUnavailable}
+            onClick={() => onStaffSelect(staff.id)}
             className={`w-full p-5 rounded-xl border-2 transition-all ${
-              isUnavailable
-                ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
-                : isSelected
+              isSelected
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-200 hover:border-gray-300"
             }`}
@@ -601,25 +563,6 @@ function StaffSelectionNew({
                 <p className="text-sm text-blue-600 font-medium">
                   {getStaffTitle(staff.role)}
                 </p>
-                {selectedDate && (
-                  <div className="mt-1">
-                    {staffAvailability[staff.id] !== undefined ? (
-                      staffAvailability[staff.id] > 0 ? (
-                        <p className="text-xs text-green-600 font-medium">
-                          {staffAvailability[staff.id]} müsait saat
-                        </p>
-                      ) : (
-                        <p className="text-xs text-red-600 font-medium">
-                          Bu tarih için müsait değil
-                        </p>
-                      )
-                    ) : (
-                      <p className="text-xs text-gray-400">
-                        Müsaitlik kontrol ediliyor...
-                      </p>
-                    )}
-                  </div>
-                )}
               </div>
 
               {/* Selection Indicator */}
@@ -668,13 +611,11 @@ function TimeSelectionNew({
         );
 
         if (response.ok) {
-          const slots = await response.json();
-          console.log(
-            `Received ${slots.length} time slots for date ${date}:`,
-            slots
-          );
-          if (Array.isArray(slots)) {
-            setAvailableSlots(slots);
+          const result = await response.json();
+          console.log(`Received time slots response for date ${date}:`, result);
+
+          if (result.success && Array.isArray(result.data)) {
+            setAvailableSlots(result.data);
           } else {
             setError("Zaman dilimi verisi alınamadı");
             setAvailableSlots([]);

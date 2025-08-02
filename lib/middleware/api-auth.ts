@@ -36,7 +36,7 @@ export interface AuthenticatedUser {
 /**
  * Get authenticated user from request
  */
-export async function getAuthenticatedUser(req: NextRequest): Promise<AuthenticatedUser | null> {
+export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   try {
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -80,8 +80,8 @@ export async function getAuthenticatedUser(req: NextRequest): Promise<Authentica
  * Require authentication middleware
  */
 export function requireAuth() {
-  return async (req: NextRequest): Promise<AuthenticatedUser> => {
-    const user = await getAuthenticatedUser(req);
+  return async (_req: NextRequest): Promise<AuthenticatedUser> => {
+    const user = await getAuthenticatedUser();
     
     if (!user) {
       throw new UnauthorizedError('Authentication required');
@@ -215,8 +215,8 @@ export function withMiddleware(middlewares: AuthMiddleware[]) {
  * Optional auth - doesn't throw if user is not authenticated
  */
 export function optionalAuth() {
-  return async (req: NextRequest): Promise<AuthenticatedUser | null> => {
-    return await getAuthenticatedUser(req);
+  return async (_req: NextRequest): Promise<AuthenticatedUser | null> => {
+    return await getAuthenticatedUser();
   };
 }
 

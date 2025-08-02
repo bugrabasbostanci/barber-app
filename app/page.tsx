@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,11 +62,13 @@ export default function Home() {
             <p className="text-gray-500 text-sm">Premium Barbershop</p>
           </div>
 
-          {!loading && (
-            <div className="flex items-center gap-2">
-              {user ? (
-                /* Avatar Dropdown Menu */
-                <DropdownMenu>
+          <div className="flex items-center gap-2">
+            {loading ? (
+              // Loading placeholder
+              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+            ) : user ? (
+              /* Avatar Dropdown Menu */
+              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="w-10 h-10 cursor-pointer">
                       {user.user_metadata?.avatar_url ? (
@@ -136,9 +137,9 @@ export default function Home() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              ) : (
-                // Non-authenticated user buttons
-                <>
+            ) : (
+              // Non-authenticated user buttons
+              <>
                   <Link href="/auth/login">
                     <Button
                       variant="ghost"
@@ -153,10 +154,9 @@ export default function Home() {
                       Kayıt Ol
                     </Button>
                   </Link>
-                </>
-              )}
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </header>
 

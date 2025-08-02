@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
@@ -12,13 +13,13 @@
       "Bash(rg:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "shadcn-ui"
-  ],
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+  ]
 }

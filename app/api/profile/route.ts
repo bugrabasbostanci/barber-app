@@ -1,20 +1,22 @@
 import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { UnauthorizedError, ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 
 // GET - Fetch user profile
-export async function GET() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+async function getProfileHandler() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (authError || !user) {
+    throw new UnauthorizedError();
+  }
 
     // Get user profile from database
     let userProfile = await prisma.user.findUnique({
@@ -53,42 +55,25 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...userProfile,
-        createdAt: userProfile.createdAt.toISOString(),
-      }
-    });
-  } catch (error) {
-    logger.api("Failed to fetch user profile", {
-      method: "GET",
-      path: "/api/profile",
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
-  }
+  return ApiResponseBuilder.success({
+    ...userProfile,
+    createdAt: userProfile.createdAt.toISOString(),
+  });
 }
 
-// PATCH - Update user profile (partial update)
-export async function PATCH(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+export const GET = withErrorHandler(getProfileHandler);
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// PATCH - Update user profile (partial update)
+async function patchProfileHandler(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new UnauthorizedError();
+  }
 
     const body = await request.json();
     const updateData: {
@@ -123,52 +108,35 @@ export async function PATCH(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      user: {
-        ...updatedUser,
-        createdAt: updatedUser.createdAt.toISOString(),
-      },
-    });
-  } catch (error) {
-    logger.api("Failed to update user profile", {
-      method: "POST",
-      path: "/api/profile",
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        error: "Profil güncellenirken bir hata oluştu",
-      },
-      { status: 500 }
-    );
-  }
+  return ApiResponseBuilder.success({
+    ...updatedUser,
+    createdAt: updatedUser.createdAt.toISOString(),
+  });
 }
 
-// PUT - Update user profile
-export async function PUT(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+export const PATCH = withErrorHandler(patchProfileHandler);
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// PUT - Update user profile  
+async function putProfileHandler(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    const { firstName, lastName, phone, email } = await request.json();
+  if (authError || !user) {
+    throw new UnauthorizedError();
+  }
 
-    // Validate input
-    if (!firstName || !lastName) {
-      return NextResponse.json(
-        { error: "Ad ve soyad gereklidir" },
-        { status: 400 }
-      );
-    }
+  const { firstName, lastName, phone } = await request.json();
+
+  // Validate input
+  if (!firstName || !lastName) {
+    throw new ValidationError([{
+      code: 'required_fields',
+      message: 'Ad ve soyad gereklidir'
+    }]);
+  }
 
     // Update user profile
     const updatedUser = await prisma.user.update({
@@ -191,42 +159,25 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...updatedUser,
-        createdAt: updatedUser.createdAt.toISOString(),
-      }
-    });
-  } catch (error) {
-    logger.api("Failed to update user profile", {
-      method: "POST",
-      path: "/api/profile",
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        error: "Profil güncellenirken bir hata oluştu",
-      },
-      { status: 500 }
-    );
-  }
+  return ApiResponseBuilder.success({
+    ...updatedUser,
+    createdAt: updatedUser.createdAt.toISOString(),
+  });
 }
 
-// DELETE - Delete user account
-export async function DELETE() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+export const PUT = withErrorHandler(putProfileHandler);
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// DELETE - Delete user account
+async function deleteProfileHandler() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new UnauthorizedError();
+  }
 
     // Start a transaction to delete user data
     await prisma.$transaction(async (tx) => {
@@ -254,23 +205,9 @@ export async function DELETE() {
       // Continue anyway as the user is already deleted from our database
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Hesabınız başarıyla silindi"
-    });
-  } catch (error) {
-    logger.api("Failed to delete user account", {
-      method: "DELETE",
-      path: "/api/profile",
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        error: "Hesap silinirken bir hata oluştu",
-      },
-      { status: 500 }
-    );
-  }
+  return ApiResponseBuilder.success({
+    message: "Hesabınız başarıyla silindi"
+  });
 }
+
+export const DELETE = withErrorHandler(deleteProfileHandler);

@@ -1,10 +1,12 @@
 import { prisma } from '@/lib/prisma';
-import { NextRequest, NextResponse } from "next/server";
+import { AppointmentStatus } from '@prisma/client';
+import { NextRequest } from "next/server";
 import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/date-time";
-import { withAuth, requireBarber, AuthenticatedUser } from "@/lib/middleware/api-auth";
-import { logger } from "@/lib/logger";
+import { withAuth, requireBarber } from "@/lib/middleware/api-auth";
 import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
-import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { NotFoundError, ConflictError } from "@/lib/errors";
 import { z } from "zod";
 
 // Validation schemas
@@ -45,15 +47,16 @@ async function getAppointments(
   request: NextRequest, 
   context: Record<string, unknown>
 ) {
-  const user = context.user as AuthenticatedUser;
   try {
     const { startDate, endDate } = context.validatedQuery as z.infer<typeof getAppointmentsQuerySchema>;
 
     // Build where clause
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const whereClause: any = {
+    const whereClause: {
+      status: { notIn: AppointmentStatus[] };
+      date?: { gte: Date; lte: Date };
+    } = {
       status: {
-        notIn: ["CANCELLED" as const],
+        notIn: [AppointmentStatus.CANCELLED],
       },
     };
 
@@ -114,26 +117,9 @@ async function getAppointments(
       createdAt: appointment.createdAt.toISOString(),
     }));
 
-    return NextResponse.json({
-      success: true,
-      data: formattedAppointments
-    });
+    return ApiResponseBuilder.success(formattedAppointments);
   } catch (error) {
-    logger.api("Failed to fetch barber appointments", {
-      method: "GET",
-      path: "/api/barber/appointments",
-      userId: user.id,
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    throw error;
   }
 }
 
@@ -142,7 +128,6 @@ async function createManualAppointment(
   request: NextRequest, 
   context: Record<string, unknown>
 ) {
-  const user = context.user as AuthenticatedUser;
   try {
     const {
       customerType,
@@ -162,13 +147,7 @@ async function createManualAppointment(
     // Get default shop
     const shop = await prisma.shop.findFirst();
     if (!shop) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "No shop found",
-        },
-        { status: 500 }
-      );
+      throw new NotFoundError("No shop found");
     }
 
     // Calculate end time (45 minutes later) using native Date
@@ -187,13 +166,7 @@ async function createManualAppointment(
     });
 
     if (existingAppointment) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "This time slot is no longer available",
-        },
-        { status: 409 }
-      );
+      throw new ConflictError("This time slot is no longer available");
     }
 
     let customerId = null;
@@ -246,48 +219,32 @@ async function createManualAppointment(
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Manual appointment created successfully",
-      data: {
-        id: appointment.id,
-        date: utcToLocalDate(appointment.date), // YYYY-MM-DD format in local timezone
-        startTime: extractTimeString(appointment.startTime),
-        endTime: extractTimeString(appointment.endTime),
-        status: appointment.status,
-        customerName:
-          appointment.manualCustomerName ||
-          (appointment.customer
-            ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
-            : null),
-        customerPhone:
-          appointment.manualCustomerPhone || appointment.customer?.phone,
-        staff: appointment.staff,
-        shop: appointment.shop,
-        notes: appointment.notes,
-      },
-    });
+    const responseData = {
+      id: appointment.id,
+      date: utcToLocalDate(appointment.date),
+      startTime: extractTimeString(appointment.startTime),
+      endTime: extractTimeString(appointment.endTime),
+      status: appointment.status,
+      customerName:
+        appointment.manualCustomerName ||
+        (appointment.customer
+          ? `${appointment.customer.firstName} ${appointment.customer.lastName}`
+          : null),
+      customerPhone:
+        appointment.manualCustomerPhone || appointment.customer?.phone,
+      staff: appointment.staff,
+      shop: appointment.shop,
+      notes: appointment.notes,
+    };
+
+    return ApiResponseBuilder.success(responseData);
   } catch (error) {
-    logger.api("Failed to create manual appointment", {
-      method: "POST",
-      path: "/api/barber/appointments",
-      userId: user.id,
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    throw error;
   }
 }
 
-// Export protected endpoints with validation and rate limiting
-export const GET = withRateLimit(rateLimiters.api)(
+// Export protected endpoints with error handling, validation and rate limiting
+export const GET = withErrorHandler(
   withAuth(requireBarber())(
     withValidation({ 
       query: getAppointmentsQuerySchema 
@@ -295,7 +252,7 @@ export const GET = withRateLimit(rateLimiters.api)(
   )
 );
 
-export const POST = withRateLimit(rateLimiters.booking)(
+export const POST = withErrorHandler(
   withAuth(requireBarber())(
     withValidation({ 
       body: createManualAppointmentSchema 

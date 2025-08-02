@@ -1,4 +1,4 @@
-# Turkish Barber App - Production Ready Roadmap 🚀
+# Barber App - Production Ready Roadmap 🚀
 
 **Güvenlik Öncelikli Comprehensive Improvement Plan**
 
@@ -7,13 +7,15 @@ Bu plan mevcut UNIFIED-IMPROVEMENT-PLAN.md ile güvenlik analizi sonuçlarını 
 ## 🚨 KRİTİK DURUM ANALİZİ
 
 ### Acil Güvenlik Zafiyetleri
+
 - **Authorization Bypass**: Authenticated user herhangi bir API'yi çağırabilir
-- **Debug Endpoints**: Production'da aktif (/api/debug-*)
+- **Debug Endpoints**: Production'da aktif (/api/debug-\*)
 - **Data Leakage**: 75+ console.log kullanımı
 - **Input Validation**: XSS ve injection koruması eksik
 - **Rate Limiting**: DDoS koruması yok
 
 ### Kod Kalitesi Sorunları
+
 - **calendar-view.tsx**: 946 satır (refactor gerekli)
 - **book-appointment/page.tsx**: 892 satır
 - **sidebar.tsx**: 726 satır
@@ -24,43 +26,47 @@ Bu plan mevcut UNIFIED-IMPROVEMENT-PLAN.md ile güvenlik analizi sonuçlarını 
 ### 🚨 FAZ 0: ACİL GÜVENLİK (1-2 GÜN) - KRİTİK ÖNCELİK
 
 #### 0.1 Authorization Middleware (4 saat)
+
 ```ts
 // lib/middleware/auth.ts
 export function requireRole(allowedRoles: Role[]) {
   return async (req: NextRequest) => {
     const user = await getAuthenticatedUser(req);
-    
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     if (!allowedRoles.includes(user.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    
+
     return user;
   };
 }
 
 // Kullanım:
-export const GET = withAuth(requireRole(['BARBER', 'ADMIN']))(handler);
+export const GET = withAuth(requireRole(["BARBER", "ADMIN"]))(handler);
 ```
 
 #### 0.2 Debug Endpoints Güvenliği (2 saat)
+
 ```ts
 // app/api/debug-*/route.ts - Tüm debug endpoint'lerde
 export async function GET(request: NextRequest) {
   // Production'da sadece admin erişimi
-  if (process.env.NODE_ENV === 'production') {
-    const user = await requireRole(['ADMIN'])(request);
-    if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (process.env.NODE_ENV === "production") {
+    const user = await requireRole(["ADMIN"])(request);
+    if (!user)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  
+
   // Existing debug logic...
 }
 ```
 
 #### 0.3 Console.log Temizliği (2 saat)
+
 ```bash
 # Automated cleanup
 find . -name "*.ts" -o -name "*.tsx" | xargs sed -i '/console\./d'
@@ -80,13 +86,14 @@ export const logger = {
 ```
 
 #### 0.4 Input Validation & Sanitization (6 saat)
+
 ```ts
 // lib/validations/security.ts
-import { z } from 'zod';
+import { z } from "zod";
 
 export const sanitizeInput = (input: string) => {
   return input
-    .replace(/[<>]/g, '') // XSS protection
+    .replace(/[<>]/g, "") // XSS protection
     .trim()
     .slice(0, 1000); // Length limit
 };
@@ -95,7 +102,7 @@ export const AppointmentSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   staffId: z.string().uuid(),
-  notes: z.string().max(500).optional().transform(sanitizeInput)
+  notes: z.string().max(500).optional().transform(sanitizeInput),
 });
 
 // Middleware wrapper
@@ -103,42 +110,51 @@ export function validateBody<T>(schema: z.ZodSchema<T>) {
   return async (req: NextRequest): Promise<T> => {
     const body = await req.json();
     const result = schema.safeParse(body);
-    
+
     if (!result.success) {
       throw new ValidationError(result.error.issues);
     }
-    
+
     return result.data;
   };
 }
 ```
 
 #### 0.5 Rate Limiting (4 saat)
+
 ```ts
 // lib/middleware/rate-limit.ts
 const rateLimits = new Map<string, { count: number; resetTime: number }>();
 
 export function rateLimit(maxRequests: number, windowMs: number) {
   return async (req: NextRequest) => {
-    const ip = req.ip || req.headers.get('x-forwarded-for') || 'unknown';
+    const ip = req.ip || req.headers.get("x-forwarded-for") || "unknown";
     const now = Date.now();
     const windowStart = now - windowMs;
-    
-    const current = rateLimits.get(ip) || { count: 0, resetTime: now + windowMs };
-    
+
+    const current = rateLimits.get(ip) || {
+      count: 0,
+      resetTime: now + windowMs,
+    };
+
     if (now > current.resetTime) {
       current.count = 1;
       current.resetTime = now + windowMs;
     } else {
       current.count++;
     }
-    
+
     rateLimits.set(ip, current);
-    
+
     if (current.count > maxRequests) {
       return NextResponse.json(
         { error: "Too many requests" },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((current.resetTime - now) / 1000)) } }
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((current.resetTime - now) / 1000)),
+          },
+        }
       );
     }
   };
@@ -147,44 +163,51 @@ export function rateLimit(maxRequests: number, windowMs: number) {
 // Usage: 10 requests per minute
 export const POST = withMiddleware([
   rateLimit(10, 60000),
-  requireRole(['CUSTOMER'])
+  requireRole(["CUSTOMER"]),
 ])(appointmentHandler);
 ```
 
 ### 📊 FAZ 1: STABİLİZASYON (3-5 GÜN)
 
 #### 1.1 Database Connection Optimization (1 gün)
+
 ```ts
 // lib/prisma.ts - Singleton pattern
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
     },
-  },
-});
+  });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 // Connection health check
 export async function checkDatabaseHealth() {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    return { status: 'healthy', timestamp: new Date() };
+    return { status: "healthy", timestamp: new Date() };
   } catch (error) {
-    return { status: 'unhealthy', error: error.message, timestamp: new Date() };
+    return { status: "unhealthy", error: error.message, timestamp: new Date() };
   }
 }
 ```
 
 #### 1.2 Standardized Error Handling (2 gün)
+
 ```ts
 // lib/errors/index.ts
 export class AppError extends Error {
@@ -200,19 +223,19 @@ export class AppError extends Error {
 
 export class ValidationError extends AppError {
   constructor(public issues: any[]) {
-    super('Validation failed', 400, 'VALIDATION_ERROR');
+    super("Validation failed", 400, "VALIDATION_ERROR");
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized') {
-    super(message, 401, 'UNAUTHORIZED');
+  constructor(message = "Unauthorized") {
+    super(message, 401, "UNAUTHORIZED");
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden') {
-    super(message, 403, 'FORBIDDEN');
+  constructor(message = "Forbidden") {
+    super(message, 403, "FORBIDDEN");
   }
 }
 
@@ -222,22 +245,24 @@ export function withErrorHandler(handler: Function) {
     try {
       return await handler(req);
     } catch (error) {
-      logger.error('API Error', error);
-      
+      logger.error("API Error", error);
+
       if (error instanceof AppError) {
         return NextResponse.json(
-          { 
-            success: false, 
-            error: error.message, 
+          {
+            success: false,
+            error: error.message,
             code: error.code,
-            ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+            ...(process.env.NODE_ENV === "development" && {
+              stack: error.stack,
+            }),
           },
           { status: error.statusCode }
         );
       }
-      
+
       return NextResponse.json(
-        { success: false, error: 'Internal server error' },
+        { success: false, error: "Internal server error" },
         { status: 500 }
       );
     }
@@ -246,6 +271,7 @@ export function withErrorHandler(handler: Function) {
 ```
 
 #### 1.3 API Response Standardization (1 gün)
+
 ```ts
 // lib/api/response.ts
 export interface ApiResponse<T = any> {
@@ -265,19 +291,27 @@ export class ApiResponseBuilder {
     return NextResponse.json({
       success: true,
       data,
-      meta
+      meta,
     });
   }
-  
+
   static error(message: string, statusCode = 500, code?: string): NextResponse {
-    return NextResponse.json({
-      success: false,
-      error: message,
-      code
-    }, { status: statusCode });
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        code,
+      },
+      { status: statusCode }
+    );
   }
-  
-  static paginated<T>(data: T[], total: number, page: number, limit: number): NextResponse {
+
+  static paginated<T>(
+    data: T[],
+    total: number,
+    page: number,
+    limit: number
+  ): NextResponse {
     return NextResponse.json({
       success: true,
       data,
@@ -285,19 +319,20 @@ export class ApiResponseBuilder {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     });
   }
 }
 ```
 
 #### 1.4 Health Check & Monitoring (1 gün)
+
 ```ts
 // app/api/health/route.ts
 export async function GET() {
   const health = {
-    status: 'healthy',
+    status: "healthy",
     timestamp: new Date(),
     version: process.env.npm_package_version,
     environment: process.env.NODE_ENV,
@@ -306,15 +341,15 @@ export async function GET() {
       database: await checkDatabaseHealth(),
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
-      }
-    }
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+      },
+    },
   };
-  
-  const isHealthy = health.checks.database.status === 'healthy';
-  
-  return NextResponse.json(health, { 
-    status: isHealthy ? 200 : 503 
+
+  const isHealthy = health.checks.database.status === "healthy";
+
+  return NextResponse.json(health, {
+    status: isHealthy ? 200 : 503,
   });
 }
 ```
@@ -322,6 +357,7 @@ export async function GET() {
 ### 🔧 FAZ 2: COMPONENT REFACTORING (1-2 HAFTA)
 
 #### 2.1 Calendar View Breakdown (4 gün)
+
 ```
 components/calendar/
 ├── CalendarView.tsx          # Main coordinator (100 lines)
@@ -339,6 +375,7 @@ components/calendar/
 ```
 
 #### 2.2 Booking Flow Refactoring (4 gün)
+
 ```
 components/booking/
 ├── BookingWizard.tsx        # Step coordinator (120 lines)
@@ -356,66 +393,74 @@ components/booking/
 ```
 
 #### 2.3 Service Layer Architecture (4 gün)
+
 ```ts
 // services/appointmentService.ts
 export class AppointmentService {
   static async createAppointment(data: CreateAppointmentDTO) {
     // Business logic validation
     await this.validateAppointmentSlot(data);
-    
+
     // Create appointment
     const appointment = await AppointmentRepository.create(data);
-    
+
     // Send notifications
     await NotificationService.sendBookingConfirmation(appointment);
-    
+
     return appointment;
   }
-  
+
   static async validateAppointmentSlot(data: CreateAppointmentDTO) {
     const existing = await AppointmentRepository.findByStaffAndTime(
-      data.staffId, 
-      data.date, 
+      data.staffId,
+      data.date,
       data.startTime
     );
-    
+
     if (existing) {
-      throw new ConflictError('Time slot already booked');
+      throw new ConflictError("Time slot already booked");
     }
-    
-    const isWorkingHours = await this.isWithinWorkingHours(data.date, data.startTime);
+
+    const isWorkingHours = await this.isWithinWorkingHours(
+      data.date,
+      data.startTime
+    );
     if (!isWorkingHours) {
-      throw new ValidationError('Outside working hours');
+      throw new ValidationError("Outside working hours");
     }
   }
 }
 
 // repositories/appointmentRepository.ts
 export class AppointmentRepository {
-  static async findByStaffAndTime(staffId: string, date: string, startTime: string) {
+  static async findByStaffAndTime(
+    staffId: string,
+    date: string,
+    startTime: string
+  ) {
     return prisma.appointment.findFirst({
       where: {
         staffId,
         date: localDateToUTC(date),
         startTime: createUTCTime(startTime),
-        status: { notIn: ['CANCELLED'] }
-      }
+        status: { notIn: ["CANCELLED"] },
+      },
     });
   }
-  
+
   static async create(data: CreateAppointmentDTO) {
     return prisma.appointment.create({
       data: {
         ...data,
         date: localDateToUTC(data.date),
         startTime: createUTCTime(data.startTime),
-        endTime: createUTCTime(data.endTime)
+        endTime: createUTCTime(data.endTime),
       },
       include: {
         customer: true,
         staff: true,
-        shop: true
-      }
+        shop: true,
+      },
     });
   }
 }
@@ -424,40 +469,45 @@ export class AppointmentRepository {
 ### ⚡ FAZ 3: PERFORMANCE & STATE MANAGEMENT (1-2 HAFTA)
 
 #### 3.1 React Query Integration (3 gün)
+
 ```ts
 // hooks/queries/useAppointments.ts
 export function useAppointments(params: AppointmentQueryParams) {
   return useQuery({
-    queryKey: ['appointments', params],
+    queryKey: ["appointments", params],
     queryFn: () => AppointmentService.getAppointments(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000,   // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
 export function useCreateAppointment() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: AppointmentService.createAppointment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      queryClient.invalidateQueries({ queryKey: ['available-slots'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["available-slots"] });
+    },
   });
 }
 
 // providers/QueryProvider.tsx
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: 3,
-        retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-        staleTime: 5 * 60 * 1000,
-      },
-    },
-  }));
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: 3,
+            retryDelay: (attemptIndex) =>
+              Math.min(1000 * 2 ** attemptIndex, 30000),
+            staleTime: 5 * 60 * 1000,
+          },
+        },
+      })
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -469,6 +519,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
 ```
 
 #### 3.2 State Management (Zustand) (2 gün)
+
 ```ts
 // stores/authStore.ts
 interface AuthState {
@@ -482,7 +533,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
-  
+
   login: async (credentials) => {
     set({ isLoading: true });
     try {
@@ -493,19 +544,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       throw error;
     }
   },
-  
+
   logout: async () => {
     await AuthService.logout();
     set({ user: null });
   },
-  
+
   updateProfile: async (data) => {
     const user = get().user;
-    if (!user) throw new Error('Not authenticated');
-    
+    if (!user) throw new Error("Not authenticated");
+
     const updatedUser = await UserService.updateProfile(user.id, data);
     set({ user: updatedUser });
-  }
+  },
 }));
 
 // stores/bookingStore.ts
@@ -529,28 +580,30 @@ export const useBookingStore = create<BookingState>((set) => ({
   selectedStaff: null,
   selectedTime: null,
   customerInfo: null,
-  
+
   goToStep: (step) => set({ currentStep: step }),
   setSelectedDate: (date) => set({ selectedDate: date }),
   setSelectedStaff: (staffId) => set({ selectedStaff: staffId }),
   setSelectedTime: (time) => set({ selectedTime: time }),
   setCustomerInfo: (info) => set({ customerInfo: info }),
-  reset: () => set({
-    currentStep: 0,
-    selectedDate: null,
-    selectedStaff: null,
-    selectedTime: null,
-    customerInfo: null
-  })
+  reset: () =>
+    set({
+      currentStep: 0,
+      selectedDate: null,
+      selectedStaff: null,
+      selectedTime: null,
+      customerInfo: null,
+    }),
 }));
 ```
 
 #### 3.3 Code Splitting & Performance (3 gün)
+
 ```ts
 // app/layout.tsx
-const CalendarView = lazy(() => import('@/components/calendar/CalendarView'));
-const BookingWizard = lazy(() => import('@/components/booking/BookingWizard'));
-const AdminDashboard = lazy(() => import('@/app/barber/dashboard/page'));
+const CalendarView = lazy(() => import("@/components/calendar/CalendarView"));
+const BookingWizard = lazy(() => import("@/components/booking/BookingWizard"));
+const AdminDashboard = lazy(() => import("@/app/barber/dashboard/page"));
 
 // components/ui/LazyWrapper.tsx
 interface LazyWrapperProps {
@@ -560,7 +613,9 @@ interface LazyWrapperProps {
 
 export function LazyWrapper({ children, fallback }: LazyWrapperProps) {
   return (
-    <Suspense fallback={fallback || <div className="animate-pulse">Loading...</div>}>
+    <Suspense
+      fallback={fallback || <div className="animate-pulse">Loading...</div>}
+    >
       {children}
     </Suspense>
   );
@@ -570,83 +625,95 @@ export function LazyWrapper({ children, fallback }: LazyWrapperProps) {
 const nextConfig = {
   experimental: {
     optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-dropdown-menu',
-      'react-hook-form'
-    ]
+      "lucide-react",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "react-hook-form",
+    ],
   },
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
-        chunks: 'all',
+        chunks: "all",
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
+            name: "vendors",
+            chunks: "all",
           },
           common: {
-            name: 'common',
+            name: "common",
             minChunks: 2,
-            chunks: 'all',
+            chunks: "all",
             enforce: true,
-          }
-        }
+          },
+        },
       };
     }
     return config;
-  }
+  },
 };
 ```
 
 ### 🛡️ FAZ 4: ADVANCED SECURITY & MONITORING (1 HAFTA)
 
 #### 4.1 Security Headers & CORS (1 gün)
+
 ```ts
 // middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
-  
+
   // Security headers
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  
-  if (process.env.NODE_ENV === 'production') {
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+
+  if (process.env.NODE_ENV === "production") {
     response.headers.set(
-      'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains; preload'
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains; preload"
     );
     response.headers.set(
-      'Content-Security-Policy',
+      "Content-Security-Policy",
       "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
     );
   }
-  
+
   // CORS for API routes
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    response.headers.set('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    response.headers.set(
+      "Access-Control-Allow-Origin",
+      process.env.ALLOWED_ORIGINS || "*"
+    );
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
   }
-  
+
   return response;
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
 ```
 
 #### 4.2 Advanced Rate Limiting (2 gün)
+
 ```ts
 // lib/middleware/advanced-rate-limit.ts
 interface RateLimitConfig {
@@ -658,37 +725,45 @@ interface RateLimitConfig {
 }
 
 class AdvancedRateLimiter {
-  private store = new Map<string, { count: number; resetTime: number; blocked: boolean }>();
-  
+  private store = new Map<
+    string,
+    { count: number; resetTime: number; blocked: boolean }
+  >();
+
   createLimiter(config: RateLimitConfig) {
     return async (req: NextRequest) => {
-      const key = config.keyGenerator ? config.keyGenerator(req) : this.defaultKeyGenerator(req);
+      const key = config.keyGenerator
+        ? config.keyGenerator(req)
+        : this.defaultKeyGenerator(req);
       const now = Date.now();
       const windowStart = now - config.window;
-      
+
       let record = this.store.get(key);
-      
+
       if (!record || now > record.resetTime) {
         record = { count: 0, resetTime: now + config.window, blocked: false };
       }
-      
+
       record.count++;
       this.store.set(key, record);
-      
+
       if (record.count > config.requests) {
         record.blocked = true;
         return NextResponse.json(
-          { error: 'Too many requests', retryAfter: Math.ceil((record.resetTime - now) / 1000) },
+          {
+            error: "Too many requests",
+            retryAfter: Math.ceil((record.resetTime - now) / 1000),
+          },
           { status: 429 }
         );
       }
-      
+
       return null; // Continue to next middleware
     };
   }
-  
+
   private defaultKeyGenerator(req: NextRequest): string {
-    return req.ip || req.headers.get('x-forwarded-for') || 'unknown';
+    return req.ip || req.headers.get("x-forwarded-for") || "unknown";
   }
 }
 
@@ -698,17 +773,18 @@ export const rateLimiter = new AdvancedRateLimiter();
 export const bookingRateLimit = rateLimiter.createLimiter({
   requests: 5,
   window: 60000, // 1 minute
-  keyGenerator: (req) => `booking:${req.ip || 'unknown'}`
+  keyGenerator: (req) => `booking:${req.ip || "unknown"}`,
 });
 
 export const authRateLimit = rateLimiter.createLimiter({
   requests: 10,
   window: 900000, // 15 minutes
-  keyGenerator: (req) => `auth:${req.ip || 'unknown'}`
+  keyGenerator: (req) => `auth:${req.ip || "unknown"}`,
 });
 ```
 
 #### 4.3 Audit Logging (2 gün)
+
 ```ts
 // lib/audit/logger.ts
 interface AuditEvent {
@@ -728,64 +804,64 @@ export class AuditLogger {
     const auditRecord = {
       ...event,
       timestamp: new Date(),
-      id: crypto.randomUUID()
+      id: crypto.randomUUID(),
     };
-    
+
     // Log to database
     await prisma.auditLog.create({
-      data: auditRecord
+      data: auditRecord,
     });
-    
+
     // Log to external service (optional)
     if (process.env.AUDIT_WEBHOOK_URL) {
       try {
         await fetch(process.env.AUDIT_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(auditRecord)
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(auditRecord),
         });
       } catch (error) {
-        logger.error('Failed to send audit log to webhook', error);
+        logger.error("Failed to send audit log to webhook", error);
       }
     }
   }
-  
+
   static createMiddleware() {
     return async (req: NextRequest, event: Partial<AuditEvent>) => {
       const startTime = Date.now();
-      
+
       try {
         const result = await event;
-        
+
         await this.log({
           action: event.action || req.method,
           resource: event.resource || req.nextUrl.pathname,
-          ip: req.ip || req.headers.get('x-forwarded-for') || 'unknown',
-          userAgent: req.headers.get('user-agent') || 'unknown',
+          ip: req.ip || req.headers.get("x-forwarded-for") || "unknown",
+          userAgent: req.headers.get("user-agent") || "unknown",
           success: true,
           metadata: {
             responseTime: Date.now() - startTime,
-            ...event.metadata
+            ...event.metadata,
           },
-          ...event
+          ...event,
         });
-        
+
         return result;
       } catch (error) {
         await this.log({
           action: event.action || req.method,
           resource: event.resource || req.nextUrl.pathname,
-          ip: req.ip || req.headers.get('x-forwarded-for') || 'unknown',
-          userAgent: req.headers.get('user-agent') || 'unknown',
+          ip: req.ip || req.headers.get("x-forwarded-for") || "unknown",
+          userAgent: req.headers.get("user-agent") || "unknown",
           success: false,
           error: error.message,
           metadata: {
             responseTime: Date.now() - startTime,
-            ...event.metadata
+            ...event.metadata,
           },
-          ...event
+          ...event,
         });
-        
+
         throw error;
       }
     };
@@ -794,6 +870,7 @@ export class AuditLogger {
 ```
 
 #### 4.4 Database Security (2 gün)
+
 ```sql
 -- Add audit log table
 CREATE TABLE audit_logs (
@@ -840,6 +917,7 @@ CREATE POLICY appointment_staff_policy ON appointments
 ### 🧪 FAZ 5: TESTING & QUALITY ASSURANCE (1 HAFTA)
 
 #### 5.1 Testing Infrastructure (3 gün)
+
 ```bash
 npm install -D @testing-library/react @testing-library/jest-dom jest jest-environment-jsdom
 npm install -D @testing-library/user-event msw
@@ -847,119 +925,124 @@ npm install -D @testing-library/user-event msw
 
 ```ts
 // __tests__/setup.ts
-import '@testing-library/jest-dom';
-import { server } from './mocks/server';
+import "@testing-library/jest-dom";
+import { server } from "./mocks/server";
 
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 // __tests__/mocks/handlers.ts
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 export const handlers = [
-  http.get('/api/appointments', () => {
+  http.get("/api/appointments", () => {
     return HttpResponse.json({
       success: true,
       data: [
         {
-          id: '1',
-          date: '2025-08-07',
-          startTime: '17:00',
-          endTime: '17:45',
-          status: 'CONFIRMED'
-        }
-      ]
+          id: "1",
+          date: "2025-08-07",
+          startTime: "17:00",
+          endTime: "17:45",
+          status: "CONFIRMED",
+        },
+      ],
     });
   }),
-  
-  http.post('/api/appointments', async ({ request }) => {
+
+  http.post("/api/appointments", async ({ request }) => {
     const body = await request.json();
     return HttpResponse.json({
       success: true,
-      data: { id: '2', ...body }
+      data: { id: "2", ...body },
     });
-  })
+  }),
 ];
 
 // __tests__/components/Calendar.test.tsx
-import { render, screen, waitFor } from '@testing-library/react';
-import { CalendarView } from '@/components/calendar/CalendarView';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from "@testing-library/react";
+import { CalendarView } from "@/components/calendar/CalendarView";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const createTestQueryClient = () => new QueryClient({
-  defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
-});
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
 
-describe('CalendarView', () => {
-  it('renders appointments correctly', async () => {
+describe("CalendarView", () => {
+  it("renders appointments correctly", async () => {
     const queryClient = createTestQueryClient();
-    
+
     render(
       <QueryClientProvider client={queryClient}>
         <CalendarView />
       </QueryClientProvider>
     );
-    
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    
+
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+
     await waitFor(() => {
-      expect(screen.getByText('17:00')).toBeInTheDocument();
+      expect(screen.getByText("17:00")).toBeInTheDocument();
     });
   });
 });
 ```
 
 #### 5.2 E2E Testing (2 gün)
+
 ```bash
 npm install -D @playwright/test
 ```
 
 ```ts
 // e2e/booking-flow.spec.ts
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-test.describe('Booking Flow', () => {
-  test('customer can book an appointment', async ({ page }) => {
-    await page.goto('/book-appointment');
-    
+test.describe("Booking Flow", () => {
+  test("customer can book an appointment", async ({ page }) => {
+    await page.goto("/book-appointment");
+
     // Select date
     await page.click('[data-testid="date-picker"]');
     await page.click('[data-date="2025-08-07"]');
-    
+
     // Select staff
     await page.click('[data-testid="staff-select"]');
     await page.click('[data-staff-id="staff-1"]');
-    
+
     // Select time
     await page.click('[data-testid="time-slot-17:00"]');
-    
+
     // Fill customer info
-    await page.fill('[data-testid="customer-name"]', 'John Doe');
-    await page.fill('[data-testid="customer-phone"]', '+905551234567');
-    
+    await page.fill('[data-testid="customer-name"]', "John Doe");
+    await page.fill('[data-testid="customer-phone"]', "+905551234567");
+
     // Submit booking
     await page.click('[data-testid="submit-booking"]');
-    
+
     // Verify success
     await expect(page.locator('[data-testid="booking-success"]')).toBeVisible();
   });
-  
-  test('prevents double booking', async ({ page }) => {
+
+  test("prevents double booking", async ({ page }) => {
     // Book first appointment
-    await page.goto('/book-appointment');
+    await page.goto("/book-appointment");
     // ... booking steps ...
-    
+
     // Try to book same slot again
-    await page.goto('/book-appointment');
+    await page.goto("/book-appointment");
     // ... same booking steps ...
-    
-    await expect(page.locator('[data-testid="slot-unavailable"]')).toBeVisible();
+
+    await expect(
+      page.locator('[data-testid="slot-unavailable"]')
+    ).toBeVisible();
   });
 });
 ```
 
 #### 5.3 Code Quality Tools (2 gün)
+
 ```json
 // .eslintrc.json
 {
@@ -1013,34 +1096,41 @@ test.describe('Booking Flow', () => {
 ## 📅 IMPLEMENTATION TIMELINE
 
 ### Sprint 0: Emergency Security (2 gün)
+
 - **Day 1**: Authorization middleware + Debug endpoint security
 - **Day 2**: Input validation + Rate limiting + Console.log cleanup
 
 ### Sprint 1: Stabilization (1 hafta)
+
 - **Day 1**: Database optimization + Health checks
 - **Day 2-3**: Error handling standardization
 - **Day 4-5**: API response standardization + Basic monitoring
 
 ### Sprint 2: Component Refactoring (2 hafta)
+
 - **Week 1**: Calendar view breakdown
 - **Week 2**: Booking flow refactoring + Service layer
 
 ### Sprint 3: Performance & State (2 hafta)
+
 - **Week 1**: React Query + Zustand integration
 - **Week 2**: Code splitting + Bundle optimization
 
 ### Sprint 4: Advanced Security (1 hafta)
+
 - **Day 1-2**: Security headers + Advanced rate limiting
 - **Day 3-4**: Audit logging + Database security
 - **Day 5**: Security testing
 
 ### Sprint 5: Testing & Quality (1 hafta)
+
 - **Day 1-3**: Unit tests + Integration tests
 - **Day 4-5**: E2E tests + Code quality tools
 
 ## 🎯 SUCCESS METRICS
 
 ### Security (Kritik)
+
 - [ ] ✅ Authorization bypass kapatıldı
 - [ ] ✅ Debug endpoints güvenlik altında
 - [ ] ✅ Input validation %100
@@ -1048,12 +1138,14 @@ test.describe('Booking Flow', () => {
 - [ ] ✅ Audit logging çalışıyor
 
 ### Performance
+
 - [ ] API response time <200ms (95th %ile)
 - [ ] Bundle size 40% azaldı
 - [ ] First Contentful Paint <1.5s
 - [ ] Database query time <50ms
 
 ### Code Quality
+
 - [ ] Largest file <200 lines
 - [ ] Function complexity <10
 - [ ] TypeScript strict mode %100
@@ -1063,6 +1155,7 @@ test.describe('Booking Flow', () => {
 ## 🚀 QUICK START CHECKLIST
 
 ### İlk 2 Saat (Acil Güvenlik)
+
 ```bash
 # 1. Authorization middleware ekle
 mkdir -p lib/middleware
@@ -1080,12 +1173,14 @@ npm install zod
 ```
 
 ### İlk Gün (Temel Güvenlik)
+
 - Authorization middleware tamamla
 - Rate limiting ekle
 - Input validation schemas oluştur
 - Health check endpoint ekle
 
 ### İlk Hafta (Stabilizasyon)
+
 - Database connection optimize et
 - Error handling standardize et
 - API responses standartlaştır

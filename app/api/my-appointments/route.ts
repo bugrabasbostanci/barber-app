@@ -1,34 +1,30 @@
 import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
 import { extractTimeString, utcToLocalDate } from "@/lib/date-time";
-import { logger } from "@/lib/logger";
-// Luxon replaced with native Date
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { UnauthorizedError, ForbiddenError } from "@/lib/errors";
 
 
-export async function GET() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+async function getMyAppointmentsHandler() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (authError || !user) {
+    throw new UnauthorizedError();
+  }
 
-    // Check if user exists and has CUSTOMER role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
+  // Check if user exists and has CUSTOMER role
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+  });
 
-    if (!dbUser || dbUser.role !== 'CUSTOMER') {
-      return NextResponse.json(
-        { error: "Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı" },
-        { status: 403 }
-      );
-    }
+  if (!dbUser || dbUser.role !== 'CUSTOMER') {
+    throw new ForbiddenError("Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı");
+  }
 
     // Get user's appointments
     const appointments = await prisma.appointment.findMany({
@@ -75,23 +71,7 @@ export async function GET() {
       createdAt: appointment.createdAt.toISOString(),
     }));
 
-    return NextResponse.json({
-      success: true,
-      data: formattedAppointments
-    });
-  } catch (error) {
-    logger.api("Failed to fetch user appointments", {
-      method: "GET",
-      path: "/api/my-appointments",
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
-  }
+  return ApiResponseBuilder.success(formattedAppointments);
 }
+
+export const GET = withErrorHandler(getMyAppointmentsHandler);

@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export async function createUserInDatabase(
   authUserId: string,
@@ -37,8 +35,6 @@ export async function createUserInDatabase(
   } catch (error) {
     console.error("Error creating user in database:", error);
     return { success: false, error: "Failed to create user in database" };
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -54,8 +50,6 @@ export async function syncExistingUsers() {
   } catch (error) {
     console.error("Error syncing users:", error);
     return { success: false, error: "Failed to sync users" };
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -69,7 +63,5 @@ export async function getUserFromDatabase(authUserId: string) {
   } catch (error) {
     console.error("Error getting user from database:", error);
     return { success: false, error: "Failed to get user from database" };
-  } finally {
-    await prisma.$disconnect();
   }
 }

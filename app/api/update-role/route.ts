@@ -1,25 +1,30 @@
 import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { UnauthorizedError, ValidationError } from "@/lib/errors";
 
 
-export async function POST(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
+async function updateRoleHandler(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-    if (error || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (error || !user) {
+    throw new UnauthorizedError();
+  }
 
-    const { role } = await request.json();
+  const { role } = await request.json();
 
-    if (!["CUSTOMER", "EMPLOYEE", "BARBER", "ADMIN"].includes(role)) {
-      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-    }
+  if (!["CUSTOMER", "EMPLOYEE", "BARBER", "ADMIN"].includes(role)) {
+    throw new ValidationError([{
+      code: 'invalid_role', 
+      message: 'Invalid role'
+    }]);
+  }
 
     // Update user role in database
     const updatedUser = await prisma.user.update({
@@ -34,19 +39,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: `Role updated to ${role}`,
-      user: updatedUser,
-    });
-  } catch (error) {
-    console.error("Error updating role:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
-  }
+  return ApiResponseBuilder.success({
+    message: `Role updated to ${role}`,
+    user: updatedUser,
+  });
 }
+
+export const POST = withErrorHandler(updateRoleHandler);

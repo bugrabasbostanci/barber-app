@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import {
   localDateToUTC,
   createUTCTime,
@@ -8,9 +8,10 @@ import {
   TURKEY_TZ,
 } from "@/lib/date-time";
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
-import { logger } from "@/lib/logger";
 import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
-import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { NotFoundError, ConflictError, ForbiddenError } from "@/lib/errors";
 import { z } from "zod";
 
 // Validation schema for appointment creation
@@ -42,12 +43,7 @@ async function createAppointment(
     // Get default shop
     const shop = await prisma.shop.findFirst();
     if (!shop) {
-      return NextResponse.json(
-        {
-          error: "No shop found",
-        },
-        { status: 500 }
-      );
+      throw new NotFoundError("No shop found");
     }
 
     // Calculate end time (45 minutes later)
@@ -79,10 +75,7 @@ async function createAppointment(
 
     // Only CUSTOMER role users can create appointments
     if (dbUser.role !== 'CUSTOMER') {
-      return NextResponse.json(
-        { error: "Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı" },
-        { status: 403 }
-      );
+      throw new ForbiddenError("Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı");
     }
 
     // Convert local date/time to UTC for storage
@@ -101,12 +94,7 @@ async function createAppointment(
     });
 
     if (existingAppointment) {
-      return NextResponse.json(
-        {
-          error: "This time slot is no longer available",
-        },
-        { status: 409 }
-      );
+      throw new ConflictError("This time slot is no longer available");
     }
 
     // Create the appointment
@@ -155,36 +143,18 @@ async function createAppointment(
       timezone: timezone,
     };
 
-    return NextResponse.json({
-      success: true,
-      message: "Appointment created successfully",
-      appointment: responseAppointment,
-    });
+    return ApiResponseBuilder.success(responseAppointment);
   } catch (error) {
-    logger.api("Failed to create appointment", {
-      method: "POST",
-      path: "/api/appointments",
-      userId: user.id,
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+    // Re-throw the error to be handled by withErrorHandler
+    throw error;
   }
 }
 
-// Export protected endpoint with validation and rate limiting
-// TEMPORARILY DISABLED FOR TESTING - Remove rate limiting for appointments
-// export const POST = withRateLimit(rateLimiters.booking)(
-export const POST = 
+// Export protected endpoint with validation, error handling and rate limiting
+export const POST = withErrorHandler(
   withAuth(requireCustomer())(
     withValidation({ 
       body: createAppointmentSchema 
     })(createAppointment)
-  );
+  )
+);

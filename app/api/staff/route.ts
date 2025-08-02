@@ -1,55 +1,34 @@
 import { getStaffMembers } from "@/lib/seed-data";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
-import { logger } from "@/lib/logger";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { UnauthorizedError, NotFoundError } from "@/lib/errors";
 
 
-export async function GET() {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+async function getStaffHandler() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user exists in database and has proper role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    // Only authenticated users can view staff list (needed for appointment booking)
-    if (!dbUser) {
-      return NextResponse.json(
-        { error: "Kullanıcı bulunamadı" },
-        { status: 404 }
-      );
-    }
-
-    const staff = await getStaffMembers();
-
-    return NextResponse.json({
-      success: true,
-      data: staff
-    });
-  } catch (error) {
-    logger.api("Failed to fetch staff members", {
-      method: "GET",
-      path: "/api/staff",
-      statusCode: 500,
-      error: error instanceof Error ? error : new Error(String(error))
-    });
-    
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
+  if (authError || !user) {
+    throw new UnauthorizedError();
   }
+
+  // Check if user exists in database and has proper role
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+  });
+
+  // Only authenticated users can view staff list (needed for appointment booking)
+  if (!dbUser) {
+    throw new NotFoundError("Kullanıcı bulunamadı");
+  }
+
+  const staff = await getStaffMembers();
+  return ApiResponseBuilder.success(staff);
 }
+
+export const GET = withErrorHandler(getStaffHandler);
