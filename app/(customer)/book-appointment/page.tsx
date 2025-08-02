@@ -15,6 +15,7 @@ import {
   UserCheck,
   Clock,
   Phone,
+  AlertCircle,
 } from "lucide-react";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
 
@@ -23,6 +24,39 @@ interface BookingData {
   staffId: string;
   timeSlot: string;
 }
+
+// Phone validation helpers
+const validatePhone = (phone: string): boolean => {
+  const phoneRegex = /^(\+90|0)?[0-9]{10}$/;
+  return phoneRegex.test(phone.replace(/\s/g, ''));
+};
+
+const formatPhoneInput = (value: string): string => {
+  // Remove all non-digits except + at start
+  const cleaned = value.replace(/[^\d+]/g, '');
+  
+  // If starts with +90, allow it
+  if (cleaned.startsWith('+90')) {
+    const digits = cleaned.slice(3);
+    if (digits.length <= 10) {
+      return '+90 ' + digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+    }
+    return '+90 ' + digits.slice(0, 10).replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+  }
+  
+  // If starts with 0, format Turkish mobile
+  if (cleaned.startsWith('0')) {
+    const digits = cleaned.slice(1);
+    if (digits.length <= 10) {
+      return '0' + digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+    }
+    return '0' + digits.slice(0, 10).replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+  }
+  
+  // Raw digits, max 10
+  const digits = cleaned.slice(0, 10);
+  return digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+};
 
 interface UserProfile {
   phone: string | null;
@@ -49,6 +83,7 @@ export default function BookAppointmentPage() {
     phone: "",
     notes: "",
   });
+  const [phoneError, setPhoneError] = useState<string>("");
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
 
   // Fetch user profile to check phone number
@@ -213,7 +248,7 @@ export default function BookAppointmentPage() {
       case 3:
         return bookingData.timeSlot !== "";
       case 4:
-        return customerInfo.phone.trim() !== "";
+        return customerInfo.phone.trim() !== "" && validatePhone(customerInfo.phone) && !phoneError;
       default:
         return false;
     }
@@ -290,6 +325,8 @@ export default function BookAppointmentPage() {
               bookingData={bookingData}
               customerInfo={customerInfo}
               onCustomerInfoChange={setCustomerInfo}
+              phoneError={phoneError}
+              setPhoneError={setPhoneError}
             />
           </div>
         );
@@ -718,10 +755,14 @@ function BookingConfirmationNew({
   bookingData,
   customerInfo,
   onCustomerInfoChange,
+  phoneError,
+  setPhoneError,
 }: {
   bookingData: BookingData;
   customerInfo: { phone: string; notes: string };
   onCustomerInfoChange: (info: { phone: string; notes: string }) => void;
+  phoneError: string;
+  setPhoneError: (error: string) => void;
 }) {
   const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
 
@@ -806,12 +847,28 @@ function BookingConfirmationNew({
             id="phone"
             type="tel"
             value={customerInfo.phone}
-            onChange={(e) =>
-              onCustomerInfoChange({ ...customerInfo, phone: e.target.value })
-            }
+            onChange={(e) => {
+              const formattedPhone = formatPhoneInput(e.target.value);
+              onCustomerInfoChange({ ...customerInfo, phone: formattedPhone });
+              
+              // Validate phone
+              if (formattedPhone.trim() === "") {
+                setPhoneError("");
+              } else if (!validatePhone(formattedPhone)) {
+                setPhoneError("Geçerli bir telefon numarası giriniz (0532 123 45 67)");
+              } else {
+                setPhoneError("");
+              }
+            }}
             placeholder="0532 123 45 67"
-            className="h-14 text-base mt-2"
+            className={`h-14 text-base mt-2 ${phoneError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
           />
+          {phoneError && (
+            <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              <span>{phoneError}</span>
+            </div>
+          )}
         </div>
 
         <div>

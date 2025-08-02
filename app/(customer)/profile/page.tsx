@@ -33,6 +33,52 @@ import {
   Key,
 } from "lucide-react";
 
+// Phone validation helpers
+const validatePhone = (phone: string): boolean => {
+  const phoneRegex = /^(\+90|0)?[0-9]{10}$/;
+  return phoneRegex.test(phone.replace(/\s/g, ''));
+};
+
+// Name validation helpers
+const validateName = (name: string): boolean => {
+  const trimmedName = name.trim();
+  // At least 2 characters, only letters, spaces and Turkish characters
+  const nameRegex = /^[a-zA-ZçğıöşüÇĞIİÖŞÜ\s]{2,50}$/;
+  return trimmedName.length >= 2 && nameRegex.test(trimmedName);
+};
+
+const formatNameInput = (value: string): string => {
+  // Remove numbers and special characters, allow only letters and spaces
+  return value.replace(/[^a-zA-ZçğıöşüÇĞIİÖŞÜ\s]/g, '').slice(0, 50);
+};
+
+const formatPhoneInput = (value: string): string => {
+  // Remove all non-digits except + at start
+  const cleaned = value.replace(/[^\d+]/g, '');
+  
+  // If starts with +90, allow it
+  if (cleaned.startsWith('+90')) {
+    const digits = cleaned.slice(3);
+    if (digits.length <= 10) {
+      return '+90 ' + digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+    }
+    return '+90 ' + digits.slice(0, 10).replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+  }
+  
+  // If starts with 0, format Turkish mobile
+  if (cleaned.startsWith('0')) {
+    const digits = cleaned.slice(1);
+    if (digits.length <= 10) {
+      return '0' + digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+    }
+    return '0' + digits.slice(0, 10).replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+  }
+  
+  // Raw digits, max 10
+  const digits = cleaned.slice(0, 10);
+  return digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
+};
+
 interface UserProfile {
   id: string;
   email: string;
@@ -52,6 +98,9 @@ export default function ProfilePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [phoneError, setPhoneError] = useState<string>("");
+  const [firstNameError, setFirstNameError] = useState<string>("");
+  const [lastNameError, setLastNameError] = useState<string>("");
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
@@ -119,6 +168,9 @@ export default function ProfilePage() {
     setIsEditing(false);
     setSuccessMessage("");
     setErrorMessage("");
+    setPhoneError("");
+    setFirstNameError("");
+    setLastNameError("");
     // Reset form to original values
     if (profile) {
       setEditForm({
@@ -134,6 +186,30 @@ export default function ProfilePage() {
     setIsSaving(true);
     setSuccessMessage("");
     setErrorMessage("");
+    setPhoneError("");
+    setFirstNameError("");
+    setLastNameError("");
+    
+    // Validate firstName
+    if (editForm.firstName.trim() && !validateName(editForm.firstName)) {
+      setFirstNameError("Ad en az 2 karakter olmalı ve sadece harf içermeli");
+      setIsSaving(false);
+      return;
+    }
+    
+    // Validate lastName
+    if (editForm.lastName.trim() && !validateName(editForm.lastName)) {
+      setLastNameError("Soyad en az 2 karakter olmalı ve sadece harf içermeli");
+      setIsSaving(false);
+      return;
+    }
+    
+    // Validate phone if provided
+    if (editForm.phone.trim() && !validatePhone(editForm.phone)) {
+      setPhoneError("Geçerli bir telefon numarası giriniz (0532 123 45 67)");
+      setIsSaving(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/profile", {
@@ -358,16 +434,35 @@ export default function ProfilePage() {
               <div>
                 <Label className="text-sm font-medium text-gray-600">Ad</Label>
                 {isEditing ? (
-                  <Input
-                    value={editForm.firstName}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        firstName: e.target.value,
-                      })
-                    }
-                    className="mt-1"
-                  />
+                  <>
+                    <Input
+                      value={editForm.firstName}
+                      onChange={(e) => {
+                        const formattedName = formatNameInput(e.target.value);
+                        setEditForm({
+                          ...editForm,
+                          firstName: formattedName,
+                        });
+                        
+                        // Validate name
+                        if (formattedName.trim() === "") {
+                          setFirstNameError("");
+                        } else if (!validateName(formattedName)) {
+                          setFirstNameError("Ad en az 2 karakter olmalı ve sadece harf içermeli");
+                        } else {
+                          setFirstNameError("");
+                        }
+                      }}
+                      placeholder="Adınız"
+                      className={`mt-1 ${firstNameError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                    />
+                    {firstNameError && (
+                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>{firstNameError}</span>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center mt-2">
                     <User className="w-4 h-4 mr-3 text-gray-400" />
@@ -381,16 +476,35 @@ export default function ProfilePage() {
                   Soyad
                 </Label>
                 {isEditing ? (
-                  <Input
-                    value={editForm.lastName}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        lastName: e.target.value,
-                      })
-                    }
-                    className="mt-1"
-                  />
+                  <>
+                    <Input
+                      value={editForm.lastName}
+                      onChange={(e) => {
+                        const formattedName = formatNameInput(e.target.value);
+                        setEditForm({
+                          ...editForm,
+                          lastName: formattedName,
+                        });
+                        
+                        // Validate name
+                        if (formattedName.trim() === "") {
+                          setLastNameError("");
+                        } else if (!validateName(formattedName)) {
+                          setLastNameError("Soyad en az 2 karakter olmalı ve sadece harf içermeli");
+                        } else {
+                          setLastNameError("");
+                        }
+                      }}
+                      placeholder="Soyadınız"
+                      className={`mt-1 ${lastNameError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                    />
+                    {lastNameError && (
+                      <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>{lastNameError}</span>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="flex items-center mt-2">
                     <User className="w-4 h-4 mr-3 text-gray-400" />
@@ -405,13 +519,32 @@ export default function ProfilePage() {
                 Telefon Numarası
               </Label>
               {isEditing ? (
-                <Input
-                  value={editForm.phone}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, phone: e.target.value })
-                  }
-                  className="mt-1"
-                />
+                <>
+                  <Input
+                    value={editForm.phone}
+                    onChange={(e) => {
+                      const formattedPhone = formatPhoneInput(e.target.value);
+                      setEditForm({ ...editForm, phone: formattedPhone });
+                      
+                      // Validate phone
+                      if (formattedPhone.trim() === "") {
+                        setPhoneError("");
+                      } else if (!validatePhone(formattedPhone)) {
+                        setPhoneError("Geçerli bir telefon numarası giriniz (0532 123 45 67)");
+                      } else {
+                        setPhoneError("");
+                      }
+                    }}
+                    placeholder="0532 123 45 67"
+                    className={`mt-1 ${phoneError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                  />
+                  {phoneError && (
+                    <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{phoneError}</span>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="flex items-center mt-2">
                   <Phone className="w-4 h-4 mr-3 text-gray-400" />
@@ -462,7 +595,7 @@ export default function ProfilePage() {
               <Button
                 onClick={handleSave}
                 className="flex-1 h-12 text-base font-semibold"
-                disabled={isSaving}
+                disabled={isSaving || !!phoneError || !!firstNameError || !!lastNameError}
               >
                 <Save className="w-4 h-4 mr-2" />
                 {isSaving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
