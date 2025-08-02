@@ -11,12 +11,27 @@ const timeSlotsQuerySchema = z.object({
   staffId: commonSchemas.uuid,
 });
 
-async function getTimeSlots(
-  request: NextRequest,
-  context: { validatedQuery: z.infer<typeof timeSlotsQuerySchema> }
-) {
+async function getTimeSlots(request: NextRequest) {
   try {
-    const { date, staffId } = context.validatedQuery;
+    // Manual validation
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get('date');
+    const staffId = searchParams.get('staffId');
+    
+    if (!date || !staffId) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required parameters: date and staffId' },
+        { status: 400 }
+      );
+    }
+    
+    const validation = timeSlotsQuerySchema.safeParse({ date, staffId });
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid parameters', details: validation.error.issues },
+        { status: 400 }
+      );
+    }
 
     const availableSlots = await getAvailableTimeSlots(date, staffId);
 
@@ -38,9 +53,5 @@ async function getTimeSlots(
   }
 }
 
-// Export with validation and rate limiting
-export const GET = withRateLimit(rateLimiters.api)(
-  withValidation({ 
-    query: timeSlotsQuerySchema 
-  })(getTimeSlots)
-);
+// Export with rate limiting
+export const GET = withRateLimit(rateLimiters.api)(getTimeSlots);

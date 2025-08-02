@@ -74,7 +74,10 @@ export async function GET(request: NextRequest) {
       staff: block.staff,
     }));
 
-    return NextResponse.json(formattedBlocks);
+    return NextResponse.json({
+      success: true,
+      data: formattedBlocks
+    });
   } catch (error) {
     logger.api("Failed to fetch time blocks", {
       method: "GET",

@@ -32,7 +32,10 @@ export async function GET() {
 
     const staff = await getStaffMembers();
 
-    return NextResponse.json(staff);
+    return NextResponse.json({
+      success: true,
+      data: staff
+    });
   } catch (error) {
     logger.api("Failed to fetch staff members", {
       method: "GET",

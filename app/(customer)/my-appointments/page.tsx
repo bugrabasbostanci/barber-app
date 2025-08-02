@@ -2,22 +2,39 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useRequireCustomer } from "@/hooks/useRequireAuth";
-import { BUSINESS_RULES } from "@/lib/constants";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useRequireCustomer } from "@/hooks/useRequireAuth";
+import {
+  ArrowLeft,
   Calendar,
   Clock,
   User,
-  MapPin,
-  AlertCircle,
-  X,
-  CheckCircle,
+  LogOut,
+  UserCheck,
+  AlertTriangle,
 } from "lucide-react";
+
 
 // Types based on our Prisma schema
 interface Appointment {
@@ -41,45 +58,41 @@ interface Appointment {
 }
 
 function MyAppointmentsContent() {
-  const { user, loading, isAuthorized } = useRequireCustomer();
-  const searchParams = useSearchParams();
+  const { user, loading, isAuthorized, signOut } = useRequireCustomer();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "past">("upcoming");
+  const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [showCancelDialog, setShowCancelDialog] = useState<string | null>(null);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
 
-  // Check for success parameter and show success message
-  useEffect(() => {
-    const success = searchParams.get("success");
-    if (success === "true") {
-      setSuccessMessage("Randevunuz başarıyla oluşturuldu!");
-      setShowSuccessMessage(true);
-      // Hide success message after 5 seconds
-      const timer = setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [searchParams]);
+
 
   // Fetch appointments from API
   useEffect(() => {
     if (user) {
       async function fetchAppointments() {
         try {
+          setLoadingAppointments(true);
+          setError(null);
           const response = await fetch("/api/my-appointments");
           if (response.ok) {
-            const appointmentsData = await response.json();
-            setAppointments(appointmentsData);
+            const result = await response.json();
+            if (result.success && Array.isArray(result.data)) {
+              setAppointments(result.data);
+            } else {
+              setError("Randevu verileri alınamadı");
+              setAppointments([]);
+            }
           } else {
-            console.error("Failed to fetch appointments");
+            setError("Randevular yüklenirken bir hata oluştu");
             setAppointments([]);
           }
-        } catch (error) {
-          console.error("Error fetching appointments:", error);
+        } catch {
+          setError("Bağlantı hatası oluştu");
           setAppointments([]);
+        } finally {
+          setLoadingAppointments(false);
         }
       }
 
@@ -87,156 +100,207 @@ function MyAppointmentsContent() {
     }
   }, [user]);
 
-  const getStatusBadge = (status: Appointment["status"]) => {
-    const statusConfig = {
-      SCHEDULED: {
-        label: "Planlandı",
-        variant: "secondary" as const,
-      },
-      CONFIRMED: {
-        label: "Onaylandı",
-        variant: "default" as const,
-      },
-      COMPLETED: {
-        label: "Tamamlandı",
-        variant: "outline" as const,
-      },
-      CANCELLED: {
-        label: "İptal Edildi",
-        variant: "destructive" as const,
-      },
-      NO_SHOW: {
-        label: "Gelmedi",
-        variant: "destructive" as const,
-      },
-    };
-
-    const config = statusConfig[status];
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+  // Function to open cancel modal
+  const openCancelModal = (appointment: Appointment) => {
+    setAppointmentToCancel(appointment);
+    setShowCancelModal(true);
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr + "T00:00:00");
-    const days = [
-      "Pazar",
-      "Pazartesi",
-      "Salı",
-      "Çarşamba",
-      "Perşembe",
-      "Cuma",
-      "Cumartesi",
-    ];
-    const months = [
-      "Ocak",
-      "Şubat",
-      "Mart",
-      "Nisan",
-      "Mayıs",
-      "Haziran",
-      "Temmuz",
-      "Ağustos",
-      "Eylül",
-      "Ekim",
-      "Kasım",
-      "Aralık",
-    ];
-
-    return `${date.getDate()} ${months[date.getMonth()]} ${
-      days[date.getDay()]
-    }`;
+  // Function to close cancel modal
+  const closeCancelModal = () => {
+    setShowCancelModal(false);
+    setAppointmentToCancel(null);
   };
 
-  const canCancelAppointment = (appointment: Appointment) => {
-    const appointmentDateTime = new Date(
-      `${appointment.date}T${appointment.startTime}`
-    );
-    const now = new Date();
-    const hoursDiff =
-      (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
-    return (
-      hoursDiff > BUSINESS_RULES.CANCELLATION_HOURS &&
-      ["SCHEDULED", "CONFIRMED"].includes(appointment.status)
-    );
-  };
-
-  const filterAppointments = (appointments: Appointment[]) => {
-    const now = new Date();
-
-    switch (filter) {
-      case "upcoming":
-        return appointments.filter((apt) => {
-          const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
-          return (
-            aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status)
-          );
-        });
-      case "past":
-        return appointments.filter((apt) => {
-          const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
-          return (
-            aptDate <= now ||
-            ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(apt.status)
-          );
-        });
-      default:
-        return appointments;
-    }
-  };
-
-  const filteredAppointments = filterAppointments(appointments);
-
-  const handleCancelAppointment = async (appointmentId: string) => {
-    setCancellingId(appointmentId);
+  // Function to cancel appointment
+  const handleCancelAppointment = async () => {
+    if (!appointmentToCancel) return;
 
     try {
-      const response = await fetch(
-        `/api/appointments/${appointmentId}/cancel`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      setCancellingId(appointmentToCancel.id);
+      setError(null);
+      
+      const response = await fetch(`/api/appointments/${appointmentToCancel.id}/cancel`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        // Update the appointment status locally
-        setAppointments((prev) =>
-          prev.map((apt) =>
-            apt.id === appointmentId
+        // Update the appointment status in local state
+        setAppointments(prev => 
+          prev.map(apt => 
+            apt.id === appointmentToCancel.id 
               ? { ...apt, status: "CANCELLED" as const }
               : apt
           )
         );
-
-        setShowCancelDialog(null);
-
-        // Show success message in a better way
-        setSuccessMessage("Randevunuz başarıyla iptal edildi");
-        setShowSuccessMessage(true);
-        setTimeout(() => setShowSuccessMessage(false), 3000);
+        closeCancelModal();
       } else {
-        // Show error message from API
-        alert(result.error || "Randevu iptal edilirken bir hata oluştu.");
+        setError(result.error || "Randevu iptal edilemedi");
       }
-    } catch (error) {
-      console.error("Randevu iptal edilirken hata oluştu:", error);
-      alert("Randevu iptal edilirken bir hata oluştu. Lütfen tekrar deneyin.");
+    } catch {
+      setError("Randevu iptal edilirken bir hata oluştu");
     } finally {
       setCancellingId(null);
     }
   };
 
-  const openCancelDialog = (appointmentId: string) => {
-    setShowCancelDialog(appointmentId);
+  // Function to check if appointment can be cancelled (2 hours before)
+  const canCancelAppointment = (appointment: Appointment) => {
+    const now = new Date();
+    const appointmentDateTime = new Date(`${appointment.date}T${appointment.startTime}:00`);
+    const hoursUntilAppointment = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    return hoursUntilAppointment >= 2 && ["SCHEDULED", "CONFIRMED"].includes(appointment.status);
   };
 
-  const closeCancelDialog = () => {
-    setShowCancelDialog(null);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "SCHEDULED":
+      case "CONFIRMED":
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            Onaylandı
+          </Badge>
+        );
+      case "COMPLETED":
+        return (
+          <Badge className="bg-blue-100 text-blue-800">
+            Tamamlandı
+          </Badge>
+        );
+      case "CANCELLED":
+        return (
+          <Badge className="bg-red-100 text-red-800">
+            İptal Edildi
+          </Badge>
+        );
+      case "NO_SHOW":
+        return (
+          <Badge className="bg-gray-100 text-gray-800">
+            Gelmedi
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-gray-100 text-gray-800">
+            {status}
+          </Badge>
+        );
+    }
   };
+
+  const renderAppointmentCard = (appointment: Appointment) => (
+    <Card key={appointment.id} className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          {getStatusBadge(appointment.status)}
+          <span className="text-sm text-gray-500">{appointment.shop.name}</span>
+        </div>
+
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center">
+            <Calendar className="w-4 h-4 mr-3 text-gray-400" />
+            <span className="font-medium">{formatDate(appointment.date)}</span>
+          </div>
+
+          <div className="flex items-center">
+            <Clock className="w-4 h-4 mr-3 text-gray-400" />
+            <span>
+              {formatTimeRange(appointment.startTime)}
+            </span>
+          </div>
+
+          <div className="flex items-center">
+            <UserCheck className="w-4 h-4 mr-3 text-gray-400" />
+            <span>{appointment.staff.firstName} {appointment.staff.lastName}</span>
+          </div>
+
+          {appointment.notes && (
+            <div className="flex items-start">
+              <div className="w-4 h-4 mr-3 mt-0.5 text-gray-400">💬</div>
+              <span className="text-sm text-gray-600">{appointment.notes}</span>
+            </div>
+          )}
+        </div>
+
+        {["SCHEDULED", "CONFIRMED"].includes(appointment.status) ? (
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 bg-transparent text-red-600 border-red-200 hover:bg-red-50"
+              onClick={() => openCancelModal(appointment)}
+              disabled={!canCancelAppointment(appointment) || cancellingId === appointment.id}
+            >
+              İptal Et
+            </Button>
+          </div>
+        ) : appointment.status === "COMPLETED" ? (
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 bg-transparent"
+              asChild
+            >
+              <Link href="/">Tekrar Randevu Al</Link>
+            </Button>
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("tr-TR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const formatTimeRange = (time: string, duration: number = 45) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const startTime = new Date();
+    startTime.setHours(hours, minutes, 0, 0);
+
+    const endTime = new Date(startTime.getTime() + duration * 60000);
+
+    const formatTime = (date: Date) => {
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    };
+
+    return `${formatTime(startTime)}-${formatTime(endTime)}`;
+  };
+
+
+  const upcoming = appointments.filter((apt) => {
+    const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
+    const now = new Date();
+    return (
+      aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status)
+    );
+  });
+
+  const past = appointments.filter((apt) => {
+    const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
+    const now = new Date();
+    return (
+      aptDate <= now ||
+      ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(apt.status)
+    );
+  });
+
 
   if (loading) {
     return (
@@ -275,238 +339,236 @@ function MyAppointmentsContent() {
     );
   }
 
+  // Generate user initials
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return user.firstName.charAt(0) + user.lastName.charAt(0);
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    return user?.email?.split("@")[0] || "User";
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = "/";
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <Button variant="ghost" size="sm">
-                ← Ana Sayfa
-              </Button>
-            </Link>
-            <h1 className="text-lg font-semibold">Randevularım</h1>
-            <Link href="/book-appointment">
-              <Button size="sm">+ Yeni Randevu</Button>
-            </Link>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Header with Avatar Dropdown */}
+      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50 relative">
+        <div className="flex items-center justify-between">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <h1 className="font-semibold text-lg">Randevularım</h1>
+
+          {/* Avatar Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="w-8 h-8 cursor-pointer">
+                <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-sm">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
+                <p className="font-semibold text-sm text-gray-900">
+                  {getUserDisplayName()}
+                </p>
+                <p className="text-xs text-gray-500">{user?.email}</p>
+              </DropdownMenuLabel>
+
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <User className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm font-medium">Profil</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem asChild>
+                <Link href="/">
+                  <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm font-medium">Ana Sayfa</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem>
+                <button
+                  className="flex items-center w-full text-left"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm font-medium">Çıkış Yap</span>
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      <main className="px-4 py-6 max-w-4xl mx-auto">
-        {/* Modern Success Message */}
-        {showSuccessMessage && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-green-800">{successMessage}</p>
-                  <p className="text-sm text-green-600 mt-1">
-                    İşlem başarıyla tamamlandı
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSuccessMessage(false)}
-                className="text-green-600 hover:text-green-700"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+      <div className="px-4 py-6">
+        {/* Error Message */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
-        {/* Filter Tabs */}
-        <div className="flex gap-1 mb-6 bg-muted p-1 rounded-lg">
-          {[
-            { key: "upcoming", label: "Aktif" },
-            { key: "past", label: "Geçmiş" },
-            { key: "all", label: "Tümü" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key as typeof filter)}
-              className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-colors ${
-                filter === tab.key
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredAppointments.length === 0 ? (
-          <div className="text-center py-12 space-y-4">
-            <Calendar className="mx-auto h-16 w-16 text-muted-foreground" />
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">
-                {filter === "upcoming"
-                  ? "Aktif randevunuz yok"
-                  : filter === "past"
-                  ? "Geçmiş randevunuz yok"
-                  : "Randevunuz yok"}
-              </h3>
-              <p className="text-muted-foreground">
-                Yeni randevu oluşturmak için butona tıklayın
-              </p>
-            </div>
-            <Button asChild>
-              <Link href="/book-appointment">Randevu Al</Link>
-            </Button>
+        {/* Loading State */}
+        {loadingAppointments ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Randevular yükleniyor...</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredAppointments.map((appointment) => (
-              <Card
-                key={appointment.id}
-                className="border-l-4 border-l-foreground"
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">
-                          {formatDate(appointment.date)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          {appointment.startTime} - {appointment.endTime}
-                        </span>
-                      </div>
-                    </div>
-                    {getStatusBadge(appointment.status)}
-                  </div>
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="text-center p-6 bg-blue-50 rounded-2xl">
+                <p className="text-2xl font-bold text-blue-600">
+                  {upcoming.length}
+                </p>
+                <p className="text-sm text-gray-600">Yaklaşan</p>
+              </div>
+              <div className="text-center p-6 bg-green-50 rounded-2xl">
+                <p className="text-2xl font-bold text-green-600">{past.length}</p>
+                <p className="text-sm text-gray-600">Geçmiş</p>
+              </div>
+            </div>
 
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {appointment.staff.firstName}{" "}
-                        {appointment.staff.lastName}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        {appointment.shop.address}
-                      </span>
-                    </div>
-                  </div>
+            {/* Appointments Tabs */}
+            <Tabs defaultValue="upcoming" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="upcoming">Yaklaşan</TabsTrigger>
+                <TabsTrigger value="past">Geçmiş</TabsTrigger>
+              </TabsList>
 
-                  {appointment.notes && (
-                    <div className="bg-muted p-3 rounded-lg mb-4">
-                      <p className="text-sm">{appointment.notes}</p>
-                    </div>
-                  )}
+              <TabsContent value="upcoming" className="space-y-4">
+                {upcoming.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="font-medium text-lg mb-2">
+                        Yaklaşan randevunuz bulunmuyor
+                      </h3>
+                      <p className="text-gray-500 mb-6">
+                        Yeni bir randevu alın
+                      </p>
+                      <Link href="/">
+                        <Button size="lg" className="w-full">
+                          Randevu Al
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div>{upcoming.map(renderAppointmentCard)}</div>
+                )}
+              </TabsContent>
 
-                  {/* Action Buttons */}
-                  {canCancelAppointment(appointment) && (
-                    <div className="pt-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-destructive hover:text-destructive"
-                        onClick={() => openCancelDialog(appointment.id)}
-                        disabled={cancellingId === appointment.id}
-                      >
-                        <AlertCircle className="h-4 w-4 mr-2" />
-                        {cancellingId === appointment.id
-                          ? "İptal Ediliyor..."
-                          : "Randevuyu İptal Et"}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+              <TabsContent value="past" className="space-y-4">
+                {past.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                      <h3 className="font-medium text-lg mb-2">
+                        Geçmiş randevunuz bulunmuyor
+                      </h3>
+                      <p className="text-gray-500">
+                        Randevu geçmişiniz burada görünecek
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div>{past.map(renderAppointmentCard)}</div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </>
         )}
 
-        {/* Modern Cancellation Dialog */}
-        {showCancelDialog && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm animate-in fade-in-0 zoom-in-95 duration-200">
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <AlertCircle className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Randevuyu İptal Et
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      Bu işlem geri alınamaz
-                    </p>
-                  </div>
+      </div>
+
+      {/* Cancel Appointment Dialog */}
+      <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              Randevuyu İptal Et
+            </DialogTitle>
+            <DialogDescription>
+              Randevunuzu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Appointment Details */}
+          {appointmentToCancel && (
+            <div className="bg-gray-50 rounded-lg p-4 my-4">
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm font-medium">
+                    {formatDate(appointmentToCancel.date)}
+                  </span>
                 </div>
-
-                {(() => {
-                  const appointment = appointments.find(
-                    (apt) => apt.id === showCancelDialog
-                  );
-                  if (!appointment) return null;
-
-                  return (
-                    <div className="bg-gray-50 rounded-lg p-3 mb-6">
-                      <div className="text-sm text-gray-700">
-                        <div className="font-medium">
-                          {formatDate(appointment.date)} •{" "}
-                          {appointment.startTime}
-                        </div>
-                        <div className="text-gray-600 mt-1">
-                          {appointment.staff.firstName}{" "}
-                          {appointment.staff.lastName}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={closeCancelDialog}
-                    className="flex-1"
-                    disabled={cancellingId === showCancelDialog}
-                  >
-                    Vazgeç
-                  </Button>
-                  <Button
-                    className="flex-1 bg-red-600 hover:bg-red-700"
-                    onClick={() =>
-                      showCancelDialog &&
-                      handleCancelAppointment(showCancelDialog)
-                    }
-                    disabled={cancellingId === showCancelDialog}
-                  >
-                    {cancellingId === showCancelDialog ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        İptal Ediliyor
-                      </div>
-                    ) : (
-                      "İptal Et"
-                    )}
-                  </Button>
+                <div className="flex items-center">
+                  <Clock className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm">
+                    {formatTimeRange(appointmentToCancel.startTime)}
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <UserCheck className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm">
+                    {appointmentToCancel.staff.firstName} {appointmentToCancel.staff.lastName}
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={closeCancelModal}
+              disabled={cancellingId === appointmentToCancel?.id}
+            >
+              Vazgeç
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelAppointment}
+              disabled={cancellingId === appointmentToCancel?.id}
+            >
+              {cancellingId === appointmentToCancel?.id ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  İptal Ediliyor...
+                </div>
+              ) : (
+                "Randevuyu İptal Et"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

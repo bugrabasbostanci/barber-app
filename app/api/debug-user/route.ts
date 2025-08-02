@@ -3,7 +3,8 @@ import { withAuth, requireAdmin, AuthenticatedUser } from "@/lib/middleware/api-
 import { checkUserRole } from "@/lib/admin-actions";
 import { logger } from "@/lib/logger";
 
-async function debugUser(req: NextRequest, user: AuthenticatedUser) {
+async function debugUser(req: NextRequest, context?: Record<string, unknown>) {
+  const user = context?.user as AuthenticatedUser;
   try {
     // Production security: Only allow in development or for admin users
     if (process.env.NODE_ENV === 'production') {

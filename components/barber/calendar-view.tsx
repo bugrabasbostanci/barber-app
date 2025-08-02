@@ -67,8 +67,13 @@ export function CalendarView() {
       try {
         const response = await fetch("/api/staff");
         if (response.ok) {
-          const staffData = await response.json();
-          setStaffMembers(staffData);
+          const result = await response.json();
+          if (result.success && Array.isArray(result.data)) {
+            setStaffMembers(result.data);
+          } else {
+            console.error("Invalid staff data format:", result);
+            setStaffMembers([]);
+          }
         }
       } catch (error) {
         console.error("Error fetching staff:", error);
@@ -120,7 +125,12 @@ export function CalendarView() {
 
         if (response.ok) {
           const appointmentsData = await response.json();
-          setAppointments(appointmentsData);
+          if (appointmentsData.success && Array.isArray(appointmentsData.data)) {
+            setAppointments(appointmentsData.data);
+          } else {
+            console.error("Invalid appointments data format:", appointmentsData);
+            setAppointments([]);
+          }
         } else {
           console.error("Failed to fetch appointments:", response.statusText);
           setAppointments([]);

@@ -1,90 +1,44 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { resetPassword } from "@/lib/auth";
-import {
-  forgotPasswordSchema,
-  type ForgotPasswordFormData,
-} from "@/lib/validations/auth";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
   const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    getValues,
-  } = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
-    mode: "onBlur",
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
-    setLoading(true);
-    setError("");
-    setSuccess(false);
-    setEmail(data.email);
-
-    try {
-      const { error } = await resetPassword(data.email);
-
-      if (error) {
-        setError(error.message);
-      } else {
-        setSuccess(true);
-      }
-    } catch {
-      setError("An error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsSubmitted(true);
+    }, 2000);
   };
 
-  const handleResend = async () => {
-    if (!email) return;
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const { error } = await resetPassword(email);
-
-      if (error) {
-        setError(error.message);
-      }
-    } catch {
-      setError("An error occurred while resending. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (success) {
+  if (isSubmitted) {
     return (
       <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
           <div className="flex items-center justify-between">
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Back to Login
               </Button>
             </Link>
-            <h1 className="font-semibold text-lg">Forgot Password</h1>
+            <h1 className="font-semibold text-lg">Reset Password</h1>
             <div className="w-16"></div>
           </div>
         </header>
@@ -97,11 +51,11 @@ export default function ForgotPasswordPage() {
             </div>
             <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
             <p className="text-gray-500 mb-2">
-              We&apos;ve sent a password reset link to:
+              We've sent a password reset link to:
             </p>
             <p className="font-medium text-gray-900 mb-6">{email}</p>
             <p className="text-sm text-gray-500">
-              If you don&apos;t see the email, check your spam folder or try again
+              If you don't see the email, check your spam folder or try again
               with a different email address.
             </p>
           </div>
@@ -110,7 +64,7 @@ export default function ForgotPasswordPage() {
           <div className="space-y-4">
             <Button
               onClick={() => {
-                setSuccess(false);
+                setIsSubmitted(false);
                 setEmail("");
               }}
               variant="outline"
@@ -119,7 +73,7 @@ export default function ForgotPasswordPage() {
               Try Different Email
             </Button>
 
-            <Link href="/auth/login">
+            <Link href="/login">
               <Button className="w-full h-12 text-base font-semibold">
                 Back to Login
               </Button>
@@ -129,14 +83,16 @@ export default function ForgotPasswordPage() {
           {/* Resend Link */}
           <div className="text-center mt-8">
             <p className="text-gray-600 text-sm mb-2">
-              Didn&apos;t receive the email?
+              Didn't receive the email?
             </p>
             <button
-              onClick={handleResend}
-              disabled={loading}
-              className="text-blue-600 hover:text-blue-700 font-medium text-sm disabled:opacity-50"
+              onClick={() => {
+                // Handle resend logic
+                console.log("Resending email to:", email);
+              }}
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
-              {loading ? "Resending..." : "Resend reset link"}
+              Resend reset link
             </button>
           </div>
         </div>
@@ -149,7 +105,7 @@ export default function ForgotPasswordPage() {
       {/* Header */}
       <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
-          <Link href="/auth/login">
+          <Link href="/login">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back
@@ -165,7 +121,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-2">Forgot Password?</h2>
           <p className="text-gray-500">
-            Enter your email address and we&apos;ll send you a link to reset your
+            Enter your email address and we'll send you a link to reset your
             password.
           </p>
         </div>
@@ -173,13 +129,7 @@ export default function ForgotPasswordPage() {
         {/* Reset Form */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Label
                   htmlFor="email"
@@ -192,24 +142,21 @@ export default function ForgotPasswordPage() {
                   <Input
                     id="email"
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    {...register("email")}
                     className="pl-10 h-12"
+                    required
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.email.message}
-                  </p>
-                )}
               </div>
 
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold"
-                disabled={loading || isSubmitting}
+                disabled={isLoading}
               >
-                {loading || isSubmitting ? "Sending..." : "Send Reset Link"}
+                {isLoading ? "Sending..." : "Send Reset Link"}
               </Button>
             </form>
           </CardContent>
@@ -220,7 +167,7 @@ export default function ForgotPasswordPage() {
           <p className="text-gray-600">
             Remember your password?{" "}
             <Link
-              href="/auth/login"
+              href="/login"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
               Sign in

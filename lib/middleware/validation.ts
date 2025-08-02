@@ -32,7 +32,7 @@ export function validateBody<T>(schema: ZodSchema<T>) {
       return schema.parse(body);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors: ValidationError[] = error.errors.map(err => ({
+        const validationErrors: ValidationError[] = error.issues.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }));
@@ -69,7 +69,7 @@ export function validateQuery<T>(schema: ZodSchema<T>) {
       return schema.parse(query);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors: ValidationError[] = error.errors.map(err => ({
+        const validationErrors: ValidationError[] = error.issues.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }));
@@ -96,7 +96,7 @@ export function validateParams<T>(schema: ZodSchema<T>) {
       return schema.parse(params);
     } catch (error) {
       if (error instanceof ZodError) {
-        const validationErrors: ValidationError[] = error.errors.map(err => ({
+        const validationErrors: ValidationError[] = error.issues.map(err => ({
           field: err.path.join('.'),
           message: err.message,
         }));
@@ -124,7 +124,9 @@ export function withValidation<TBody = unknown, TQuery = unknown, TParams = unkn
     params?: ZodSchema<TParams>;
   }
 ) {
-  return function<THandler extends (...args: unknown[]) => unknown>(handler: THandler) {
+  return function(
+    handler: (req: NextRequest, context: Record<string, unknown>) => Promise<NextResponse>
+  ) {
     return async (
       req: NextRequest,
       context?: { params?: Record<string, unknown>; [key: string]: unknown }
@@ -231,9 +233,9 @@ export function sanitizeObject<T extends Record<string, unknown>>(obj: T): T {
     if (typeof value === 'string') {
       sanitized[key as keyof T] = sanitizeString(value) as T[keyof T];
     } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-      sanitized[key as keyof T] = sanitizeObject(value);
+      sanitized[key as keyof T] = sanitizeObject(value as Record<string, unknown>) as T[keyof T];
     } else {
-      sanitized[key as keyof T] = value;
+      sanitized[key as keyof T] = value as T[keyof T];
     }
   }
   

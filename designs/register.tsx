@@ -1,83 +1,31 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { signUp, signInWithGoogle } from "@/lib/auth";
-import { registerSchema, type RegisterFormData } from "@/lib/validations/auth";
+import Link from "next/link";
 
 export default function RegisterPage() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const router = useRouter();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: zodResolver(registerSchema),
-    mode: "onBlur",
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const { error } = await signUp(data.email, data.password, {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone || undefined,
-      });
-
-      if (error) {
-        setError(error.message);
-        // Focus back to email field for better UX
-        setTimeout(() => {
-          const emailInput = document.getElementById("email");
-          emailInput?.focus();
-        }, 100);
-      } else {
-        router.push(
-          "/auth/login?message=Account created! Please check your email to verify your account."
-        );
-      }
-    } catch {
-      setError("An error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignUp = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const { error } = await signInWithGoogle();
-
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-      }
-      // If successful, user will be redirected via OAuth flow
-    } catch {
-      setError(
-        "Google registration failed. Please try again."
-      );
-      setLoading(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle registration logic here
+    console.log("Registration attempt:", formData);
   };
 
   return (
@@ -108,13 +56,7 @@ export default function RegisterPage() {
         {/* Registration Form */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label
@@ -128,16 +70,15 @@ export default function RegisterPage() {
                     <Input
                       id="firstName"
                       type="text"
+                      value={formData.firstName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, firstName: e.target.value })
+                      }
                       placeholder="John"
-                      {...register("firstName")}
                       className="pl-10 h-12"
+                      required
                     />
                   </div>
-                  {errors.firstName && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.firstName.message}
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -152,16 +93,15 @@ export default function RegisterPage() {
                     <Input
                       id="lastName"
                       type="text"
+                      value={formData.lastName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, lastName: e.target.value })
+                      }
                       placeholder="Smith"
-                      {...register("lastName")}
                       className="pl-10 h-12"
+                      required
                     />
                   </div>
-                  {errors.lastName && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.lastName.message}
-                    </p>
-                  )}
                 </div>
               </div>
 
@@ -177,16 +117,15 @@ export default function RegisterPage() {
                   <Input
                     id="email"
                     type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     placeholder="your@email.com"
-                    {...register("email")}
                     className="pl-10 h-12"
+                    required
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.email.message}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -201,16 +140,15 @@ export default function RegisterPage() {
                   <Input
                     id="phone"
                     type="tel"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     placeholder="(555) 123-4567"
-                    {...register("phone")}
                     className="pl-10 h-12"
+                    required
                   />
                 </div>
-                {errors.phone && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.phone.message}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -225,9 +163,13 @@ export default function RegisterPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
                     placeholder="Create a password"
-                    {...register("password")}
                     className="pl-10 pr-10 h-12"
+                    required
                   />
                   <button
                     type="button"
@@ -241,11 +183,6 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.password.message}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -260,9 +197,16 @@ export default function RegisterPage() {
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
+                    value={formData.confirmPassword}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                     placeholder="Confirm your password"
-                    {...register("confirmPassword")}
                     className="pl-10 pr-10 h-12"
+                    required
                   />
                   <button
                     type="button"
@@ -276,21 +220,13 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {errors.confirmPassword && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
               </div>
 
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold mt-6"
-                disabled={loading || isSubmitting}
               >
-                {loading || isSubmitting
-                  ? "Creating account..."
-                  : "Create Account"}
+                Create Account
               </Button>
             </form>
           </CardContent>
@@ -308,13 +244,7 @@ export default function RegisterPage() {
 
         {/* Google Registration */}
         <div className="mb-8">
-          <Button 
-            variant="outline" 
-            className="w-full h-12 bg-transparent"
-            type="button"
-            onClick={handleGoogleSignUp}
-            disabled={loading || isSubmitting}
-          >
+          <Button variant="outline" className="w-full h-12 bg-transparent">
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -342,7 +272,7 @@ export default function RegisterPage() {
           <p className="text-gray-600">
             Already have an account?{" "}
             <Link
-              href="/auth/login"
+              href="/login"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
               Sign in

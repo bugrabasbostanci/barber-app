@@ -17,6 +17,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const supabase = await createClient();
     const {
@@ -40,11 +41,9 @@ export async function POST(
       );
     }
 
-    const { id: appointmentId } = await params;
-
     // Find the appointment and verify ownership
     const appointment = await prisma.appointment.findUnique({
-      where: { id: appointmentId },
+      where: { id },
       include: {
         customer: true,
       },
@@ -95,7 +94,7 @@ export async function POST(
 
     // Update the appointment status to CANCELLED
     const updatedAppointment = await prisma.appointment.update({
-      where: { id: appointmentId },
+      where: { id },
       data: {
         status: "CANCELLED",
         updatedAt: new Date(),
@@ -146,7 +145,7 @@ export async function POST(
   } catch (error) {
     logger.api("Failed to cancel appointment", {
       method: "POST",
-      path: `/api/appointments/${params.id}/cancel`,
+      path: `/api/appointments/${id}/cancel`,
       statusCode: 500,
       error: error instanceof Error ? error : new Error(String(error))
     });

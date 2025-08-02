@@ -1,93 +1,26 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
+import type React from "react";
+
+import { useState } from "react";
 import { ArrowLeft, Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { signIn, signInWithGoogle } from "@/lib/auth";
-import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
+import Link from "next/link";
 
-function LoginForm() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    mode: "onBlur",
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
   });
 
-  useEffect(() => {
-    const errorParam = searchParams.get("error");
-    const messageParam = searchParams.get("message");
-
-    if (errorParam) {
-      setError(errorParam);
-    }
-    if (messageParam) {
-      setMessage(messageParam);
-    }
-  }, [searchParams]);
-
-  const onSubmit = async (data: LoginFormData) => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const { error } = await signIn(data.email, data.password);
-
-      if (error) {
-        setError(error.message);
-        // Focus back to email field for better UX
-        setTimeout(() => {
-          const emailInput = document.getElementById("email");
-          emailInput?.focus();
-        }, 100);
-      } else {
-        const redirectTo = searchParams.get("redirect") || "/";
-        router.push(redirectTo);
-        router.refresh();
-      }
-    } catch {
-      setError("Bir hata oluştu. Lütfen tekrar deneyin.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const redirectTo = searchParams.get("redirect") || "/";
-      const { error } = await signInWithGoogle(redirectTo);
-
-      if (error) {
-        setError(error.message);
-        setLoading(false);
-      }
-      // If successful, user will be redirected via OAuth flow
-    } catch {
-      setError(
-        "Google ile giriş işlemi başarısız oldu. Lütfen tekrar deneyin."
-      );
-      setLoading(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle login logic here
+    console.log("Login attempt:", formData);
   };
 
   return (
@@ -116,18 +49,7 @@ function LoginForm() {
         {/* Login Form */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              {message && (
-                <Alert>
-                  <AlertDescription>{message}</AlertDescription>
-                </Alert>
-              )}
-
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Label
                   htmlFor="email"
@@ -140,16 +62,15 @@ function LoginForm() {
                   <Input
                     id="email"
                     type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     placeholder="your@email.com"
-                    {...register("email")}
                     className="pl-10 h-12"
+                    required
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.email.message}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -164,9 +85,13 @@ function LoginForm() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
                     placeholder="Enter your password"
-                    {...register("password")}
                     className="pl-10 pr-10 h-12"
+                    required
                   />
                   <button
                     type="button"
@@ -180,16 +105,11 @@ function LoginForm() {
                     )}
                   </button>
                 </div>
-                {errors.password && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.password.message}
-                  </p>
-                )}
               </div>
 
               <div className="flex justify-end">
                 <Link
-                  href="/auth/forgot-password"
+                  href="/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-700"
                 >
                   Forgot password?
@@ -199,9 +119,8 @@ function LoginForm() {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold"
-                disabled={loading || isSubmitting}
               >
-                {loading || isSubmitting ? "Signing in..." : "Sign In"}
+                Sign In
               </Button>
             </form>
           </CardContent>
@@ -219,13 +138,7 @@ function LoginForm() {
 
         {/* Google Login */}
         <div className="mb-8">
-          <Button
-            variant="outline"
-            className="w-full h-12 bg-transparent"
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading || isSubmitting}
-          >
+          <Button variant="outline" className="w-full h-12 bg-transparent">
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -251,9 +164,9 @@ function LoginForm() {
         {/* Sign Up Link */}
         <div className="text-center">
           <p className="text-gray-600">
-            Don&apos;t have an account?{" "}
+            {"Don't have an account? "}
             <Link
-              href="/auth/register"
+              href="/register"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
               Sign up
@@ -262,41 +175,5 @@ function LoginForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-white">
-          <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
-            <div className="flex items-center justify-between">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-5 h-5 mr-2" />
-                  Back
-                </Button>
-              </Link>
-              <h1 className="font-semibold text-lg">Sign In</h1>
-              <div className="w-16"></div>
-            </div>
-          </header>
-          <div className="px-4 py-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-              <p className="text-gray-500">Sign in to your BarberCut account</p>
-            </div>
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center text-gray-500">Loading...</div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      }
-    >
-      <LoginForm />
-    </Suspense>
   );
 }

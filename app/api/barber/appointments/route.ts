@@ -17,7 +17,7 @@ const getAppointmentsQuerySchema = z.object({
 );
 
 const createManualAppointmentSchema = z.object({
-  customerType: z.enum(['new', 'existing'], { required_error: 'Customer type is required' }),
+  customerType: z.enum(['new', 'existing']),
   existingCustomerId: commonSchemas.uuid.optional(),
   customerName: z.string().max(100, 'Customer name too long').optional(),
   customerPhone: commonSchemas.phone.optional(),
@@ -43,11 +43,11 @@ const createManualAppointmentSchema = z.object({
 // GET - Fetch appointments for barber dashboard
 async function getAppointments(
   request: NextRequest, 
-  context: { user: AuthenticatedUser; validatedQuery: z.infer<typeof getAppointmentsQuerySchema> }
+  context: Record<string, unknown>
 ) {
-  const user = context.user;
+  const user = context.user as AuthenticatedUser;
   try {
-    const { startDate, endDate } = context.validatedQuery;
+    const { startDate, endDate } = context.validatedQuery as z.infer<typeof getAppointmentsQuerySchema>;
 
     // Build where clause
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -140,9 +140,9 @@ async function getAppointments(
 // POST - Create manual appointment for barber
 async function createManualAppointment(
   request: NextRequest, 
-  context: { user: AuthenticatedUser; validatedBody: z.infer<typeof createManualAppointmentSchema> }
+  context: Record<string, unknown>
 ) {
-  const user = context.user;
+  const user = context.user as AuthenticatedUser;
   try {
     const {
       customerType,
@@ -153,7 +153,7 @@ async function createManualAppointment(
       staffId,
       startTime,
       notes,
-    } = context.validatedBody;
+    } = context.validatedBody as z.infer<typeof createManualAppointmentSchema>;
 
     // Sanitize string inputs (customerName could be undefined for existing customers)
     const sanitizedCustomerName = customerName ? sanitizeString(customerName) : null;

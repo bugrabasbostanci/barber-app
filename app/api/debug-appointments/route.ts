@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth, requireAdmin, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { logger } from "@/lib/logger";
 
-async function debugAppointments(request: NextRequest, user: AuthenticatedUser) {
+async function debugAppointments(request: NextRequest, context?: Record<string, unknown>) {
+  const user = context?.user as AuthenticatedUser;
   try {
     // Production security: Only allow in development or for admin users
     if (process.env.NODE_ENV === 'production') {

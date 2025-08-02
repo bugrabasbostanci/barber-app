@@ -62,7 +62,10 @@ export async function GET(request: NextRequest) {
       reason: block.reason, // Customers can see the reason (e.g., "Hasta", "İzin")
     }));
 
-    return NextResponse.json(formattedBlocks);
+    return NextResponse.json({
+      success: true,
+      data: formattedBlocks
+    });
   } catch (error) {
     logger.api("Failed to fetch blocked dates", {
       method: "GET",

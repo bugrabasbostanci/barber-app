@@ -54,8 +54,11 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      ...userProfile,
-      createdAt: userProfile.createdAt.toISOString(),
+      success: true,
+      data: {
+        ...userProfile,
+        createdAt: userProfile.createdAt.toISOString(),
+      }
     });
   } catch (error) {
     logger.api("Failed to fetch user profile", {
@@ -157,7 +160,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { firstName, lastName, phone } = await request.json();
+    const { firstName, lastName, phone, email } = await request.json();
 
     // Validate input
     if (!firstName || !lastName) {
@@ -174,6 +177,8 @@ export async function PUT(request: NextRequest) {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone?.trim() || null,
+        // Note: Email updates are handled separately for security reasons
+        // We don't update email here as it requires special verification
       },
       select: {
         id: true,
@@ -187,8 +192,11 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json({
-      ...updatedUser,
-      createdAt: updatedUser.createdAt.toISOString(),
+      success: true,
+      data: {
+        ...updatedUser,
+        createdAt: updatedUser.createdAt.toISOString(),
+      }
     });
   } catch (error) {
     logger.api("Failed to update user profile", {
@@ -201,6 +209,66 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Profil güncellenirken bir hata oluştu",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE - Delete user account
+export async function DELETE() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Start a transaction to delete user data
+    await prisma.$transaction(async (tx) => {
+      // Delete user appointments first (foreign key constraints)
+      await tx.appointment.deleteMany({
+        where: { customerId: user.id }
+      });
+
+      // Delete user from our database
+      await tx.user.delete({
+        where: { id: user.id }
+      });
+    });
+
+    // Delete user from Supabase Auth
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+    
+    if (deleteError) {
+      logger.api("Failed to delete user from Supabase Auth", {
+        method: "DELETE",
+        path: "/api/profile",
+        statusCode: 500,
+        error: deleteError
+      });
+      // Continue anyway as the user is already deleted from our database
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Hesabınız başarıyla silindi"
+    });
+  } catch (error) {
+    logger.api("Failed to delete user account", {
+      method: "DELETE",
+      path: "/api/profile",
+      statusCode: 500,
+      error: error instanceof Error ? error : new Error(String(error))
+    });
+    
+    return NextResponse.json(
+      {
+        error: "Hesap silinirken bir hata oluştu",
       },
       { status: 500 }
     );

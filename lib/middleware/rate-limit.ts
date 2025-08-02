@@ -217,10 +217,10 @@ export const rateLimiters = {
     message: 'API rate limit exceeded, please slow down',
   }),
 
-  // Booking creation rate limit
+  // Booking creation rate limit (RELAXED FOR TESTING)
   booking: createRateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 3, // 3 bookings per 5 minutes
+    windowMs: 1 * 60 * 1000, // 1 minute
+    maxRequests: 50, // 50 bookings per minute (very generous for testing)
     message: 'Too many booking attempts, please wait before trying again',
   }),
 

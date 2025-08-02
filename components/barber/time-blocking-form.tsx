@@ -56,8 +56,10 @@ export function TimeBlockingForm() {
         // Fetch staff
         const staffResponse = await fetch('/api/staff')
         if (staffResponse.ok) {
-          const staffData = await staffResponse.json()
-          setStaff(staffData)
+          const result = await staffResponse.json()
+          if (result.success && Array.isArray(result.data)) {
+            setStaff(result.data)
+          }
         } else {
           console.error('Failed to fetch staff:', staffResponse.statusText)
           setStaff([])
@@ -66,17 +68,20 @@ export function TimeBlockingForm() {
         // Fetch existing time blocks
         const blocksResponse = await fetch('/api/time-blocks')
         if (blocksResponse.ok) {
-          const blocksData = await blocksResponse.json()
-          const formattedBlocks = blocksData.map((block: {id: string; date: string; startTime: string | null; endTime: string | null; reason: string; isFullDay: boolean; staffId: string}) => ({
-            id: block.id,
-            date: new Date(block.date),
-            startTime: block.startTime,
-            endTime: block.endTime,
-            reason: block.reason,
-            isFullDay: block.isFullDay,
-            staffId: block.staffId
-          }))
-          setBlockedTimes(formattedBlocks)
+          const result = await blocksResponse.json()
+          if (result.success && Array.isArray(result.data)) {
+            const blocksData = result.data
+            const formattedBlocks = blocksData.map((block: {id: string; date: string; startTime: string | null; endTime: string | null; reason: string; isFullDay: boolean; staffId: string}) => ({
+              id: block.id,
+              date: new Date(block.date),
+              startTime: block.startTime,
+              endTime: block.endTime,
+              reason: block.reason,
+              isFullDay: block.isFullDay,
+              staffId: block.staffId
+            }))
+            setBlockedTimes(formattedBlocks)
+          }
         } else {
           console.error('Failed to fetch time blocks:', blocksResponse.statusText)
           setBlockedTimes([])

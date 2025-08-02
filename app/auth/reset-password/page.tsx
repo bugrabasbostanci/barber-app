@@ -1,217 +1,393 @@
-"use client"
+"use client";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { ArrowLeft, Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { updatePassword } from "@/lib/auth";
-import { resetPasswordSchema, type ResetPasswordFormData } from "@/lib/validations/auth";
-import { CheckCircle } from "lucide-react";
+import { changePassword } from "@/lib/auth";
+import {
+  changePasswordSchema,
+  type ChangePasswordFormData,
+} from "@/lib/validations/auth";
+import { useAuth } from "@/hooks/useAuth";
 
-function ResetPasswordForm() {
+function ChangePasswordForm() {
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
+  } = useForm<ChangePasswordFormData>({
+    resolver: zodResolver(changePasswordSchema),
     mode: "onBlur",
   });
 
-  // Check for session validity
+  // Redirect if not logged in (but wait for auth to load)
   useEffect(() => {
-    const error = searchParams.get('error');
-    if (error === 'invalid_session') {
-      setError("Şifre sıfırlama oturumunuz geçersiz veya süresi dolmuş. Lütfen yeni bir şifre sıfırlama isteği gönderin.");
+    if (!authLoading && !user) {
+      router.push("/auth/login");
     }
-  }, [searchParams]);
+  }, [user, authLoading, router]);
 
-  const onSubmit = async (data: ResetPasswordFormData) => {
+  const onSubmit = async (data: ChangePasswordFormData) => {
     setLoading(true);
     setError("");
-    
+
     try {
-      const { error } = await updatePassword(data.password);
-      
+      const { error } = await changePassword(
+        data.currentPassword,
+        data.newPassword
+      );
+
       if (error) {
         setError(error.message);
       } else {
         setSuccess(true);
-        // Redirect to login after 3 seconds
+        // Redirect to profile after 3 seconds
         setTimeout(() => {
-          router.push("/auth/login?message=Şifreniz başarıyla değiştirildi");
+          router.push("/profile?message=Password successfully updated");
         }, 3000);
       }
     } catch {
-      setError("Şifre güncellenirken bir hata oluştu. Lütfen tekrar deneyin.");
+      setError("An error occurred while updating password. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (success) {
+  // Show loading while auth is being checked
+  if (authLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  ← Ana Sayfa
-                </Button>
-              </Link>
-              <h1 className="text-lg font-semibold">BerberApp</h1>
-              <div className="w-20"></div>
-            </div>
+      <div className="min-h-screen bg-white">
+        <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+          <div className="flex items-center justify-between">
+            <Link href="/profile">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Back
+              </Button>
+            </Link>
+            <h1 className="font-semibold text-lg">Change Password</h1>
+            <div className="w-16"></div>
           </div>
         </header>
-        <div className="flex items-center justify-center p-4 pt-8">
-          <div className="w-full max-w-sm">
-            <div className="text-center space-y-6">
-              <div className="flex mx-auto items-center justify-center h-16 w-16 rounded-full bg-muted border">
-                <CheckCircle className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold">Şifre Değiştirildi</h2>
-                <p className="text-muted-foreground">
-                  Şifreniz başarıyla değiştirildi
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Giriş sayfasına yönlendiriliyorsunuz...
-              </p>
-              <Button asChild>
-                <Link href="/auth/login">
-                  Giriş Sayfasına Git
-                </Link>
-              </Button>
-            </div>
+        <div className="px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-500">Loading...</p>
           </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="px-4 py-3">
+  // Don't render anything if user is not authenticated (redirect is happening)
+  if (!user) {
+    return null;
+  }
+
+  // Only email users can change password
+  if (!user.isEmailUser) {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
           <div className="flex items-center justify-between">
-            <Link href="/">
+            <Link href="/profile">
               <Button variant="ghost" size="sm">
-                ← Ana Sayfa
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Back
               </Button>
             </Link>
-            <h1 className="text-lg font-semibold">BerberApp</h1>
-            <div className="w-20"></div>
+            <h1 className="font-semibold text-lg">Change Password</h1>
+            <div className="w-16"></div>
           </div>
+        </header>
+        <div className="px-4 py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Not Available</h2>
+            <p className="text-gray-500 mb-8">
+              Password change is only available for email accounts. Google
+              accounts manage passwords through Google.
+            </p>
+            <Link href="/profile">
+              <Button className="w-full h-12 text-base font-semibold">
+                Back to Profile
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-white">
+        {/* Header */}
+        <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+          <div className="flex items-center justify-between">
+            <div className="w-16"></div>
+            <h1 className="font-semibold text-lg">Change Password</h1>
+            <div className="w-16"></div>
+          </div>
+        </header>
+
+        <div className="px-4 py-8">
+          {/* Success Message */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">
+              Password Changed Successfully
+            </h2>
+            <p className="text-gray-500 mb-8">
+              Your password has been successfully updated. You can now continue
+              using your account with the new password.
+            </p>
+          </div>
+
+          {/* Sign In Button */}
+          <Link href="/profile">
+            <Button className="w-full h-12 text-base font-semibold">
+              Back to Profile
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between">
+          <Link href="/profile">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <h1 className="font-semibold text-lg">Reset Password</h1>
+          <div className="w-16"></div>
         </div>
       </header>
 
-      <div className="flex items-center justify-center p-4 pt-8">
-        <div className="w-full max-w-sm">
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-semibold">Yeni Şifre</h2>
-              <p className="text-muted-foreground">
-                Yeni şifrenizi oluşturun
-              </p>
-            </div>
-            <Card>
-              <CardContent className="pt-6">
-                <form onSubmit={handleSubmit(onSubmit)}>
-                  <div className="space-y-4">
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
+      <div className="px-4 py-8">
+        {/* Logo/Brand */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-2">Change Your Password</h2>
+          <p className="text-gray-500">
+            Enter your current password and create a new secure password.
+          </p>
+        </div>
+
+        {/* Reset Form */}
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div>
+                <Label
+                  htmlFor="currentPassword"
+                  className="text-sm font-medium text-gray-600"
+                >
+                  Current Password
+                </Label>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="currentPassword"
+                    type={showCurrentPassword ? "text" : "password"}
+                    placeholder="Enter your current password"
+                    {...register("currentPassword")}
+                    className="pl-10 pr-10 h-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
                     )}
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Yeni Şifre</Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        {...register("password")}
-                      />
-                      {errors.password && (
-                        <p className="text-sm text-destructive">{errors.password.message}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        {...register("confirmPassword")}
-                      />
-                      {errors.confirmPassword && (
-                        <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
-                      )}
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={loading || isSubmitting}
-                    >
-                      {loading || isSubmitting ? "Şifre Değiştiriliyor..." : "Şifreyi Değiştir"}
-                    </Button>
-                  </div>
-                </form>
-                <div className="mt-6 text-center text-sm text-muted-foreground">
-                  <Link href="/auth/login" className="text-foreground hover:underline">
-                    Giriş sayfasına dön
-                  </Link>
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                {errors.currentPassword && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.currentPassword.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="newPassword"
+                  className="text-sm font-medium text-gray-600"
+                >
+                  New Password
+                </Label>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="newPassword"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a new password"
+                    {...register("newPassword")}
+                    className="pl-10 pr-10 h-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.newPassword && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.newPassword.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label
+                  htmlFor="confirmNewPassword"
+                  className="text-sm font-medium text-gray-600"
+                >
+                  Confirm New Password
+                </Label>
+                <div className="relative mt-1">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    id="confirmNewPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your new password"
+                    {...register("confirmNewPassword")}
+                    className="pl-10 pr-10 h-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmNewPassword && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.confirmNewPassword.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Password Requirements */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Password must contain:
+                </p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• At least 8 characters</li>
+                  <li>• One uppercase letter</li>
+                  <li>• One lowercase letter</li>
+                  <li>• One number</li>
+                </ul>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold"
+                disabled={loading || isSubmitting}
+              >
+                {loading || isSubmitting ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Back to Profile */}
+        <div className="text-center">
+          <p className="text-gray-600">
+            Don&apos;t want to change your password?{" "}
+            <Link
+              href="/profile"
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Back to Profile
+            </Link>
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-export default function ResetPasswordPage() {
+export default function ChangePasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-background">
-        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="px-4 py-3">
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-white">
+          <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
             <div className="flex items-center justify-between">
-              <Link href="/">
+              <Link href="/profile">
                 <Button variant="ghost" size="sm">
-                  ← Ana Sayfa
+                  <ArrowLeft className="w-5 h-5 mr-2" />
+                  Back
                 </Button>
               </Link>
-              <h1 className="text-lg font-semibold">BerberApp</h1>
-              <div className="w-20"></div>
+              <h1 className="font-semibold text-lg">Change Password</h1>
+              <div className="w-16"></div>
             </div>
-          </div>
-        </header>
-        <div className="flex items-center justify-center p-4 pt-8">
-          <div className="w-full max-w-sm">
+          </header>
+          <div className="px-4 py-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-2">Change Your Password</h2>
+              <p className="text-gray-500">
+                Enter your current password and create a new secure password.
+              </p>
+            </div>
             <Card>
-              <CardContent className="py-8">
-                <div className="text-center text-muted-foreground">Yükleniyor...</div>
+              <CardContent className="p-6">
+                <div className="text-center text-gray-500">Loading...</div>
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>
-    }>
-      <ResetPasswordForm />
+      }
+    >
+      <ChangePasswordForm />
     </Suspense>
-  )
+  );
 }

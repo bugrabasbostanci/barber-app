@@ -2,28 +2,37 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/hooks/useAuth";
-import { changePassword } from "@/lib/auth";
-import { changePasswordSchema, type ChangePasswordFormData } from "@/lib/validations/auth";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Mail,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  ArrowLeft,
+  User,
   Phone,
-  Calendar,
-  Edit2,
+  Mail,
+  Edit,
   Save,
   X,
-  Lock,
-  Shield,
+  Calendar,
+  LogOut,
+  Trash2,
+  CheckCircle,
+  AlertCircle,
+  Key,
 } from "lucide-react";
+
 
 interface UserProfile {
   id: string;
@@ -35,45 +44,68 @@ interface UserProfile {
   createdAt: string;
 }
 
+
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
     phone: "",
+    email: "",
   });
 
-  // Password change form
-  const {
-    register: registerPassword,
-    handleSubmit: handlePasswordSubmit,
-    formState: { errors: passwordErrors, isSubmitting: isPasswordSubmitting },
-    reset: resetPasswordForm,
-  } = useForm<ChangePasswordFormData>({
-    resolver: zodResolver(changePasswordSchema),
-    mode: "onBlur",
-  });
+
+
+  // Generate user initials
+  const getUserInitials = () => {
+    if (profile?.firstName && profile?.lastName) {
+      return profile.firstName.charAt(0) + profile.lastName.charAt(0);
+    }
+    if (profile?.email) {
+      return profile.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    if (profile?.firstName && profile?.lastName) {
+      return `${profile.firstName} ${profile.lastName}`;
+    }
+    return profile?.email?.split("@")[0] || "User";
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = "/";
+  };
 
   // Fetch user profile
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const response = await fetch("/api/profile");
-        if (response.ok) {
-          const userData = await response.json();
-          setProfile(userData);
-          setEditForm({
-            firstName: userData.firstName || "",
-            lastName: userData.lastName || "",
-            phone: userData.phone || "",
-          });
+        const profileResponse = await fetch("/api/profile");
+
+        if (profileResponse.ok) {
+          const result = await profileResponse.json();
+          if (result.success && result.data) {
+            const userData = result.data;
+            setProfile(userData);
+            setEditForm({
+              firstName: userData.firstName || "",
+              lastName: userData.lastName || "",
+              phone: userData.phone || "",
+              email: userData.email || "",
+            });
+          } else {
+            console.error("Invalid profile data format:", result);
+          }
         } else {
           console.error("Failed to fetch profile");
         }
@@ -87,24 +119,26 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setSuccessMessage("");
+    setErrorMessage("");
     // Reset form to original values
     if (profile) {
       setEditForm({
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
         phone: profile.phone || "",
+        email: profile.email || "",
       });
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+    
     try {
       const response = await fetch("/api/profile", {
         method: "PUT",
@@ -115,79 +149,79 @@ export default function ProfilePage() {
       });
 
       if (response.ok) {
-        const updatedProfile = await response.json();
-        setProfile(updatedProfile);
-        setIsEditing(false);
-        alert("Profil başarıyla güncellendi!");
+        const result = await response.json();
+        if (result.success && result.data) {
+          setProfile(result.data);
+          setIsEditing(false);
+          setSuccessMessage("Profile updated successfully!");
+          setTimeout(() => setSuccessMessage(""), 5000);
+        } else {
+          console.error("Invalid update response format:", result);
+          setErrorMessage("An error occurred while updating profile.");
+        }
       } else {
-        alert("Profil güncellenirken bir hata oluştu.");
+        setErrorMessage("An error occurred while updating profile.");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Profil güncellenirken bir hata oluştu.");
+      setErrorMessage("An error occurred while updating profile.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const onPasswordSubmit = async (data: ChangePasswordFormData) => {
-    setPasswordError("");
-    setPasswordSuccess("");
+  const handleDeleteAccount = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted."
+      )
+    ) {
+      return;
+    }
+
+    if (
+      !confirm(
+        "Last confirmation: Do you really want to delete your account?"
+      )
+    ) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setSuccessMessage("");
+    setErrorMessage("");
     
     try {
-      const { error } = await changePassword(data.currentPassword, data.newPassword);
-      
-      if (error) {
-        setPasswordError(error.message);
-      } else {
-        setPasswordSuccess("Şifreniz başarıyla güncellendi!");
-        resetPasswordForm();
-        setTimeout(() => {
-          setIsChangingPassword(false);
-          setPasswordSuccess("");
+      const response = await fetch("/api/profile", {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setSuccessMessage("Your account has been successfully deleted. Redirecting...");
+        setTimeout(async () => {
+          await signOut();
+          window.location.href = "/";
         }, 2000);
+      } else {
+        const errorData = await response.json();
+        setErrorMessage(errorData.error || "An error occurred while deleting account.");
       }
     } catch (error) {
-      console.error("Error changing password:", error);
-      setPasswordError("Şifre değiştirilirken bir hata oluştu.");
+      console.error("Error deleting account:", error);
+      setErrorMessage("An error occurred while deleting account.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handlePasswordCancel = () => {
-    setIsChangingPassword(false);
-    setPasswordError("");
-    setPasswordSuccess("");
-    resetPasswordForm();
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat("tr-TR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(new Date(dateString));
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "CUSTOMER":
-        return <Badge variant="secondary">Müşteri</Badge>;
-      case "BARBER":
-        return <Badge variant="default">Berber</Badge>;
-      case "ADMIN":
-        return <Badge className="bg-purple-500">Admin</Badge>;
-      default:
-        return <Badge variant="outline">{role}</Badge>;
-    }
-  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <div className="px-4 py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Yükleniyor...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-500">Loading...</p>
           </div>
         </div>
       </div>
@@ -196,12 +230,12 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-white">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
-            <p className="text-destructive">Profil yüklenemedi.</p>
+            <p className="text-red-600">Failed to load profile.</p>
             <Button asChild>
-              <Link href="/">Ana Sayfaya Dön</Link>
+              <Link href="/">Back to Home</Link>
             </Button>
           </div>
         </div>
@@ -210,365 +244,272 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <Button variant="ghost" size="sm">
-                ← Ana Sayfa
-              </Button>
-            </Link>
-            <h1 className="text-lg font-semibold">Profilim</h1>
-            <div className="w-20"></div>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50 relative">
+        <div className="flex items-center justify-between">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <h1 className="font-semibold text-lg">Profile</h1>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                isEditing ? handleCancelEdit() : setIsEditing(true)
+              }
+            >
+              {isEditing ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Edit className="w-5 h-5" />
+              )}
+            </Button>
+
+            {/* Avatar Dropdown Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="w-8 h-8 cursor-pointer">
+                  <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-sm">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
+                  <p className="font-semibold text-sm text-gray-900">
+                    {getUserDisplayName()}
+                  </p>
+                  <p className="text-xs text-gray-500">{profile?.email}</p>
+                </DropdownMenuLabel>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="w-4 h-4 mr-3 text-gray-500" />
+                    <span className="text-sm font-medium">Profil</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/my-appointments">
+                    <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                    <span className="text-sm font-medium">Randevularım</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem>
+                  <button
+                    className="flex items-center w-full text-left"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                    <span className="text-sm font-medium">Çıkış Yap</span>
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
 
       <div className="px-4 py-6">
+        {/* Profile Picture */}
+        <div className="text-center mb-8">
+          <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-12 h-12 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold">{getUserDisplayName()}</h2>
+          <p className="text-gray-500">Member since 15/03/2024</p>
+        </div>
 
-        {/* Profile Card */}
-        <Card>
+        {/* Alert Messages */}
+        {successMessage && (
+          <Alert className="mb-6 border-green-200 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              {successMessage}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {errorMessage}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Personal Information */}
+        <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-3">
-                {user?.user_metadata?.avatar_url ? (
-                  <Image
-                    src={user.user_metadata.avatar_url}
-                    alt="Profil Resmi"
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src =
-                        "https://j508qhyzqd.ufs.sh/f/zFL6Zu9sI4C0PrTlIlRo6ZMBjNEkK8DbuR1VxXhmvcYqS7iU";
-                    }}
-                  />
-                ) : profile?.firstName && profile?.lastName ? (
-                  <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-sm font-medium uppercase border">
-                    {profile.firstName.charAt(0)}
-                    {profile.lastName.charAt(0)}
-                  </div>
-                ) : (
-                  <Image
-                    src="https://j508qhyzqd.ufs.sh/f/zFL6Zu9sI4C0PrTlIlRo6ZMBjNEkK8DbuR1VxXhmvcYqS7iU"
-                    alt="Profil Resmi"
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                )}
-                <div>
-                  <div className="text-lg font-semibold">Kişisel Bilgiler</div>
-                  {user?.user_metadata?.avatar_url && (
-                    <div className="text-sm text-muted-foreground font-normal">
-                      Google hesabınızdan
-                    </div>
-                  )}
-                </div>
-              </CardTitle>
-              {!isEditing ? (
-                <Button variant="outline" size="sm" onClick={handleEditClick}>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Düzenle
-                </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCancelEdit}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    İptal
-                  </Button>
-                  <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? "Kaydediliyor..." : "Kaydet"}
-                  </Button>
-                </div>
-              )}
-            </div>
+            <CardTitle className="text-lg">Personal Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Email - Read Only */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                E-posta
-              </Label>
-              <Input value={profile.email} readOnly className="bg-muted" />
-              <p className="text-xs text-muted-foreground">
-                {user?.isGoogleUser 
-                  ? "Google hesabınızdan otomatik alınan e-posta adresi" 
-                  : "E-posta adresi değiştirilemez"
-                }
-              </p>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-600">
+                  First Name
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={editForm.firstName}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        firstName: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                ) : (
+                  <div className="flex items-center mt-2">
+                    <User className="w-4 h-4 mr-3 text-gray-400" />
+                    <span>{profile.firstName || "Not specified"}</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-600">
+                  Last Name
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={editForm.lastName}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        lastName: e.target.value,
+                      })
+                    }
+                    className="mt-1"
+                  />
+                ) : (
+                  <div className="flex items-center mt-2">
+                    <User className="w-4 h-4 mr-3 text-gray-400" />
+                    <span>{profile.lastName || "Not specified"}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* First Name */}
-            <div className="space-y-2">
-              <Label htmlFor="firstName">Ad</Label>
-              {isEditing ? (
-                <Input
-                  id="firstName"
-                  value={editForm.firstName}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, firstName: e.target.value })
-                  }
-                  placeholder="Adınızı girin"
-                />
-              ) : (
-                <Input
-                  value={profile.firstName || "Belirtilmemiş"}
-                  readOnly
-                  className="bg-muted"
-                />
-              )}
-            </div>
-
-            {/* Last Name */}
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Soyad</Label>
-              {isEditing ? (
-                <Input
-                  id="lastName"
-                  value={editForm.lastName}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, lastName: e.target.value })
-                  }
-                  placeholder="Soyadınızı girin"
-                />
-              ) : (
-                <Input
-                  value={profile.lastName || "Belirtilmemiş"}
-                  readOnly
-                  className="bg-muted"
-                />
-              )}
-            </div>
-
-            {/* Phone */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2" htmlFor="phone">
-                <Phone className="h-4 w-4" />
-                Telefon
+            <div>
+              <Label className="text-sm font-medium text-gray-600">
+                Phone Number
               </Label>
               {isEditing ? (
                 <Input
-                  id="phone"
-                  type="tel"
                   value={editForm.phone}
                   onChange={(e) =>
                     setEditForm({ ...editForm, phone: e.target.value })
                   }
-                  placeholder="05XX XXX XX XX"
+                  className="mt-1"
                 />
               ) : (
-                <Input
-                  value={profile.phone || "Belirtilmemiş"}
-                  readOnly
-                  className="bg-muted"
-                />
+                <div className="flex items-center mt-2">
+                  <Phone className="w-4 h-4 mr-3 text-gray-400" />
+                  <span>{profile.phone || "Not specified"}</span>
+                </div>
               )}
             </div>
 
-            {/* Role */}
-            <div className="space-y-2">
-              <Label>Hesap Türü</Label>
-              <div className="flex items-center gap-2">
-                {getRoleBadge(profile.role)}
-              </div>
-            </div>
-
-            {/* Created At */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Üyelik Tarihi
+            <div>
+              <Label className="text-sm font-medium text-gray-600">
+                Email Address
               </Label>
-              <Input
-                value={formatDate(profile.createdAt)}
-                readOnly
-                className="bg-muted"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Password Change Card - Only for email users */}
-        {user?.isEmailUser && (
-          <Card className="mt-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="h-5 w-5" />
-                  Şifre Güvenliği
-                </CardTitle>
-              {!isChangingPassword ? (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setIsChangingPassword(true)}
-                  disabled={isEditing}
-                >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Şifre Değiştir
-                </Button>
+              {isEditing && user?.isEmailUser ? (
+                <Input
+                  value={editForm.email}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, email: e.target.value })
+                  }
+                  className="mt-1"
+                  type="email"
+                />
               ) : (
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handlePasswordCancel}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    İptal
-                  </Button>
+                <div className="flex items-center mt-2">
+                  <Mail className="w-4 h-4 mr-3 text-gray-400" />
+                  <span>{profile.email}</span>
                 </div>
               )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {!isChangingPassword ? (
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Hesap güvenliğiniz için düzenli olarak şifrenizi değiştirmenizi öneririz.
+              {user?.isGoogleUser && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Email from your Google account (cannot be changed)
                 </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Shield className="h-4 w-4" />
-                  <span>Son şifre güncellemesi: Bilinmiyor</span>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
-                <div className="space-y-4">
-                  {passwordError && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{passwordError}</AlertDescription>
-                    </Alert>
-                  )}
-                  {passwordSuccess && (
-                    <Alert className="border-green-200 bg-green-50">
-                      <AlertDescription className="text-green-800">
-                        {passwordSuccess}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Mevcut Şifre</Label>
-                    <Input
-                      id="currentPassword"
-                      type="password"
-                      placeholder="Mevcut şifrenizi girin"
-                      {...registerPassword("currentPassword")}
-                      className={passwordErrors.currentPassword ? "border-red-500" : ""}
-                    />
-                    {passwordErrors.currentPassword && (
-                      <p className="text-sm text-red-600">
-                        {passwordErrors.currentPassword.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">Yeni Şifre</Label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      placeholder="En az 6 karakter, büyük/küçük harf ve rakam"
-                      {...registerPassword("newPassword")}
-                      className={passwordErrors.newPassword ? "border-red-500" : ""}
-                    />
-                    {passwordErrors.newPassword && (
-                      <p className="text-sm text-red-600">
-                        {passwordErrors.newPassword.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmNewPassword">Yeni Şifre Tekrarı</Label>
-                    <Input
-                      id="confirmNewPassword"
-                      type="password"
-                      placeholder="Yeni şifrenizi tekrar girin"
-                      {...registerPassword("confirmNewPassword")}
-                      className={passwordErrors.confirmNewPassword ? "border-red-500" : ""}
-                    />
-                    {passwordErrors.confirmNewPassword && (
-                      <p className="text-sm text-red-600">
-                        {passwordErrors.confirmNewPassword.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isPasswordSubmitting}
-                  >
-                    {isPasswordSubmitting ? "Güncelleniyor..." : "Şifreyi Güncelle"}
-                  </Button>
-                </div>
-              </form>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
+
+        {/* Save Button for Edit Mode */}
+        {isEditing && (
+          <div className="mb-6">
+            <div className="flex space-x-3">
+              <Button
+                onClick={handleCancelEdit}
+                variant="outline"
+                className="flex-1 h-12 text-base bg-transparent"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="flex-1 h-12 text-base font-semibold"
+                disabled={isSaving}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </div>
         )}
 
-        {/* Google User Info Card */}
-        {user?.isGoogleUser && (
-          <Card className="mt-6">
+
+        {/* Security Actions - Only for email users */}
+        {user?.isEmailUser && (
+          <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Hesap Güvenliği
-              </CardTitle>
+              <CardTitle className="text-lg">Security</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Image 
-                      src="https://developers.google.com/identity/images/g-logo.png" 
-                      alt="Google"
-                      width={20}
-                      height={20}
-                      className="w-5 h-5"
-                    />
-                    <span className="text-sm font-medium text-blue-800">Google hesabı ile giriş yapıyorsunuz</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Hesabınız Google ile korunmaktadır. Şifre değiştirme ve hesap güvenliği ayarları için Google hesabınızı kullanın.
-                </p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Shield className="h-4 w-4" />
-                  <span>Güvenlik: Google tarafından yönetiliyor</span>
-                </div>
-              </div>
+            <CardContent className="space-y-4">
+              <Link href="/auth/reset-password">
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                >
+                  <Key className="w-4 h-4 mr-2" />
+                  Change Password
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         )}
 
-        {/* Quick Actions */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/my-appointments">
-              <Calendar className="h-4 w-4 mr-2" />
-              Randevularım
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/book-appointment">
-              <Calendar className="h-4 w-4 mr-2" />
-              Randevu Al
-            </Link>
-          </Button>
-        </div>
+        {/* Account Actions */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full bg-transparent text-red-600 border-red-200 hover:bg-red-50"
+                onClick={handleDeleteAccount}
+                disabled={isDeleting}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isDeleting ? "Deleting..." : "Delete Account"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

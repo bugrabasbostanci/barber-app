@@ -24,8 +24,10 @@ export function useAuth() {
     try {
       const response = await fetch('/api/profile')
       if (response.ok) {
-        const userData = await response.json()
-        return userData
+        const result = await response.json()
+        if (result.success && result.data) {
+          return result.data
+        }
       }
     } catch (error) {
       console.error('Error fetching user role:', error)

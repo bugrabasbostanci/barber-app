@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a **Turkish barber appointment management system** built as a Next.js application. The system enables customers to book appointments online and provides barbers (salon owners) with a management interface to handle bookings, schedules, and availability.
 
 ### Key Business Rules
+
 - **Working hours**: 09:30 - 21:30 daily
 - **Appointment duration**: Fixed 45 minutes for all services
 - **Closed day**: Sundays (no appointments)
@@ -56,8 +57,9 @@ The project uses Prisma with PostgreSQL. Database schema is defined in `/prisma/
 ## Authentication Flow
 
 Authentication is handled through Supabase with separate client configurations for:
+
 - Browser-side operations (`lib/supabase/client.ts`)
-- Server-side operations (`lib/supabase/server.ts`) 
+- Server-side operations (`lib/supabase/server.ts`)
 - Middleware operations (`lib/supabase/middleware.ts`)
 
 ## User Roles
@@ -68,9 +70,14 @@ Authentication is handled through Supabase with separate client configurations f
 ## Component Architecture
 
 Uses shadcn/ui component system with:
+
 - TypeScript path aliases (`@/*` points to root)
 - Class variance authority for component variants
 - Tailwind CSS for styling with CSS variables
 - Lucide React for icons
 
 When developing new features, follow the existing patterns in the codebase and refer to the Turkish PRD document for business requirements.
+
+## Refatoring and Improvement
+
+Check PRODUCTION-READY-ROADMAP.md file and apply it

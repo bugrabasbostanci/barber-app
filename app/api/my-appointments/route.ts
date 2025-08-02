@@ -75,7 +75,10 @@ export async function GET() {
       createdAt: appointment.createdAt.toISOString(),
     }));
 
-    return NextResponse.json(formattedAppointments);
+    return NextResponse.json({
+      success: true,
+      data: formattedAppointments
+    });
   } catch (error) {
     logger.api("Failed to fetch user appointments", {
       method: "GET",

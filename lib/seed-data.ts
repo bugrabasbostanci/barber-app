@@ -178,16 +178,44 @@ export async function getAvailableTimeSlots(
     const todayStr = now.toLocaleDateString("en-CA", { timeZone: timezone }); // YYYY-MM-DD format
 
     if (dateStr === todayStr) {
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
+      // Get current Turkish time properly
+      const now = new Date();
+      const turkeyTime = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Istanbul',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(now);
 
-      return availableSlots.filter((slot) => {
+      const currentHour = parseInt(turkeyTime.find(part => part.type === 'hour')?.value || '0');
+      const currentMinute = parseInt(turkeyTime.find(part => part.type === 'minute')?.value || '0');
+
+      console.log(`DEBUG: Current Turkish time: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
+      console.log(`DEBUG: Requested date: ${dateStr}, Today: ${todayStr}`);
+      console.log(`DEBUG: Total available slots before filtering: ${availableSlots.length}`);
+
+      // Filter slots: show only slots that are at least 1 hour from now
+      const filteredSlots = availableSlots.filter((slot) => {
         const [slotHour, slotMinute] = slot.split(":").map(Number);
-        return (
-          slotHour > currentHour ||
-          (slotHour === currentHour && slotMinute > currentMinute)
-        );
+        
+        // Convert times to minutes for easier comparison
+        const slotTimeInMinutes = slotHour * 60 + slotMinute;
+        const currentTimeInMinutes = currentHour * 60 + currentMinute;
+        const oneHourFromNowInMinutes = currentTimeInMinutes + 60; // 1 hour buffer
+        
+        const isAvailable = slotTimeInMinutes >= oneHourFromNowInMinutes;
+        
+        console.log(`DEBUG: Slot ${slot} (${slotHour}:${slotMinute.toString().padStart(2, '0')} = ${slotTimeInMinutes} min) vs Current+1hour (${Math.floor(oneHourFromNowInMinutes/60)}:${(oneHourFromNowInMinutes%60).toString().padStart(2, '0')} = ${oneHourFromNowInMinutes} min) = ${isAvailable ? 'KEEP' : 'FILTER'}`);
+        
+        return isAvailable;
       });
+
+      console.log(`DEBUG: Filtered slots count: ${filteredSlots.length}`);
+      console.log(`DEBUG: Kept slots:`, filteredSlots);
+      return filteredSlots;
     }
 
     return availableSlots;

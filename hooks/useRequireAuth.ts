@@ -18,7 +18,7 @@ export function useRequireAuth() {
 }
 
 export function useRequireCustomer() {
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export function useRequireCustomer() {
     }
   }, [user, loading, router])
 
-  return { user, loading, isAuthorized: user?.role === 'CUSTOMER' }
+  return { user, loading, isAuthorized: user?.role === 'CUSTOMER', signOut }
 }
 
 export function useRequireBarber() {
