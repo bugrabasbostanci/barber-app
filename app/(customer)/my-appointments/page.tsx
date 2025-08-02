@@ -35,7 +35,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-
 // Types based on our Prisma schema
 interface Appointment {
   id: string;
@@ -64,9 +63,8 @@ function MyAppointmentsContent() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
-
-
+  const [appointmentToCancel, setAppointmentToCancel] =
+    useState<Appointment | null>(null);
 
   // Fetch appointments from API
   useEffect(() => {
@@ -119,21 +117,24 @@ function MyAppointmentsContent() {
     try {
       setCancellingId(appointmentToCancel.id);
       setError(null);
-      
-      const response = await fetch(`/api/appointments/${appointmentToCancel.id}/cancel`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+
+      const response = await fetch(
+        `/api/appointments/${appointmentToCancel.id}/cancel`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const result = await response.json();
 
       if (response.ok && result.success) {
         // Update the appointment status in local state
-        setAppointments(prev => 
-          prev.map(apt => 
-            apt.id === appointmentToCancel.id 
+        setAppointments((prev) =>
+          prev.map((apt) =>
+            apt.id === appointmentToCancel.id
               ? { ...apt, status: "CANCELLED" as const }
               : apt
           )
@@ -152,45 +153,31 @@ function MyAppointmentsContent() {
   // Function to check if appointment can be cancelled (2 hours before)
   const canCancelAppointment = (appointment: Appointment) => {
     const now = new Date();
-    const appointmentDateTime = new Date(`${appointment.date}T${appointment.startTime}:00`);
-    const hoursUntilAppointment = (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
-    return hoursUntilAppointment >= 2 && ["SCHEDULED", "CONFIRMED"].includes(appointment.status);
+    const appointmentDateTime = new Date(
+      `${appointment.date}T${appointment.startTime}:00`
+    );
+    const hoursUntilAppointment =
+      (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    return (
+      hoursUntilAppointment >= 2 &&
+      ["SCHEDULED", "CONFIRMED"].includes(appointment.status)
+    );
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "SCHEDULED":
       case "CONFIRMED":
-        return (
-          <Badge className="bg-green-100 text-green-800">
-            Onaylandı
-          </Badge>
-        );
+        return <Badge className="bg-green-100 text-green-800">Onaylandı</Badge>;
       case "COMPLETED":
-        return (
-          <Badge className="bg-blue-100 text-blue-800">
-            Tamamlandı
-          </Badge>
-        );
+        return <Badge className="bg-blue-100 text-blue-800">Tamamlandı</Badge>;
       case "CANCELLED":
-        return (
-          <Badge className="bg-red-100 text-red-800">
-            İptal Edildi
-          </Badge>
-        );
+        return <Badge className="bg-red-100 text-red-800">İptal Edildi</Badge>;
       case "NO_SHOW":
-        return (
-          <Badge className="bg-gray-100 text-gray-800">
-            Gelmedi
-          </Badge>
-        );
+        return <Badge className="bg-gray-100 text-gray-800">Gelmedi</Badge>;
       default:
-        return (
-          <Badge className="bg-gray-100 text-gray-800">
-            {status}
-          </Badge>
-        );
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
     }
   };
 
@@ -210,14 +197,14 @@ function MyAppointmentsContent() {
 
           <div className="flex items-center">
             <Clock className="w-4 h-4 mr-3 text-gray-400" />
-            <span>
-              {formatTimeRange(appointment.startTime)}
-            </span>
+            <span>{formatTimeRange(appointment.startTime)}</span>
           </div>
 
           <div className="flex items-center">
             <UserCheck className="w-4 h-4 mr-3 text-gray-400" />
-            <span>{appointment.staff.firstName} {appointment.staff.lastName}</span>
+            <span>
+              {appointment.staff.firstName} {appointment.staff.lastName}
+            </span>
           </div>
 
           {appointment.notes && (
@@ -235,7 +222,10 @@ function MyAppointmentsContent() {
               variant="outline"
               className="flex-1 bg-transparent text-red-600 border-red-200 hover:bg-red-50"
               onClick={() => openCancelModal(appointment)}
-              disabled={!canCancelAppointment(appointment) || cancellingId === appointment.id}
+              disabled={
+                !canCancelAppointment(appointment) ||
+                cancellingId === appointment.id
+              }
             >
               İptal Et
             </Button>
@@ -283,13 +273,10 @@ function MyAppointmentsContent() {
     return `${formatTime(startTime)}-${formatTime(endTime)}`;
   };
 
-
   const upcoming = appointments.filter((apt) => {
     const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
     const now = new Date();
-    return (
-      aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status)
-    );
+    return aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status);
   });
 
   const past = appointments.filter((apt) => {
@@ -300,7 +287,6 @@ function MyAppointmentsContent() {
       ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(apt.status)
     );
   });
-
 
   if (loading) {
     return (
@@ -370,7 +356,7 @@ function MyAppointmentsContent() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back
+              Geri
             </Button>
           </Link>
           <h1 className="font-semibold text-lg">Randevularım</h1>
@@ -447,7 +433,9 @@ function MyAppointmentsContent() {
                 <p className="text-sm text-gray-600">Yaklaşan</p>
               </div>
               <div className="text-center p-6 bg-green-50 rounded-2xl">
-                <p className="text-2xl font-bold text-green-600">{past.length}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {past.length}
+                </p>
                 <p className="text-sm text-gray-600">Geçmiş</p>
               </div>
             </div>
@@ -502,7 +490,6 @@ function MyAppointmentsContent() {
             </Tabs>
           </>
         )}
-
       </div>
 
       {/* Cancel Appointment Dialog */}
@@ -514,7 +501,8 @@ function MyAppointmentsContent() {
               Randevuyu İptal Et
             </DialogTitle>
             <DialogDescription>
-              Randevunuzu iptal etmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              Randevunuzu iptal etmek istediğinizden emin misiniz? Bu işlem geri
+              alınamaz.
             </DialogDescription>
           </DialogHeader>
 
@@ -537,7 +525,8 @@ function MyAppointmentsContent() {
                 <div className="flex items-center">
                   <UserCheck className="w-4 h-4 mr-3 text-gray-500" />
                   <span className="text-sm">
-                    {appointmentToCancel.staff.firstName} {appointmentToCancel.staff.lastName}
+                    {appointmentToCancel.staff.firstName}{" "}
+                    {appointmentToCancel.staff.lastName}
                   </span>
                 </div>
               </div>
@@ -545,8 +534,8 @@ function MyAppointmentsContent() {
           )}
 
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={closeCancelModal}
               disabled={cancellingId === appointmentToCancel?.id}
             >

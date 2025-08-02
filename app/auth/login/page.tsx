@@ -58,9 +58,37 @@ function LoginForm() {
           emailInput?.focus();
         }, 100);
       } else {
-        const redirectTo = searchParams.get("redirect") || "/";
-        router.push(redirectTo);
-        router.refresh();
+        // Get user profile to determine role-based redirect
+        const response = await fetch("/api/profile");
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const userRole = result.data.role;
+            let redirectTo = searchParams.get("redirect");
+
+            // If no specific redirect and user is a barber, redirect to dashboard
+            if (!redirectTo || redirectTo === "/") {
+              if (userRole === "BARBER" || userRole === "ADMIN") {
+                redirectTo = "/barber/dashboard";
+              } else {
+                redirectTo = "/";
+              }
+            }
+
+            router.push(redirectTo);
+            router.refresh();
+          } else {
+            // Fallback if profile fetch fails
+            const redirectTo = searchParams.get("redirect") || "/";
+            router.push(redirectTo);
+            router.refresh();
+          }
+        } else {
+          // Fallback if profile fetch fails
+          const redirectTo = searchParams.get("redirect") || "/";
+          router.push(redirectTo);
+          router.refresh();
+        }
       }
     } catch {
       setError("Bir hata oluştu. Lütfen tekrar deneyin.");
@@ -75,6 +103,9 @@ function LoginForm() {
 
     try {
       const redirectTo = searchParams.get("redirect") || "/";
+
+      // For Google OAuth, we'll let the callback handle role-based redirect
+      // The callback will check user role and redirect appropriately
       const { error } = await signInWithGoogle(redirectTo);
 
       if (error) {

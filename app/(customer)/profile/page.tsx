@@ -33,7 +33,6 @@ import {
   Key,
 } from "lucide-react";
 
-
 interface UserProfile {
   id: string;
   email: string;
@@ -43,7 +42,6 @@ interface UserProfile {
   role: string;
   createdAt: string;
 }
-
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -60,8 +58,6 @@ export default function ProfilePage() {
     phone: "",
     email: "",
   });
-
-
 
   // Generate user initials
   const getUserInitials = () => {
@@ -138,7 +134,7 @@ export default function ProfilePage() {
     setIsSaving(true);
     setSuccessMessage("");
     setErrorMessage("");
-    
+
     try {
       const response = await fetch("/api/profile", {
         method: "PUT",
@@ -153,18 +149,18 @@ export default function ProfilePage() {
         if (result.success && result.data) {
           setProfile(result.data);
           setIsEditing(false);
-          setSuccessMessage("Profile updated successfully!");
+          setSuccessMessage("Profil başarıyla güncellendi!");
           setTimeout(() => setSuccessMessage(""), 5000);
         } else {
           console.error("Invalid update response format:", result);
-          setErrorMessage("An error occurred while updating profile.");
+          setErrorMessage("Profil güncellenirken bir hata oluştu.");
         }
       } else {
-        setErrorMessage("An error occurred while updating profile.");
+        setErrorMessage("Profil güncellenirken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      setErrorMessage("An error occurred while updating profile.");
+      setErrorMessage("Profil güncellenirken bir hata oluştu.");
     } finally {
       setIsSaving(false);
     }
@@ -173,47 +169,44 @@ export default function ProfilePage() {
   const handleDeleteAccount = async () => {
     if (
       !confirm(
-        "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted."
+        "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kalıcı olarak silinecektir."
       )
     ) {
       return;
     }
 
-    if (
-      !confirm(
-        "Last confirmation: Do you really want to delete your account?"
-      )
-    ) {
+    if (!confirm("Son onay: Hesabınızı gerçekten silmek istiyor musunuz?")) {
       return;
     }
 
     setIsDeleting(true);
     setSuccessMessage("");
     setErrorMessage("");
-    
+
     try {
       const response = await fetch("/api/profile", {
         method: "DELETE",
       });
 
       if (response.ok) {
-        setSuccessMessage("Your account has been successfully deleted. Redirecting...");
+        setSuccessMessage(
+          "Hesabınız başarıyla silindi. Yönlendiriliyorsunuz..."
+        );
         setTimeout(async () => {
           await signOut();
           window.location.href = "/";
         }, 2000);
       } else {
         const errorData = await response.json();
-        setErrorMessage(errorData.error || "An error occurred while deleting account.");
+        setErrorMessage(errorData.error || "Hesap silinirken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error deleting account:", error);
-      setErrorMessage("An error occurred while deleting account.");
+      setErrorMessage("Hesap silinirken bir hata oluştu.");
     } finally {
       setIsDeleting(false);
     }
   };
-
 
   if (loading) {
     return (
@@ -221,7 +214,7 @@ export default function ProfilePage() {
         <div className="px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Loading...</p>
+            <p className="mt-2 text-gray-500">Yükleniyor...</p>
           </div>
         </div>
       </div>
@@ -233,9 +226,9 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-white">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
-            <p className="text-red-600">Failed to load profile.</p>
+            <p className="text-red-600">Profil yüklenemedi.</p>
             <Button asChild>
-              <Link href="/">Back to Home</Link>
+              <Link href="/">Ana Sayfaya Dön</Link>
             </Button>
           </div>
         </div>
@@ -251,10 +244,10 @@ export default function ProfilePage() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back
+              Geri
             </Button>
           </Link>
-          <h1 className="font-semibold text-lg">Profile</h1>
+          <h1 className="font-semibold text-lg">Profil</h1>
 
           <div className="flex items-center space-x-2">
             <Button
@@ -326,7 +319,16 @@ export default function ProfilePage() {
             <User className="w-12 h-12 text-gray-400" />
           </div>
           <h2 className="text-2xl font-bold">{getUserDisplayName()}</h2>
-          <p className="text-gray-500">Member since 15/03/2024</p>
+          {profile?.createdAt && (
+            <p className="text-gray-500">
+              {new Date(profile.createdAt).toLocaleDateString("tr-TR", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}{" "}
+              tarihinden beri üye
+            </p>
+          )}
         </div>
 
         {/* Alert Messages */}
@@ -338,27 +340,23 @@ export default function ProfilePage() {
             </AlertDescription>
           </Alert>
         )}
-        
+
         {errorMessage && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {errorMessage}
-            </AlertDescription>
+            <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         )}
 
         {/* Personal Information */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Personal Information</CardTitle>
+            <CardTitle className="text-lg">Kişisel Bilgiler</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm font-medium text-gray-600">
-                  First Name
-                </Label>
+                <Label className="text-sm font-medium text-gray-600">Ad</Label>
                 {isEditing ? (
                   <Input
                     value={editForm.firstName}
@@ -373,14 +371,14 @@ export default function ProfilePage() {
                 ) : (
                   <div className="flex items-center mt-2">
                     <User className="w-4 h-4 mr-3 text-gray-400" />
-                    <span>{profile.firstName || "Not specified"}</span>
+                    <span>{profile.firstName || "Belirtilmemiş"}</span>
                   </div>
                 )}
               </div>
 
               <div>
                 <Label className="text-sm font-medium text-gray-600">
-                  Last Name
+                  Soyad
                 </Label>
                 {isEditing ? (
                   <Input
@@ -396,7 +394,7 @@ export default function ProfilePage() {
                 ) : (
                   <div className="flex items-center mt-2">
                     <User className="w-4 h-4 mr-3 text-gray-400" />
-                    <span>{profile.lastName || "Not specified"}</span>
+                    <span>{profile.lastName || "Belirtilmemiş"}</span>
                   </div>
                 )}
               </div>
@@ -404,7 +402,7 @@ export default function ProfilePage() {
 
             <div>
               <Label className="text-sm font-medium text-gray-600">
-                Phone Number
+                Telefon Numarası
               </Label>
               {isEditing ? (
                 <Input
@@ -417,14 +415,14 @@ export default function ProfilePage() {
               ) : (
                 <div className="flex items-center mt-2">
                   <Phone className="w-4 h-4 mr-3 text-gray-400" />
-                  <span>{profile.phone || "Not specified"}</span>
+                  <span>{profile.phone || "Belirtilmemiş"}</span>
                 </div>
               )}
             </div>
 
             <div>
               <Label className="text-sm font-medium text-gray-600">
-                Email Address
+                E-posta Adresi
               </Label>
               {isEditing && user?.isEmailUser ? (
                 <Input
@@ -443,7 +441,7 @@ export default function ProfilePage() {
               )}
               {user?.isGoogleUser && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Email from your Google account (cannot be changed)
+                  Google hesabınızdan gelen e-posta (değiştirilemez)
                 </p>
               )}
             </div>
@@ -459,7 +457,7 @@ export default function ProfilePage() {
                 variant="outline"
                 className="flex-1 h-12 text-base bg-transparent"
               >
-                Cancel
+                İptal
               </Button>
               <Button
                 onClick={handleSave}
@@ -467,27 +465,23 @@ export default function ProfilePage() {
                 disabled={isSaving}
               >
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : "Save Changes"}
+                {isSaving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
               </Button>
             </div>
           </div>
         )}
 
-
         {/* Security Actions - Only for email users */}
         {user?.isEmailUser && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg">Security</CardTitle>
+              <CardTitle className="text-lg">Güvenlik</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Link href="/auth/reset-password">
-                <Button
-                  variant="outline"
-                  className="w-full bg-transparent"
-                >
+                <Button variant="outline" className="w-full bg-transparent">
                   <Key className="w-4 h-4 mr-2" />
-                  Change Password
+                  Şifre Değiştir
                 </Button>
               </Link>
             </CardContent>
@@ -505,7 +499,7 @@ export default function ProfilePage() {
                 disabled={isDeleting}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                {isDeleting ? "Deleting..." : "Delete Account"}
+                {isDeleting ? "Siliniyor..." : "Hesabı Sil"}
               </Button>
             </div>
           </CardContent>

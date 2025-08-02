@@ -375,7 +375,7 @@ export default function BookAppointmentPage() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back
+              Geri
             </Button>
           </Link>
           <div className="text-center">
@@ -974,8 +974,6 @@ function DateSelectionNew({
       <div className="space-y-3">
         {availableDates.map((date, index) => {
           const isSelected = selectedDate === date.toISOString().split("T")[0];
-          // Show realistic availability (can be enhanced with real data later)
-          const availableSlots = Math.floor(Math.random() * 8) + 5; // 5-12 slots
 
           return (
             <button
@@ -997,25 +995,6 @@ function DateSelectionNew({
                       month: "long",
                     })}
                   </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-green-600">
-                    {availableSlots} slot
-                  </p>
-                  <div className="flex justify-end mt-1">
-                    {[1, 2, 3].map((dot) => (
-                      <div
-                        key={dot}
-                        className={`w-2 h-2 rounded-full mr-1 ${
-                          availableSlots > 10
-                            ? "bg-green-400"
-                            : availableSlots > 7
-                            ? "bg-yellow-400"
-                            : "bg-orange-400"
-                        }`}
-                      />
-                    ))}
-                  </div>
                 </div>
               </div>
             </button>

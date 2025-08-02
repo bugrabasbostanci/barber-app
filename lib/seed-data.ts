@@ -213,6 +213,7 @@ export async function getAvailableTimeSlots(
       return filteredSlots;
     }
 
+    console.log(`DEBUG: Final available slots for ${dateStr}:`, availableSlots);
     return availableSlots;
   } catch (error) {
     console.error("Error getting available time slots:", error);

@@ -108,6 +108,7 @@ async function createAppointment(
         endTime: createUTCTime(endTime),
         status: "SCHEDULED",
         notes: sanitizedNotes,
+        createdById: user.id, // Track who created the appointment
       },
       include: {
         customer: {

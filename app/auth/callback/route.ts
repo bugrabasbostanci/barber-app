@@ -50,9 +50,29 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${origin}/auth/login?error=Veritabanı hatası oluştu`)
       }
 
-      // Use redirect parameter if available, otherwise fall back to next
-      const finalRedirect = redirect !== '/' ? redirect : next
-      return NextResponse.redirect(`${origin}${finalRedirect}`)
+      // Check user role for appropriate redirect
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: data.user.id },
+          select: { role: true }
+        })
+
+        let finalRedirect = redirect !== '/' ? redirect : next
+        
+        // If no specific redirect and user is a barber, redirect to dashboard
+        if ((finalRedirect === '/' || !finalRedirect) && dbUser) {
+          if (dbUser.role === 'BARBER' || dbUser.role === 'ADMIN') {
+            finalRedirect = '/barber/dashboard'
+          }
+        }
+        
+        return NextResponse.redirect(`${origin}${finalRedirect}`)
+      } catch (roleCheckError) {
+        console.error('Error checking user role for redirect:', roleCheckError)
+        // Fallback to original redirect logic
+        const finalRedirect = redirect !== '/' ? redirect : next
+        return NextResponse.redirect(`${origin}${finalRedirect}`)
+      }
     }
   }
 

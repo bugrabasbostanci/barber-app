@@ -128,6 +128,7 @@ async function createManualAppointment(
   request: NextRequest, 
   context: Record<string, unknown>
 ) {
+  const user = context.user as { id: string; email: string; role: string };
   try {
     const {
       customerType,
@@ -192,6 +193,7 @@ async function createManualAppointment(
         notes: sanitizedNotes,
         manualCustomerName: customerType === "new" ? sanitizedCustomerName : null,
         manualCustomerPhone: customerType === "new" ? customerPhone : null,
+        createdById: user.id, // Track who created the appointment (the barber)
       },
       include: {
         customer:

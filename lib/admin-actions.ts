@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
+import { extractTimeString } from '@/lib/date-time'
 
 export async function getDashboardStats() {
   try {
@@ -20,31 +21,13 @@ export async function getDashboardStats() {
       }
     })
 
-    // Get active staff count (include both EMPLOYEE and BARBER roles)
-    const activeStaff = await prisma.user.count({
-      where: {
-        role: {
-          in: ['EMPLOYEE', 'BARBER']
-        },
-        isActive: true
-      }
-    })
-
-    // Calculate capacity usage (simplified for now)
-    const totalSlots = 24 // Example: 24 slots per day (45min each from 9:30-21:30)
-    const capacityUsage = Math.round((todayAppointments / totalSlots) * 100)
-
     return {
-      todayAppointments,
-      activeStaff,
-      capacityUsage
+      todayAppointments
     }
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
     return {
-      todayAppointments: 0,
-      activeStaff: 0,
-      capacityUsage: 0
+      todayAppointments: 0
     }
   }
 }
@@ -86,8 +69,8 @@ export async function getTodayAppointments() {
     const formattedAppointments = appointments.map(appointment => ({
       id: appointment.id,
       date: appointment.date,
-      startTime: appointment.startTime.toTimeString().substring(0, 5), // HH:MM format
-      endTime: appointment.endTime.toTimeString().substring(0, 5), // HH:MM format
+      startTime: extractTimeString(appointment.startTime), // UTC time extracted correctly
+      endTime: extractTimeString(appointment.endTime), // UTC time extracted correctly
       status: appointment.status,
       notes: appointment.notes,
       manualCustomerName: appointment.manualCustomerName,
@@ -132,8 +115,8 @@ export async function getRecentAppointments(limit = 10) {
     const formattedAppointments = appointments.map(appointment => ({
       id: appointment.id,
       date: appointment.date,
-      startTime: appointment.startTime.toTimeString().substring(0, 5), // HH:MM format
-      endTime: appointment.endTime.toTimeString().substring(0, 5), // HH:MM format
+      startTime: extractTimeString(appointment.startTime), // UTC time extracted correctly
+      endTime: extractTimeString(appointment.endTime), // UTC time extracted correctly
       status: appointment.status,
       notes: appointment.notes,
       manualCustomerName: appointment.manualCustomerName,
