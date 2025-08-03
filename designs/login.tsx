@@ -43,7 +43,9 @@ export default function LoginPage() {
         {/* Logo/Brand */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-          <p className="text-gray-500">Sign in to your BarberCut account</p>
+          <p className="text-gray-500">
+            Sign in to your The Barber Shop account
+          </p>
         </div>
 
         {/* Login Form */}

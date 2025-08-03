@@ -57,9 +57,9 @@ export default function Home() {
         <div className="flex items-center justify-between">
           <div>
             <Link href="/">
-              <h1 className="text-2xl font-bold">BarberCut</h1>
+              <h1 className="text-2xl font-bold">The Barber Shop</h1>
             </Link>
-            <p className="text-gray-500 text-sm">Premium Barbershop</p>
+            <p className="text-gray-500 text-sm">Men&apos;s Club</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -69,91 +69,91 @@ export default function Home() {
             ) : user ? (
               /* Avatar Dropdown Menu */
               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Avatar className="w-10 h-10 cursor-pointer">
-                      {user.user_metadata?.avatar_url ? (
-                        <AvatarImage
-                          src={user.user_metadata.avatar_url}
-                          alt="Avatar"
-                        />
-                      ) : (
-                        <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-                          {getUserInitials()}
-                        </AvatarFallback>
-                      )}
-                    </Avatar>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                      <p className="font-semibold text-sm text-gray-900">
-                        {getUserDisplayName()}
-                      </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                    </DropdownMenuLabel>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="w-10 h-10 cursor-pointer">
+                    {user.user_metadata?.avatar_url ? (
+                      <AvatarImage
+                        src={user.user_metadata.avatar_url}
+                        alt="Avatar"
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
+                    <p className="font-semibold text-sm text-gray-900">
+                      {getUserDisplayName()}
+                    </p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </DropdownMenuLabel>
 
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm font-medium">Profil</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {/* Customer specific menu items */}
+                  {user.role === "CUSTOMER" && (
                     <DropdownMenuItem asChild>
-                      <Link href="/profile">
-                        <User className="w-4 h-4 mr-3 text-gray-500" />
-                        <span className="text-sm font-medium">Profil</span>
+                      <Link href="/my-appointments">
+                        <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                        <span className="text-sm font-medium">
+                          Randevularım
+                        </span>
                       </Link>
                     </DropdownMenuItem>
+                  )}
 
-                    {/* Customer specific menu items */}
-                    {user.role === "CUSTOMER" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/my-appointments">
-                          <Calendar className="w-4 h-4 mr-3 text-gray-500" />
-                          <span className="text-sm font-medium">
-                            Randevularım
-                          </span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-
-                    {/* Barber specific menu items */}
-                    {user.role === "BARBER" && (
-                      <DropdownMenuItem asChild>
-                        <Link href="/barber/dashboard">
-                          <Settings className="w-4 h-4 mr-3 text-gray-500" />
-                          <span className="text-sm font-medium">
-                            Berber Paneli
-                          </span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-
-                    <div className="border-t border-gray-100 my-1"></div>
-
-                    <DropdownMenuItem>
-                      <button
-                        className="flex items-center w-full text-left"
-                        onClick={() => {
-                          handleSignOut();
-                        }}
-                      >
-                        <LogOut className="w-4 h-4 mr-3 text-gray-500" />
-                        <span className="text-sm font-medium">Çıkış Yap</span>
-                      </button>
+                  {/* Barber specific menu items */}
+                  {user.role === "BARBER" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/barber/dashboard">
+                        <Settings className="w-4 h-4 mr-3 text-gray-500" />
+                        <span className="text-sm font-medium">
+                          Berber Paneli
+                        </span>
+                      </Link>
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  )}
+
+                  <div className="border-t border-gray-100 my-1"></div>
+
+                  <DropdownMenuItem>
+                    <button
+                      className="flex items-center w-full text-left"
+                      onClick={() => {
+                        handleSignOut();
+                      }}
+                    >
+                      <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm font-medium">Çıkış Yap</span>
+                    </button>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               // Non-authenticated user buttons
               <>
-                  <Link href="/auth/login">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs md:text-sm"
-                    >
-                      Giriş
-                    </Button>
-                  </Link>
-                  <Link href="/auth/register">
-                    <Button size="sm" className="text-xs md:text-sm">
-                      Kayıt Ol
-                    </Button>
-                  </Link>
+                <Link href="/auth/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs md:text-sm"
+                  >
+                    Giriş
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button size="sm" className="text-xs md:text-sm">
+                    Kayıt Ol
+                  </Button>
+                </Link>
               </>
             )}
           </div>
@@ -164,9 +164,8 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Randevunuzu Alın</h2>
-          <p className="text-xl text-gray-600 mb-2">₺150 • 45 dakika</p>
           <p className="text-gray-500 mb-8">
-            Deneyimli berberlerimizle profesyonel hizmet
+            Deneyimli berberlerimizden profesyonel hizmet alın
           </p>
 
           {/* CTA Button */}

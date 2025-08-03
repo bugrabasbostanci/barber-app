@@ -21,13 +21,52 @@ export async function getDashboardStats() {
       }
     })
 
+    // Get today's unique customers
+    const todayUniqueCustomers = await prisma.appointment.findMany({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay
+        },
+        status: {
+          in: ['SCHEDULED', 'CONFIRMED']
+        }
+      },
+      select: {
+        customerId: true,
+        manualCustomerPhone: true
+      },
+      distinct: ['customerId', 'manualCustomerPhone']
+    })
+
+    // Get total users count
+    const totalUsers = await prisma.user.count({
+      where: {
+        isActive: true
+      }
+    })
+
+    // Get total customers count
+    const totalCustomers = await prisma.user.count({
+      where: {
+        role: 'CUSTOMER',
+        isActive: true
+      }
+    })
+
     return {
-      todayAppointments
+      todayAppointments,
+      todayCustomers: todayUniqueCustomers.length,
+      totalUsers,
+      totalCustomers
     }
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
     return {
-      todayAppointments: 0
+      todayAppointments: 0,
+      todayCustomers: 0,
+      totalUsers: 0,
+      totalCustomers: 0
     }
   }
 }

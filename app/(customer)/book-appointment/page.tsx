@@ -18,6 +18,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
+import { 
+  formatTurkishDate, 
+  dateToLocalString 
+} from "@/lib/date-time";
 
 interface BookingData {
   date: string;
@@ -295,12 +299,7 @@ export default function BookAppointmentPage() {
               <h2 className="text-2xl font-bold mb-2">Saat Seçin</h2>
               <p className="text-gray-500">
                 {bookingData.staffId && getStaffName(bookingData.staffId)} için{" "}
-                {bookingData.date &&
-                  new Date(bookingData.date).toLocaleDateString("tr-TR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}{" "}
+                {bookingData.date && formatTurkishDate(bookingData.date)}{" "}
                 tarihinde müsait saatler
               </p>
             </div>
@@ -351,12 +350,7 @@ export default function BookAppointmentPage() {
                   <div className="flex justify-between">
                     <span>Tarih:</span>
                     <span className="font-medium">
-                      {bookingData.date &&
-                        new Date(bookingData.date).toLocaleDateString("tr-TR", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                        })}
+                      {bookingData.date && formatTurkishDate(bookingData.date)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -811,12 +805,7 @@ function BookingConfirmationNew({
             <div className="flex justify-between">
               <span>Tarih:</span>
               <span className="font-medium">
-                {bookingData.date &&
-                  new Date(bookingData.date).toLocaleDateString("tr-TR", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}
+                {bookingData.date && formatTurkishDate(bookingData.date)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -911,11 +900,12 @@ function DateSelectionNew({
         const endDate = new Date(today);
         endDate.setDate(today.getDate() + 14); // Look ahead 2 weeks to find 7 available days
 
-        // Fetch blocked dates from API
+        // Fetch blocked dates from API - use local date strings
+        const todayStr = dateToLocalString(today);
+        const endDateStr = dateToLocalString(endDate);
+        
         const response = await fetch(
-          `/api/blocked-dates?startDate=${
-            today.toISOString().split("T")[0]
-          }&endDate=${endDate.toISOString().split("T")[0]}`
+          `/api/blocked-dates?startDate=${todayStr}&endDate=${endDateStr}`
         );
 
         const blockedSet = new Set<string>();
@@ -939,7 +929,7 @@ function DateSelectionNew({
 
         while (dates.length < 7) {
           const dayOfWeek = currentDate.getDay();
-          const dateString = currentDate.toISOString().split("T")[0];
+          const dateString = dateToLocalString(currentDate);
 
           // Skip Sundays (0) and blocked dates
           if (dayOfWeek !== 0 && !blockedSet.has(dateString)) {
@@ -1030,12 +1020,13 @@ function DateSelectionNew({
     <div className="space-y-6">
       <div className="space-y-3">
         {availableDates.map((date, index) => {
-          const isSelected = selectedDate === date.toISOString().split("T")[0];
+          const dateString = dateToLocalString(date);
+          const isSelected = selectedDate === dateString;
 
           return (
             <button
               key={index}
-              onClick={() => onDateSelect(date.toISOString().split("T")[0])}
+              onClick={() => onDateSelect(dateString)}
               className={`w-full p-4 rounded-xl border-2 transition-all ${
                 isSelected
                   ? "border-blue-500 bg-blue-50"

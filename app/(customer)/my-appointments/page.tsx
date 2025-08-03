@@ -26,6 +26,11 @@ import {
 } from "@/components/ui/dialog";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import {
+  localDateTimeToUTC,
+  formatTurkishDateShort,
+  canCancelAppointment as canCancel,
+} from "@/lib/date-time";
+import {
   ArrowLeft,
   Calendar,
   Clock,
@@ -152,15 +157,8 @@ function MyAppointmentsContent() {
 
   // Function to check if appointment can be cancelled (2 hours before)
   const canCancelAppointment = (appointment: Appointment) => {
-    const now = new Date();
-    const appointmentDateTime = new Date(
-      `${appointment.date}T${appointment.startTime}:00`
-    );
-    const hoursUntilAppointment =
-      (appointmentDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
-
     return (
-      hoursUntilAppointment >= 2 &&
+      canCancel(appointment.date, appointment.startTime, 2) &&
       ["SCHEDULED", "CONFIRMED"].includes(appointment.status)
     );
   };
@@ -247,12 +245,7 @@ function MyAppointmentsContent() {
   );
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("tr-TR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return formatTurkishDateShort(dateString);
   };
 
   const formatTimeRange = (time: string, duration: number = 45) => {
@@ -274,13 +267,13 @@ function MyAppointmentsContent() {
   };
 
   const upcoming = appointments.filter((apt) => {
-    const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
+    const aptDate = localDateTimeToUTC(apt.date, apt.startTime);
     const now = new Date();
     return aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status);
   });
 
   const past = appointments.filter((apt) => {
-    const aptDate = new Date(`${apt.date}T${apt.startTime}:00`);
+    const aptDate = localDateTimeToUTC(apt.date, apt.startTime);
     const now = new Date();
     return (
       aptDate <= now ||

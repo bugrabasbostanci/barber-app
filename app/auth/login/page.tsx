@@ -129,10 +129,10 @@ function LoginForm() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back
+              Geri
             </Button>
           </Link>
-          <h1 className="font-semibold text-lg">Sign In</h1>
+          <h1 className="font-semibold text-lg">Giriş Yap</h1>
           <div className="w-16"></div>
         </div>
       </header>
@@ -140,8 +140,10 @@ function LoginForm() {
       <div className="px-4 py-8">
         {/* Logo/Brand */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-          <p className="text-gray-500">Sign in to your BarberCut account</p>
+          <h2 className="text-3xl font-bold mb-2">Tekrar Hoş Geldiniz</h2>
+          <p className="text-gray-500">
+            The Barber Shop hesabınıza giriş yapın
+          </p>
         </div>
 
         {/* Login Form */}
@@ -164,14 +166,14 @@ function LoginForm() {
                   htmlFor="email"
                   className="text-sm font-medium text-gray-600"
                 >
-                  Email Address
+                  E-posta Adresi
                 </Label>
                 <div className="relative mt-1">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="ornek@email.com"
                     {...register("email")}
                     className="pl-10 h-12"
                   />
@@ -188,14 +190,14 @@ function LoginForm() {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-600"
                 >
-                  Password
+                  Şifre
                 </Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Şifrenizi girin"
                     {...register("password")}
                     className="pl-10 pr-10 h-12"
                   />
@@ -223,7 +225,7 @@ function LoginForm() {
                   href="/auth/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-700"
                 >
-                  Forgot password?
+                  Şifremi unuttum?
                 </Link>
               </div>
 
@@ -232,7 +234,7 @@ function LoginForm() {
                 className="w-full h-12 text-base font-semibold"
                 disabled={loading || isSubmitting}
               >
-                {loading || isSubmitting ? "Signing in..." : "Sign In"}
+                {loading || isSubmitting ? "Giriş yapılıyor..." : "Giriş Yap"}
               </Button>
             </form>
           </CardContent>
@@ -244,7 +246,7 @@ function LoginForm() {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">or</span>
+            <span className="px-4 bg-white text-gray-500">veya</span>
           </div>
         </div>
 
@@ -275,19 +277,19 @@ function LoginForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            Google ile Devam Et
           </Button>
         </div>
 
         {/* Sign Up Link */}
         <div className="text-center">
           <p className="text-gray-600">
-            Don&apos;t have an account?{" "}
+            Hesabınız yok mu?{" "}
             <Link
               href="/auth/register"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              Sign up
+              Kayıt ol
             </Link>
           </p>
         </div>
@@ -309,18 +311,20 @@ export default function LoginPage() {
                   Back
                 </Button>
               </Link>
-              <h1 className="font-semibold text-lg">Sign In</h1>
+              <h1 className="font-semibold text-lg">Giriş Yap</h1>
               <div className="w-16"></div>
             </div>
           </header>
           <div className="px-4 py-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-              <p className="text-gray-500">Sign in to your BarberCut account</p>
+              <p className="text-gray-500">
+                Sign in to your The Barber Shop account
+              </p>
             </div>
             <Card>
               <CardContent className="p-6">
-                <div className="text-center text-gray-500">Loading...</div>
+                <div className="text-center text-gray-500">Yükleniyor...</div>
               </CardContent>
             </Card>
           </div>

@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { prisma } from '@/lib/prisma';
-import { Role } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
+import { Role } from "@prisma/client";
 
 // Auth error types
 export class AuthError extends Error {
   constructor(message: string, public statusCode: number = 401) {
     super(message);
-    this.name = 'AuthError';
+    this.name = "AuthError";
   }
 }
 
 export class UnauthorizedError extends AuthError {
-  constructor(message = 'Unauthorized') {
+  constructor(message = "Unauthorized") {
     super(message, 401);
   }
 }
 
 export class ForbiddenError extends AuthError {
-  constructor(message = 'Forbidden') {
+  constructor(message = "Forbidden") {
     super(message, 403);
   }
 }
@@ -39,7 +39,10 @@ export interface AuthenticatedUser {
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return null;
@@ -71,7 +74,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
       lastName: dbUser.lastName,
     };
   } catch (error) {
-    console.error('Error getting authenticated user:', error);
+    console.error("Error getting authenticated user:", error);
     return null;
   }
 }
@@ -80,15 +83,15 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
  * Require authentication middleware
  */
 export function requireAuth() {
-  return async (_req: NextRequest): Promise<AuthenticatedUser> => {
+  return async (): Promise<AuthenticatedUser> => {
     const user = await getAuthenticatedUser();
-    
+
     if (!user) {
-      throw new UnauthorizedError('Authentication required');
+      throw new UnauthorizedError("Authentication required");
     }
 
     if (!user.isActive) {
-      throw new ForbiddenError('Account is inactive');
+      throw new ForbiddenError("Account is inactive");
     }
 
     return user;
@@ -99,11 +102,13 @@ export function requireAuth() {
  * Require specific roles middleware
  */
 export function requireRoles(allowedRoles: Role[]) {
-  return async (req: NextRequest): Promise<AuthenticatedUser> => {
-    const user = await requireAuth()(req);
-    
+  return async (): Promise<AuthenticatedUser> => {
+    const user = await requireAuth()();
+
     if (!allowedRoles.includes(user.role)) {
-      throw new ForbiddenError(`Access denied. Required roles: ${allowedRoles.join(', ')}`);
+      throw new ForbiddenError(
+        `Access denied. Required roles: ${allowedRoles.join(", ")}`
+      );
     }
 
     return user;
@@ -114,33 +119,36 @@ export function requireRoles(allowedRoles: Role[]) {
  * Require customer role
  */
 export function requireCustomer() {
-  return requireRoles(['CUSTOMER']);
+  return requireRoles(["CUSTOMER"]);
 }
 
 /**
  * Require barber or admin role
  */
 export function requireBarber() {
-  return requireRoles(['BARBER', 'ADMIN']);
+  return requireRoles(["BARBER", "ADMIN"]);
 }
 
 /**
  * Require admin role only
  */
 export function requireAdmin() {
-  return requireRoles(['ADMIN']);
+  return requireRoles(["ADMIN"]);
 }
 
 /**
  * Require staff (employee, barber, or admin)
  */
 export function requireStaff() {
-  return requireRoles(['EMPLOYEE', 'BARBER', 'ADMIN']);
+  return requireRoles(["EMPLOYEE", "BARBER", "ADMIN"]);
 }
 
 // Middleware composition types
 export type AuthMiddleware = (req: NextRequest) => Promise<AuthenticatedUser>;
-export type ApiHandler = (req: NextRequest, context?: Record<string, unknown>) => Promise<NextResponse>;
+export type ApiHandler = (
+  req: NextRequest,
+  context?: Record<string, unknown>
+) => Promise<NextResponse>;
 
 /**
  * Compose middleware with API handler
@@ -154,19 +162,19 @@ export function withAuth(authMiddleware: AuthMiddleware) {
       } catch (error) {
         if (error instanceof AuthError) {
           return NextResponse.json(
-            { 
-              success: false, 
+            {
+              success: false,
               error: error.message,
-              code: error.constructor.name.toUpperCase()
+              code: error.constructor.name.toUpperCase(),
             },
             { status: error.statusCode }
           );
         }
 
         // Log unexpected errors
-        console.error('Unexpected auth error:', error);
+        console.error("Unexpected auth error:", error);
         return NextResponse.json(
-          { success: false, error: 'Internal server error' },
+          { success: false, error: "Internal server error" },
           { status: 500 }
         );
       }
@@ -182,7 +190,7 @@ export function withMiddleware(middlewares: AuthMiddleware[]) {
     return async (req: NextRequest) => {
       try {
         let user: AuthenticatedUser | undefined;
-        
+
         // Run all middlewares in sequence
         for (const middleware of middlewares) {
           user = await middleware(req);
@@ -192,18 +200,18 @@ export function withMiddleware(middlewares: AuthMiddleware[]) {
       } catch (error) {
         if (error instanceof AuthError) {
           return NextResponse.json(
-            { 
-              success: false, 
+            {
+              success: false,
               error: error.message,
-              code: error.constructor.name.toUpperCase()
+              code: error.constructor.name.toUpperCase(),
             },
             { status: error.statusCode }
           );
         }
 
-        console.error('Unexpected middleware error:', error);
+        console.error("Unexpected middleware error:", error);
         return NextResponse.json(
-          { success: false, error: 'Internal server error' },
+          { success: false, error: "Internal server error" },
           { status: 500 }
         );
       }
@@ -215,7 +223,7 @@ export function withMiddleware(middlewares: AuthMiddleware[]) {
  * Optional auth - doesn't throw if user is not authenticated
  */
 export function optionalAuth() {
-  return async (_req: NextRequest): Promise<AuthenticatedUser | null> => {
+  return async (): Promise<AuthenticatedUser | null> => {
     return await getAuthenticatedUser();
   };
 }
@@ -223,19 +231,21 @@ export function optionalAuth() {
 /**
  * Resource ownership middleware - ensure user can only access their own resources
  */
-export function requireOwnership(getUserIdFromRequest: (req: NextRequest) => string | Promise<string>) {
+export function requireOwnership(
+  getUserIdFromRequest: (req: NextRequest) => string | Promise<string>
+) {
   return async (req: NextRequest): Promise<AuthenticatedUser> => {
-    const user = await requireAuth()(req);
+    const user = await requireAuth()();
     const resourceUserId = await getUserIdFromRequest(req);
-    
+
     // Admins can access any resource
-    if (user.role === 'ADMIN') {
+    if (user.role === "ADMIN") {
       return user;
     }
-    
+
     // Check ownership
     if (user.id !== resourceUserId) {
-      throw new ForbiddenError('You can only access your own resources');
+      throw new ForbiddenError("You can only access your own resources");
     }
 
     return user;

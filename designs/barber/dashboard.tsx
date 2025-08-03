@@ -1,31 +1,42 @@
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+"use client";
+// done
 import { Calendar, Users, Clock, Plus, ArrowRight } from "lucide-react";
-import {
-  getDashboardStats,
-  checkUserRole,
-} from "@/lib/admin-actions";
-import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 
-// Force dynamic rendering since we use cookies for auth
-export const dynamic = "force-dynamic";
+export default function BarberDashboard() {
+  // Mock data
+  const todayStats = {
+    appointments: 8,
+    revenue: 280,
+    customers: 7,
+    completion: 87,
+  };
 
-export default async function BarberDashboard() {
-  // Check if user has barber role
-  const userRole = await checkUserRole();
-  if (!userRole || userRole.role !== "BARBER") {
-    redirect("/auth/login");
-  }
-
-  const stats = await getDashboardStats();
-
-  // Get current date in Turkish format using utility
+  // Get current date in Turkish format
   const getCurrentDate = () => {
     const today = new Date();
-    const todayString = dateToLocalString(today);
-    return formatTurkishDate(todayString);
+    const months = [
+      "Ocak",
+      "Şubat",
+      "Mart",
+      "Nisan",
+      "Mayıs",
+      "Haziran",
+      "Temmuz",
+      "Ağustos",
+      "Eylül",
+      "Ekim",
+      "Kasım",
+      "Aralık",
+    ];
+
+    const day = today.getDate().toString().padStart(2, "0");
+    const month = months[today.getMonth()];
+    const year = today.getFullYear();
+
+    return `${day} ${month} ${year}`;
   };
 
   return (
@@ -53,34 +64,18 @@ export default async function BarberDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {stats.todayAppointments}
+                <div className="text-3xl font-bold text-black mb-2">
+                  {todayStats.appointments}
                 </div>
-                <div className="text-sm text-gray-600">Bugünkü Randevu</div>
+                <div className="text-sm text-gray-600">Randevu</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  {stats.todayCustomers}
+                <div className="text-3xl font-bold text-black mb-2">
+                  {todayStats.customers}
                 </div>
-                <div className="text-sm text-gray-600">Bugünkü Müşteri</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">
-                  {stats.totalCustomers}
-                </div>
-                <div className="text-sm text-gray-600">Toplam Müşteri</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-orange-600 mb-2">
-                  {stats.totalUsers}
-                </div>
-                <div className="text-sm text-gray-600">Toplam Kullanıcı</div>
+                <div className="text-sm text-gray-600">Müşteri</div>
               </CardContent>
             </Card>
           </div>

@@ -51,7 +51,7 @@ export default function HomePage() {
       <header className="bg-white border-b px-4 py-6 relative">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">BarberCut</h1>
+            <h1 className="text-2xl font-bold">The Barber Shop</h1>
             <p className="text-gray-500 text-sm">Premium Barbershop</p>
           </div>
 

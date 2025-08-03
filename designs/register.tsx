@@ -49,7 +49,7 @@ export default function RegisterPage() {
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold mb-2">Create Account</h2>
           <p className="text-gray-500">
-            Join BarberCut and book your first appointment
+            Join The Barber Shop and book your first appointment
           </p>
         </div>
 
