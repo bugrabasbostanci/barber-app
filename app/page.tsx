@@ -13,8 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
-import { signOut } from "@/lib/auth";
-import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import {
   Calendar,
   Clock,
@@ -105,37 +104,6 @@ const services = [
   },
 ];
 
-
-const ServiceCard = ({
-  name,
-  description,
-  icon: Icon,
-  color,
-}: {
-  name: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-}) => {
-  return (
-    <div
-      className={cn(
-        "relative w-64 cursor-pointer overflow-hidden rounded-xl border p-6 mx-2",
-        "border-gray-200 bg-white hover:bg-gray-50",
-        "transition-all duration-300 hover:shadow-lg"
-      )}
-    >
-      <div className="flex flex-col items-center text-center">
-        <div className={cn("p-3 rounded-full mb-4", color)}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-        <h4 className="font-semibold text-lg mb-2">{name}</h4>
-        <p className="text-sm text-gray-600">{description}</p>
-      </div>
-    </div>
-  );
-};
-
 const ServicesList = () => {
   return (
     <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
@@ -152,11 +120,16 @@ const ServicesList = () => {
 };
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const hydrated = useAuthStore((state) => state.hydrated);
 
   const handleSignOut = async () => {
-    await signOut();
-    window.location.reload(); // Simple reload to update auth state
+    try {
+      await signOut();
+      // No reload needed - Zustand handles state update smoothly
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
   };
 
   // Generate user initials from first and last name or email
@@ -174,7 +147,11 @@ export default function Home() {
     if (user?.firstName && user?.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
-    return user?.email?.split("@")[0] || "User";
+    return user?.email?.split("@")[0] || "Kullanıcı";
+  };
+
+  const isUserDataComplete = () => {
+    return user?.firstName && user?.lastName && user?.role;
   };
 
   return (
@@ -190,9 +167,9 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-2">
-            {loading ? (
-              // Loading placeholder
-              <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
+            {!hydrated || loading ? (
+              // Minimal loading - faster UX
+              <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse opacity-60"></div>
             ) : user ? (
               /* Avatar Dropdown Menu */
               <DropdownMenu>
@@ -212,10 +189,26 @@ export default function Home() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end">
                   <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                    <p className="font-semibold text-sm text-gray-900">
-                      {getUserDisplayName()}
-                    </p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
+                    {isUserDataComplete() ? (
+                      <>
+                        <p className="font-semibold text-sm text-gray-900">
+                          {getUserDisplayName()}
+                        </p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-sm text-gray-900">
+                          {getUserDisplayName()}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {user.email}
+                        </p>
+                        <div className="text-xs text-blue-500 mt-1">
+                          Bilgiler yükleniyor...
+                        </div>
+                      </>
+                    )}
                   </DropdownMenuLabel>
 
                   <DropdownMenuItem asChild>
@@ -246,6 +239,18 @@ export default function Home() {
                           Berber Paneli
                         </span>
                       </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Loading state for role-specific items */}
+                  {!isUserDataComplete() && (
+                    <DropdownMenuItem disabled>
+                      <div className="flex items-center w-full">
+                        <div className="w-4 h-4 mr-3 bg-gray-200 rounded animate-pulse"></div>
+                        <span className="text-sm text-gray-400 animate-pulse">
+                          Menü yükleniyor...
+                        </span>
+                      </div>
                     </DropdownMenuItem>
                   )}
 
@@ -296,7 +301,17 @@ export default function Home() {
           </p>
 
           {/* CTA Button */}
-          {user?.role === "CUSTOMER" ? (
+          {!hydrated || loading ? (
+            // Loading state - prevents role check issues
+            <Button
+              size="lg"
+              disabled
+              className="w-full h-16 text-xl font-semibold rounded-2xl opacity-60"
+            >
+              <div className="animate-pulse">Yükleniyor...</div>
+            </Button>
+          ) : user?.role === "CUSTOMER" ? (
+            // Customer: Active appointment button
             <Button
               size="lg"
               className="w-full h-16 text-xl font-semibold rounded-2xl"
@@ -308,6 +323,7 @@ export default function Home() {
               </Link>
             </Button>
           ) : !user ? (
+            // Guest: Login redirect
             <Button
               size="lg"
               className="w-full h-16 text-xl font-semibold rounded-2xl"
@@ -319,6 +335,7 @@ export default function Home() {
               </Link>
             </Button>
           ) : user?.role === "BARBER" || user?.role === "ADMIN" ? (
+            // Barber: Disabled with explanation
             <div className="space-y-2">
               <Button
                 size="lg"
@@ -333,7 +350,19 @@ export default function Home() {
                 Berber paneline menüden erişebilirsiniz
               </p>
             </div>
-          ) : null}
+          ) : (
+            // Fallback: Unknown role, allow login attempt
+            <Button
+              size="lg"
+              className="w-full h-16 text-xl font-semibold rounded-2xl"
+              asChild
+            >
+              <Link href="/auth/login?redirect=/book-appointment">
+                Randevu Al
+                <ArrowRight className="w-6 h-6 ml-2" />
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Services Marquee */}
@@ -377,7 +406,17 @@ export default function Home() {
         </Card>
 
         {/* Final CTA */}
-        {user?.role === "CUSTOMER" ? (
+        {!hydrated || loading ? (
+          // Loading state - consistent with hero CTA
+          <Button
+            size="lg"
+            disabled
+            className="w-full h-16 text-xl font-semibold rounded-2xl opacity-60"
+          >
+            <div className="animate-pulse">Yükleniyor...</div>
+          </Button>
+        ) : user?.role === "CUSTOMER" ? (
+          // Customer: Active appointment button
           <Button
             size="lg"
             className="w-full h-16 text-xl font-semibold rounded-2xl"
@@ -389,6 +428,7 @@ export default function Home() {
             </Link>
           </Button>
         ) : !user ? (
+          // Guest: Login redirect
           <Button
             size="lg"
             className="w-full h-16 text-xl font-semibold rounded-2xl"
@@ -400,6 +440,7 @@ export default function Home() {
             </Link>
           </Button>
         ) : user?.role === "BARBER" || user?.role === "ADMIN" ? (
+          // Barber: Disabled with explanation
           <div className="space-y-2">
             <Button
               size="lg"
@@ -414,7 +455,19 @@ export default function Home() {
               Berber paneline menüden erişebilirsiniz
             </p>
           </div>
-        ) : null}
+        ) : (
+          // Fallback: Unknown role, allow login attempt
+          <Button
+            size="lg"
+            className="w-full h-16 text-xl font-semibold rounded-2xl"
+            asChild
+          >
+            <Link href="/auth/login?redirect=/book-appointment">
+              Randevunuzu Alın
+              <ArrowRight className="w-6 h-6 ml-2" />
+            </Link>
+          </Button>
+        )}
       </div>
     </div>
   );
