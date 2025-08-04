@@ -1,3 +1,4 @@
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ClientLayout } from "@/components/layouts/client-layout";
@@ -25,7 +26,10 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body className={`${geist.className} antialiased`}>
-        <ClientLayout>{children}</ClientLayout>
+        <ClientLayout>
+          {children}
+          <SpeedInsights />
+        </ClientLayout>
       </body>
     </html>
   );
