@@ -1,21 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider } from "@/components/providers/auth-provider";
+import { Geist } from "next/font/google";
+import { ClientLayout } from "@/components/layouts/client-layout";
 import "./globals.css";
 
-const geistSans = Geist({
+const geist = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap", // Better font loading performance
+  preload: true,
+  weight: ["300", "400", "500", "600", "700"], // Only load needed weights
 });
 
 export const metadata: Metadata = {
-  title: "Berber Randevu - Online Randevu Sistemi",
-  description: "Berber salonları için profesyonel online randevu yönetim sistemi. Kolay randevu alın, randevularınızı yönetin.",
+  title: "The Barber Shop | Men's Club",
+  description:
+    "Berber salonları için profesyonel online randevu yönetim sistemi. Kolay randevu alın, randevularınızı yönetin.",
 };
 
 export default function RootLayout({
@@ -25,10 +24,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+      <body className={`${geist.className} antialiased`}>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

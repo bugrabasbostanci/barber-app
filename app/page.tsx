@@ -4,24 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { BrandTitle, SectionTitle, ServiceTitle, TypographyP } from "@/components/ui/typography";
 import {
   Calendar,
   Clock,
   ArrowRight,
   CheckCircle,
-  User,
-  LogOut,
-  Settings,
   Scissors,
   Zap,
   Sparkles,
@@ -120,185 +110,17 @@ const ServicesList = () => {
 };
 
 export default function Home() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const hydrated = useAuthStore((state) => state.hydrated);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      // No reload needed - Zustand handles state update smoothly
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-  };
-
-  // Generate user initials from first and last name or email
-  const getUserInitials = () => {
-    if (user?.firstName && user?.lastName) {
-      return user.firstName.charAt(0) + user.lastName.charAt(0);
-    }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return "U";
-  };
-
-  const getUserDisplayName = () => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return user?.email?.split("@")[0] || "Kullanıcı";
-  };
-
-  const isUserDataComplete = () => {
-    return user?.firstName && user?.lastName && user?.role;
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with Avatar Dropdown */}
-      <header className="bg-white border-b px-4 py-6 relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <Link href="/">
-              <h1 className="text-2xl font-bold">The Barber Shop</h1>
-            </Link>
-            <p className="text-gray-500 text-sm">Men&apos;s Club</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!hydrated || loading ? (
-              // Minimal loading - faster UX
-              <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse opacity-60"></div>
-            ) : user ? (
-              /* Avatar Dropdown Menu */
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Avatar className="w-10 h-10 cursor-pointer">
-                    {user.user_metadata?.avatar_url ? (
-                      <AvatarImage
-                        src={user.user_metadata.avatar_url}
-                        alt="Avatar"
-                      />
-                    ) : (
-                      <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-                        {getUserInitials()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end">
-                  <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                    {isUserDataComplete() ? (
-                      <>
-                        <p className="font-semibold text-sm text-gray-900">
-                          {getUserDisplayName()}
-                        </p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-semibold text-sm text-gray-900">
-                          {getUserDisplayName()}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {user.email}
-                        </p>
-                        <div className="text-xs text-blue-500 mt-1">
-                          Bilgiler yükleniyor...
-                        </div>
-                      </>
-                    )}
-                  </DropdownMenuLabel>
-
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm font-medium">Profil</span>
-                    </Link>
-                  </DropdownMenuItem>
-
-                  {/* Customer specific menu items */}
-                  {user.role === "CUSTOMER" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/my-appointments">
-                        <Calendar className="w-4 h-4 mr-3 text-gray-500" />
-                        <span className="text-sm font-medium">
-                          Randevularım
-                        </span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-
-                  {/* Barber specific menu items */}
-                  {user.role === "BARBER" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/barber/dashboard">
-                        <Settings className="w-4 h-4 mr-3 text-gray-500" />
-                        <span className="text-sm font-medium">
-                          Berber Paneli
-                        </span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-
-                  {/* Loading state for role-specific items */}
-                  {!isUserDataComplete() && (
-                    <DropdownMenuItem disabled>
-                      <div className="flex items-center w-full">
-                        <div className="w-4 h-4 mr-3 bg-gray-200 rounded animate-pulse"></div>
-                        <span className="text-sm text-gray-400 animate-pulse">
-                          Menü yükleniyor...
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  )}
-
-                  <div className="border-t border-gray-100 my-1"></div>
-
-                  <DropdownMenuItem>
-                    <button
-                      className="flex items-center w-full text-left"
-                      onClick={() => {
-                        handleSignOut();
-                      }}
-                    >
-                      <LogOut className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm font-medium">Çıkış Yap</span>
-                    </button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              // Non-authenticated user buttons
-              <>
-                <Link href="/auth/login">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs md:text-sm"
-                  >
-                    Giriş
-                  </Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button size="sm" className="text-xs md:text-sm">
-                    Kayıt Ol
-                  </Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="px-4 py-8 pb-8">
+    <div className="px-4 py-8 pb-8">
         {/* Hero */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Randevunuzu Alın</h2>
-          <p className="text-gray-500 mb-8">
+          <BrandTitle className="mb-4">Randevunuzu Alın</BrandTitle>
+          <TypographyP className="text-gray-500 mb-8 mt-0">
             Deneyimli berberlerimizden profesyonel hizmet alın
-          </p>
+          </TypographyP>
 
           {/* CTA Button */}
           {!hydrated || loading ? (
@@ -367,10 +189,10 @@ export default function Home() {
 
         {/* Services Marquee */}
         <div className="mb-8">
-          <h3 className="font-semibold text-lg mb-6 text-center flex items-center justify-center">
+          <SectionTitle className="mb-6 text-center flex items-center justify-center">
             <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
             Hizmetlerimiz
-          </h3>
+          </SectionTitle>
           <ServicesList />
         </div>
 
@@ -391,7 +213,7 @@ export default function Home() {
         {/* Hours */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-4">Çalışma Saatleri</h3>
+            <ServiceTitle className="mb-4">Çalışma Saatleri</ServiceTitle>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span>Pazartesi - Cumartesi</span>
@@ -469,6 +291,5 @@ export default function Home() {
           </Button>
         )}
       </div>
-    </div>
   );
 }

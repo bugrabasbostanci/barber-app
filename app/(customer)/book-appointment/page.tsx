@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  ArrowLeft,
   Check,
   ChevronLeft,
   Calendar,
@@ -18,135 +17,84 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
-import { 
-  formatTurkishDate, 
-  dateToLocalString 
-} from "@/lib/date-time";
-
-interface BookingData {
-  date: string;
-  staffId: string;
-  timeSlot: string;
-}
-
-// Phone validation helpers
-const validatePhone = (phone: string): boolean => {
-  const phoneRegex = /^(\+90|0)?[0-9]{10}$/;
-  return phoneRegex.test(phone.replace(/\s/g, ''));
-};
-
-const formatPhoneInput = (value: string): string => {
-  // Remove all non-digits except + at start
-  const cleaned = value.replace(/[^\d+]/g, '');
-  
-  // If starts with +90, allow it
-  if (cleaned.startsWith('+90')) {
-    const digits = cleaned.slice(3);
-    if (digits.length <= 10) {
-      return '+90 ' + digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
-    }
-    return '+90 ' + digits.slice(0, 10).replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
-  }
-  
-  // If starts with 0, format Turkish mobile
-  if (cleaned.startsWith('0')) {
-    const digits = cleaned.slice(1);
-    if (digits.length <= 10) {
-      return '0' + digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
-    }
-    return '0' + digits.slice(0, 10).replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
-  }
-  
-  // Raw digits, max 10
-  const digits = cleaned.slice(0, 10);
-  return digits.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4').trim();
-};
-
-interface UserProfile {
-  phone: string | null;
-}
-
-interface Staff {
-  id: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-}
+import { formatTurkishDate, dateToLocalString } from "@/lib/date-time";
+import {
+  useBookingStore,
+  formatPhoneInput,
+  validatePhone,
+  type Staff,
+} from "@/lib/stores/booking-store";
+import {
+  StaffSelectionSkeleton,
+  TimeSlotsSkeleton,
+  DateSelectionSkeleton,
+  BookingStepSkeleton,
+} from "@/components/skeletons/booking-skeleton";
 
 export default function BookAppointmentPage() {
   const { loading, isAuthorized } = useRequireCustomer();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [bookingData, setBookingData] = useState<BookingData>({
-    date: "",
-    staffId: "",
-    timeSlot: "",
-  });
-  const [isBooking, setIsBooking] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile>({ phone: null });
-  const [customerInfo, setCustomerInfo] = useState({
-    phone: "",
-    notes: "",
-  });
-  const [phoneError, setPhoneError] = useState<string>("");
-  const [staffMembers, setStaffMembers] = useState<Staff[]>([]);
 
-  // Fetch user profile to check phone number
+  // Zustand store
+  const {
+    currentStep,
+    isBooking,
+    phoneError,
+    bookingData,
+    customerInfo,
+
+    // Actions
+    nextStep,
+    prevStep,
+    setPhoneError,
+    updateBookingData,
+    updateCustomerInfo,
+    fetchUserProfile,
+    fetchStaffMembers,
+    submitBooking,
+    canProceed,
+    getStaffName,
+    resetBooking,
+  } = useBookingStore();
+
+  // Initialize data when authorized
   useEffect(() => {
-    async function fetchUserProfile() {
-      try {
-        const response = await fetch("/api/profile");
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const profile = result.data;
-            setUserProfile(profile);
-            setCustomerInfo((prev) => ({
-              ...prev,
-              phone: profile.phone || "",
-            }));
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-      }
-    }
-
     if (isAuthorized) {
       fetchUserProfile();
+      fetchStaffMembers();
     }
-  }, [isAuthorized]);
-
-  // Fetch staff members
-  useEffect(() => {
-    async function fetchStaff() {
-      try {
-        const response = await fetch("/api/staff");
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && Array.isArray(result.data)) {
-            setStaffMembers(result.data);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching staff:", error);
-      }
-    }
-
-    if (isAuthorized) {
-      fetchStaff();
-    }
-  }, [isAuthorized]);
+  }, [isAuthorized, fetchUserProfile, fetchStaffMembers]);
 
   // Show loading while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-4xl mx-auto py-6 px-4">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">
-              Yetkilendirme kontrol ediliyor...
-            </p>
+      <div className="min-h-screen bg-white">
+        {/* Step indicator skeleton */}
+        <div className="px-4 py-2 bg-white border-b">
+          <div className="h-4 bg-gray-200 rounded w-20 mx-auto animate-pulse"></div>
+        </div>
+
+        {/* Progress bar skeleton */}
+        <div className="px-4 py-3 bg-white border-b">
+          <div className="flex space-x-2">
+            {[1, 2, 3, 4].map((stepNum) => (
+              <div
+                key={stepNum}
+                className="flex-1 h-2 rounded-full bg-gray-200 animate-pulse"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Content skeleton */}
+        <div className="px-4 py-8">
+          <BookingStepSkeleton />
+        </div>
+
+        {/* Navigation skeleton */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+          <div className="flex space-x-3">
+            <div className="flex-1 h-14 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="flex-1 h-14 bg-gray-200 rounded-lg animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -174,88 +122,9 @@ export default function BookAppointmentPage() {
     );
   }
 
-  const updateBookingData = (field: keyof BookingData, value: string) => {
-    setBookingData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
-
-  const handleBookingConfirmationNew = async () => {
-    setIsBooking(true);
-
-    try {
-      // If phone number is provided and different from profile, update profile first
-      if (customerInfo.phone && customerInfo.phone !== userProfile.phone) {
-        const profileResponse = await fetch("/api/profile", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: customerInfo.phone }),
-        });
-
-        if (!profileResponse.ok) {
-          alert("Telefon numarası güncellenemedi.");
-          setIsBooking(false);
-          return;
-        }
-      }
-
-      const payload = {
-        date: bookingData.date,
-        staffId: bookingData.staffId,
-        startTime: bookingData.timeSlot,
-        ...(customerInfo.notes?.trim() && { notes: customerInfo.notes.trim() }),
-      };
-
-      const response = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setCurrentStep(5);
-      } else {
-        if (result.details && Array.isArray(result.details)) {
-          const errorDetails = result.details
-            .map(
-              (detail: { field: string; message: string }) =>
-                `${detail.field}: ${detail.message}`
-            )
-            .join("\n");
-          alert(`Validation errors:\n${errorDetails}`);
-        } else {
-          alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
-        }
-      }
-    } catch (error) {
-      console.error("Randevu oluşturulurken hata oluştu:", error);
-      alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
-    } finally {
-      setIsBooking(false);
-    }
-  };
-
-  const getStaffName = (staffId: string) => {
-    const staff = staffMembers.find((s) => s.id === staffId);
-    return staff ? `${staff.firstName} ${staff.lastName}` : "Seçilen Berber";
-  };
-
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return bookingData.date !== "";
-      case 2:
-        return bookingData.staffId !== "";
-      case 3:
-        return bookingData.timeSlot !== "";
-      case 4:
-        return customerInfo.phone.trim() !== "" && validatePhone(customerInfo.phone) && !phoneError;
-      default:
-        return false;
-    }
+  // Booking submission handler
+  const handleBookingSubmission = async () => {
+    await submitBooking();
   };
 
   const renderStepContent = () => {
@@ -268,10 +137,12 @@ export default function BookAppointmentPage() {
               <h2 className="text-2xl font-bold mb-2">Tarih Seçin</h2>
               <p className="text-gray-500">Tercih ettiğiniz günü seçin</p>
             </div>
-            <DateSelectionNew
-              selectedDate={bookingData.date}
-              onDateSelect={(date) => updateBookingData("date", date)}
-            />
+            <Suspense fallback={<DateSelectionSkeleton />}>
+              <DateSelectionNew
+                selectedDate={bookingData.date}
+                onDateSelect={(date) => updateBookingData("date", date)}
+              />
+            </Suspense>
           </div>
         );
 
@@ -283,11 +154,15 @@ export default function BookAppointmentPage() {
               <h2 className="text-2xl font-bold mb-2">Berberinizi Seçin</h2>
               <p className="text-gray-500">Tercih ettiğiniz berberi seçin</p>
             </div>
-            <StaffSelectionNew
-              selectedStaff={bookingData.staffId}
-              selectedDate={bookingData.date}
-              onStaffSelect={(staffId) => updateBookingData("staffId", staffId)}
-            />
+            <Suspense fallback={<StaffSelectionSkeleton />}>
+              <StaffSelectionNew
+                selectedStaff={bookingData.staffId}
+                selectedDate={bookingData.date}
+                onStaffSelect={(staffId) =>
+                  updateBookingData("staffId", staffId)
+                }
+              />
+            </Suspense>
           </div>
         );
 
@@ -303,12 +178,14 @@ export default function BookAppointmentPage() {
                 tarihinde müsait saatler
               </p>
             </div>
-            <TimeSelectionNew
-              selectedTime={bookingData.timeSlot}
-              onTimeSelect={(time) => updateBookingData("timeSlot", time)}
-              date={bookingData.date}
-              staffId={bookingData.staffId}
-            />
+            <Suspense fallback={<TimeSlotsSkeleton />}>
+              <TimeSelectionNew
+                selectedTime={bookingData.timeSlot}
+                onTimeSelect={(time) => updateBookingData("timeSlot", time)}
+                date={bookingData.date}
+                staffId={bookingData.staffId}
+              />
+            </Suspense>
           </div>
         );
 
@@ -323,7 +200,7 @@ export default function BookAppointmentPage() {
             <BookingConfirmationNew
               bookingData={bookingData}
               customerInfo={customerInfo}
-              onCustomerInfoChange={setCustomerInfo}
+              onCustomerInfoChange={updateCustomerInfo}
               phoneError={phoneError}
               setPhoneError={setPhoneError}
             />
@@ -388,7 +265,7 @@ export default function BookAppointmentPage() {
 
             <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">
               <p>• Randevudan 2 saat öncesine kadar iptal edebilirsiniz</p>
-              <p>• Lütfen 5 dakika erken gelin</p>
+              <p>• Lütfen 15 dakika erken gelin</p>
             </div>
           </div>
         );
@@ -400,24 +277,14 @@ export default function BookAppointmentPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
-        <div className="flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Geri
-            </Button>
-          </Link>
-          <div className="text-center">
-            <h1 className="font-semibold">Randevu Al</h1>
-            {currentStep < 5 && (
-              <p className="text-xs text-gray-500">Adım {currentStep} / 4</p>
-            )}
-          </div>
-          <div className="w-16"></div>
+      {/* Step indicator */}
+      {currentStep < 5 && (
+        <div className="px-4 py-2 bg-white border-b">
+          <p className="text-xs text-gray-500 text-center">
+            Adım {currentStep} / 4
+          </p>
         </div>
-      </header>
+      )}
 
       {/* Progress */}
       {currentStep < 5 && (
@@ -453,9 +320,7 @@ export default function BookAppointmentPage() {
               </Button>
             )}
             <Button
-              onClick={
-                currentStep === 4 ? handleBookingConfirmationNew : nextStep
-              }
+              onClick={currentStep === 4 ? handleBookingSubmission : nextStep}
               disabled={!canProceed() || isBooking}
               className="flex-1 h-14 text-base font-semibold"
             >
@@ -472,11 +337,7 @@ export default function BookAppointmentPage() {
       {currentStep === 5 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
           <button
-            onClick={() => {
-              // Reset booking data and go to step 1
-              setBookingData({ date: "", staffId: "", timeSlot: "" });
-              setCurrentStep(1);
-            }}
+            onClick={resetBooking}
             className="w-full h-14 text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Başka Randevu Al
@@ -537,24 +398,7 @@ function StaffSelectionNew({
   };
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="w-full p-5 rounded-xl border-2 border-gray-200 bg-gray-50 animate-pulse"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gray-300 rounded-full"></div>
-              <div className="flex-1">
-                <div className="h-5 bg-gray-300 rounded w-24 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-16"></div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <StaffSelectionSkeleton />;
   }
 
   if (staffMembers.length === 0) {
@@ -667,15 +511,7 @@ function TimeSelectionNew({
   }, [date, staffId]);
 
   if (loading) {
-    return (
-      <div className="grid grid-cols-4 gap-3">
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-          <div key={i} className="p-4 bg-gray-200 rounded-xl animate-pulse">
-            <div className="h-8"></div>
-          </div>
-        ))}
-      </div>
-    );
+    return <TimeSlotsSkeleton />;
   }
 
   if (error) {
@@ -752,9 +588,11 @@ function BookingConfirmationNew({
   phoneError,
   setPhoneError,
 }: {
-  bookingData: BookingData;
+  bookingData: { date: string; staffId: string; timeSlot: string };
   customerInfo: { phone: string; notes: string };
-  onCustomerInfoChange: (info: { phone: string; notes: string }) => void;
+  onCustomerInfoChange: (
+    info: Partial<{ phone: string; notes: string }>
+  ) => void;
   phoneError: string;
   setPhoneError: (error: string) => void;
 }) {
@@ -838,19 +676,25 @@ function BookingConfirmationNew({
             value={customerInfo.phone}
             onChange={(e) => {
               const formattedPhone = formatPhoneInput(e.target.value);
-              onCustomerInfoChange({ ...customerInfo, phone: formattedPhone });
-              
+              onCustomerInfoChange({ phone: formattedPhone });
+
               // Validate phone
               if (formattedPhone.trim() === "") {
                 setPhoneError("");
               } else if (!validatePhone(formattedPhone)) {
-                setPhoneError("Geçerli bir telefon numarası giriniz (0532 123 45 67)");
+                setPhoneError(
+                  "Geçerli bir telefon numarası giriniz (0532 123 45 67)"
+                );
               } else {
                 setPhoneError("");
               }
             }}
             placeholder="0532 123 45 67"
-            className={`h-14 text-base mt-2 ${phoneError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+            className={`h-14 text-base mt-2 ${
+              phoneError
+                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                : ""
+            }`}
           />
           {phoneError && (
             <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
@@ -867,9 +711,7 @@ function BookingConfirmationNew({
           <textarea
             id="notes"
             value={customerInfo.notes || ""}
-            onChange={(e) =>
-              onCustomerInfoChange({ ...customerInfo, notes: e.target.value })
-            }
+            onChange={(e) => onCustomerInfoChange({ notes: e.target.value })}
             placeholder="Berberiniz için özel istekleriniz veya notlarınız..."
             className="w-full h-24 p-3 text-base mt-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -903,7 +745,7 @@ function DateSelectionNew({
         // Fetch blocked dates from API - use local date strings
         const todayStr = dateToLocalString(today);
         const endDateStr = dateToLocalString(endDate);
-        
+
         const response = await fetch(
           `/api/blocked-dates?startDate=${todayStr}&endDate=${endDateStr}`
         );
@@ -989,31 +831,7 @@ function DateSelectionNew({
   };
 
   if (loading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="w-full p-4 rounded-xl border-2 border-gray-200 bg-gray-50 animate-pulse"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="h-5 bg-gray-300 rounded w-20 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-32"></div>
-              </div>
-              <div className="text-right">
-                <div className="h-4 bg-gray-300 rounded w-16 mb-1"></div>
-                <div className="flex justify-end">
-                  <div className="w-2 h-2 bg-gray-300 rounded-full mr-1"></div>
-                  <div className="w-2 h-2 bg-gray-300 rounded-full mr-1"></div>
-                  <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return <DateSelectionSkeleton />;
   }
 
   return (

@@ -128,6 +128,15 @@ export const useAuthStore = create<AuthState>()(
         const supabase = createClient();
         await supabase.auth.signOut();
         set({ user: null });
+        
+        // Clear appointments cache on sign out
+        try {
+          const { useAppointmentsStore } = await import('./appointments-store');
+          useAppointmentsStore.getState().clearCache();
+        } catch {
+          // Ignore if appointments store not available
+          console.log('Appointments store not available during sign out');
+        }
       },
     }),
       {

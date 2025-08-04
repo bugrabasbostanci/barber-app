@@ -1,0 +1,251 @@
+"use client";
+
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import {
+  ArrowLeft,
+  User,
+  LogOut,
+  Settings,
+  Calendar,
+} from "lucide-react";
+
+interface AppHeaderProps {
+  title?: string;
+  showBackButton?: boolean;
+  backButtonText?: string;
+  backButtonHref?: string;
+  extraActions?: React.ReactNode;
+  currentPage?: 'home' | 'profile' | 'appointments' | string;
+}
+
+export function AppHeader({
+  title,
+  showBackButton = false,
+  backButtonText = "Geri",
+  backButtonHref = "/",
+  extraActions,
+  currentPage = 'home',
+}: AppHeaderProps) {
+  const { user, loading, signOut } = useAuth();
+  const hydrated = useAuthStore((state) => state.hydrated);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Sign out error:", error);
+    }
+  };
+
+  // Generate user initials from first and last name or email
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return user.firstName.charAt(0) + user.lastName.charAt(0);
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    return user?.email?.split("@")[0] || "Kullanıcı";
+  };
+
+  const isUserDataComplete = () => {
+    return user?.firstName && user?.lastName && user?.role;
+  };
+
+  return (
+    <header className="bg-white border-b px-4 py-6 sticky top-0 z-50 relative">
+      <div className="flex items-center">
+        {/* Left side - Back button or Logo */}
+        <div className="flex-shrink-0">
+          {showBackButton ? (
+            <Link href={backButtonHref}>
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                {backButtonText}
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/">
+              <h1 className="text-2xl font-bold">The Barber Shop</h1>
+            </Link>
+          )}
+        </div>
+
+        {/* Center - Title */}
+        {title && showBackButton && (
+          <div className="flex-1 text-center">
+            <h1 className="font-semibold text-lg">{title}</h1>
+          </div>
+        )}
+
+        {/* Spacer for home page to push avatar to right */}
+        {!showBackButton && !title && <div className="flex-1"></div>}
+
+        {/* Right side - Extra actions + Auth section */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {extraActions}
+          
+          {/* Separator between extraActions and auth */}
+          {extraActions && (
+            <div className="w-px h-6 bg-gray-200 mx-1"></div>
+          )}
+          {!hydrated || loading ? (
+            // Minimal loading - faster UX
+            <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse opacity-60"></div>
+          ) : user ? (
+            /* Avatar Dropdown Menu */
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="w-10 h-10 cursor-pointer">
+                  {user.user_metadata?.avatar_url ? (
+                    <AvatarImage
+                      src={user.user_metadata.avatar_url}
+                      alt="Avatar"
+                    />
+                  ) : (
+                    <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
+                  {isUserDataComplete() ? (
+                    <>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {getUserDisplayName()}
+                      </p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {getUserDisplayName()}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {user.email}
+                      </p>
+                      <div className="text-xs text-blue-500 mt-1">
+                        Bilgiler yükleniyor...
+                      </div>
+                    </>
+                  )}
+                </DropdownMenuLabel>
+
+                {/* Show Profile link only if not on profile page */}
+                {currentPage !== 'profile' && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm font-medium">Profil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                {/* Customer specific menu items */}
+                {user.role === "CUSTOMER" && currentPage !== 'appointments' && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/my-appointments">
+                      <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm font-medium">
+                        Randevularım
+                      </span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                {/* Show Home link for customer pages */}
+                {(currentPage === 'profile' || currentPage === 'appointments') && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/">
+                      <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm font-medium">Ana Sayfa</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                {/* Barber specific menu items */}
+                {user.role === "BARBER" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/barber/dashboard">
+                      <Settings className="w-4 h-4 mr-3 text-gray-500" />
+                      <span className="text-sm font-medium">
+                        Berber Paneli
+                      </span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                {/* Loading state for role-specific items */}
+                {!isUserDataComplete() && (
+                  <DropdownMenuItem disabled>
+                    <div className="flex items-center w-full">
+                      <div className="w-4 h-4 mr-3 bg-gray-200 rounded animate-pulse"></div>
+                      <span className="text-sm text-gray-400 animate-pulse">
+                        Menü yükleniyor...
+                      </span>
+                    </div>
+                  </DropdownMenuItem>
+                )}
+
+                <div className="border-t border-gray-100 my-1"></div>
+
+                <DropdownMenuItem>
+                  <button
+                    className="flex items-center w-full text-left"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                    <span className="text-sm font-medium">Çıkış Yap</span>
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            // Non-authenticated user buttons
+            <>
+              <Link href="/auth/login">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs md:text-sm"
+                >
+                  Giriş
+                </Button>
+              </Link>
+              <Link href="/auth/register">
+                <Button size="sm" className="text-xs md:text-sm">
+                  Kayıt Ol
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Subtitle for home page */}
+      {!showBackButton && (
+        <p className="text-gray-500 text-sm mt-1">Men&apos;s Club</p>
+      )}
+    </header>
+  );
+}

@@ -1,21 +1,12 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -25,142 +16,46 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
+import { formatTurkishDateShort } from "@/lib/date-time";
+import { Calendar, Clock, UserCheck, AlertTriangle } from "lucide-react";
 import {
-  localDateTimeToUTC,
-  formatTurkishDateShort,
-  canCancelAppointment as canCancel,
-} from "@/lib/date-time";
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  User,
-  LogOut,
-  UserCheck,
-  AlertTriangle,
-} from "lucide-react";
-
-// Types based on our Prisma schema
-interface Appointment {
-  id: string;
-  date: string; // YYYY-MM-DD
-  startTime: string; // HH:MM
-  endTime: string; // HH:MM
-  status: "SCHEDULED" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
-  notes?: string;
-  staff: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
-  shop: {
-    name: string;
-    address: string;
-  };
-  createdAt: string;
-}
+  useAppointmentsStore,
+  type Appointment,
+} from "@/lib/stores/appointments-store";
+import { MyAppointmentsSkeleton } from "@/components/skeletons/my-appointments-skeleton";
 
 function MyAppointmentsContent() {
-  const { user, loading, isAuthorized, signOut } = useRequireCustomer();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loadingAppointments, setLoadingAppointments] = useState(true);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [appointmentToCancel, setAppointmentToCancel] =
-    useState<Appointment | null>(null);
+  const { user, loading, isAuthorized } = useRequireCustomer();
 
-  // Fetch appointments from API
+  // Zustand store
+  const {
+    loading: error,
+    showCancelModal,
+    appointmentToCancel,
+    cancellingId,
+
+    // Actions
+    fetchAppointments,
+    openCancelModal,
+    closeCancelModal,
+    setShowCancelModal,
+    cancelAppointment,
+    upcomingAppointments,
+    pastAppointments,
+    canCancelAppointment,
+  } = useAppointmentsStore();
+
+  // Fetch appointments when user is available
   useEffect(() => {
-    if (user) {
-      async function fetchAppointments() {
-        try {
-          setLoadingAppointments(true);
-          setError(null);
-          const response = await fetch("/api/my-appointments");
-          if (response.ok) {
-            const result = await response.json();
-            if (result.success && Array.isArray(result.data)) {
-              setAppointments(result.data);
-            } else {
-              setError("Randevu verileri alınamadı");
-              setAppointments([]);
-            }
-          } else {
-            setError("Randevular yüklenirken bir hata oluştu");
-            setAppointments([]);
-          }
-        } catch {
-          setError("Bağlantı hatası oluştu");
-          setAppointments([]);
-        } finally {
-          setLoadingAppointments(false);
-        }
-      }
-
+    if (user && isAuthorized) {
       fetchAppointments();
     }
-  }, [user]);
+  }, [user, isAuthorized, fetchAppointments]);
 
-  // Function to open cancel modal
-  const openCancelModal = (appointment: Appointment) => {
-    setAppointmentToCancel(appointment);
-    setShowCancelModal(true);
-  };
-
-  // Function to close cancel modal
-  const closeCancelModal = () => {
-    setShowCancelModal(false);
-    setAppointmentToCancel(null);
-  };
-
-  // Function to cancel appointment
+  // Handle appointment cancellation
   const handleCancelAppointment = async () => {
     if (!appointmentToCancel) return;
-
-    try {
-      setCancellingId(appointmentToCancel.id);
-      setError(null);
-
-      const response = await fetch(
-        `/api/appointments/${appointmentToCancel.id}/cancel`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        // Update the appointment status in local state
-        setAppointments((prev) =>
-          prev.map((apt) =>
-            apt.id === appointmentToCancel.id
-              ? { ...apt, status: "CANCELLED" as const }
-              : apt
-          )
-        );
-        closeCancelModal();
-      } else {
-        setError(result.error || "Randevu iptal edilemedi");
-      }
-    } catch {
-      setError("Randevu iptal edilirken bir hata oluştu");
-    } finally {
-      setCancellingId(null);
-    }
-  };
-
-  // Function to check if appointment can be cancelled (2 hours before)
-  const canCancelAppointment = (appointment: Appointment) => {
-    return (
-      canCancel(appointment.date, appointment.startTime, 2) &&
-      ["SCHEDULED", "CONFIRMED"].includes(appointment.status)
-    );
+    await cancelAppointment(appointmentToCancel.id);
   };
 
   const getStatusBadge = (status: string) => {
@@ -266,20 +161,9 @@ function MyAppointmentsContent() {
     return `${formatTime(startTime)}-${formatTime(endTime)}`;
   };
 
-  const upcoming = appointments.filter((apt) => {
-    const aptDate = localDateTimeToUTC(apt.date, apt.startTime);
-    const now = new Date();
-    return aptDate > now && ["SCHEDULED", "CONFIRMED"].includes(apt.status);
-  });
-
-  const past = appointments.filter((apt) => {
-    const aptDate = localDateTimeToUTC(apt.date, apt.startTime);
-    const now = new Date();
-    return (
-      aptDate <= now ||
-      ["COMPLETED", "CANCELLED", "NO_SHOW"].includes(apt.status)
-    );
-  });
+  // Get computed data from store
+  const upcoming = upcomingAppointments();
+  const past = pastAppointments();
 
   if (loading) {
     return (
@@ -318,172 +202,23 @@ function MyAppointmentsContent() {
     );
   }
 
-  // Generate user initials
-  const getUserInitials = () => {
-    if (user?.firstName && user?.lastName) {
-      return user.firstName.charAt(0) + user.lastName.charAt(0);
-    }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return "U";
-  };
-
-  const getUserDisplayName = () => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return user?.email?.split("@")[0] || "User";
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    window.location.href = "/";
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with Avatar Dropdown */}
-      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50 relative">
-        <div className="flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Geri
-            </Button>
-          </Link>
-          <h1 className="font-semibold text-lg">Randevularım</h1>
+    <div className="px-4 py-6">
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-          {/* Avatar Dropdown Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar className="w-8 h-8 cursor-pointer">
-                <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors text-sm">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                <p className="font-semibold text-sm text-gray-900">
-                  {getUserDisplayName()}
-                </p>
-                <p className="text-xs text-gray-500">{user?.email}</p>
-              </DropdownMenuLabel>
-
-              <DropdownMenuItem asChild>
-                <Link href="/profile">
-                  <User className="w-4 h-4 mr-3 text-gray-500" />
-                  <span className="text-sm font-medium">Profil</span>
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem asChild>
-                <Link href="/">
-                  <Calendar className="w-4 h-4 mr-3 text-gray-500" />
-                  <span className="text-sm font-medium">Ana Sayfa</span>
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem>
-                <button
-                  className="flex items-center w-full text-left"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="w-4 h-4 mr-3 text-gray-500" />
-                  <span className="text-sm font-medium">Çıkış Yap</span>
-                </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      <div className="px-4 py-6">
-        {/* Error Message */}
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Loading State */}
-        {loadingAppointments ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Randevular yükleniyor...</p>
-          </div>
-        ) : (
-          <>
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="text-center p-6 bg-blue-50 rounded-2xl">
-                <p className="text-2xl font-bold text-blue-600">
-                  {upcoming.length}
-                </p>
-                <p className="text-sm text-gray-600">Yaklaşan</p>
-              </div>
-              <div className="text-center p-6 bg-green-50 rounded-2xl">
-                <p className="text-2xl font-bold text-green-600">
-                  {past.length}
-                </p>
-                <p className="text-sm text-gray-600">Geçmiş</p>
-              </div>
-            </div>
-
-            {/* Appointments Tabs */}
-            <Tabs defaultValue="upcoming" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="upcoming">Yaklaşan</TabsTrigger>
-                <TabsTrigger value="past">Geçmiş</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="upcoming" className="space-y-4">
-                {upcoming.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="font-medium text-lg mb-2">
-                        Yaklaşan randevunuz bulunmuyor
-                      </h3>
-                      <p className="text-gray-500 mb-6">
-                        Yeni bir randevu alın
-                      </p>
-                      <Link href="/">
-                        <Button size="lg" className="w-full">
-                          Randevu Al
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div>{upcoming.map(renderAppointmentCard)}</div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="past" className="space-y-4">
-                {past.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="font-medium text-lg mb-2">
-                        Geçmiş randevunuz bulunmuyor
-                      </h3>
-                      <p className="text-gray-500">
-                        Randevu geçmişiniz burada görünecek
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div>{past.map(renderAppointmentCard)}</div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
-      </div>
+      {/* Appointments Content with Suspense */}
+      <Suspense fallback={<MyAppointmentsSkeleton />}>
+        <AppointmentsList
+          upcoming={upcoming}
+          past={past}
+          renderAppointmentCard={renderAppointmentCard}
+        />
+      </Suspense>
 
       {/* Cancel Appointment Dialog */}
       <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
@@ -552,6 +287,86 @@ function MyAppointmentsContent() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// Separate component for appointments list with its own loading state
+function AppointmentsList({
+  upcoming,
+  past,
+  renderAppointmentCard,
+}: {
+  upcoming: Appointment[];
+  past: Appointment[];
+  renderAppointmentCard: (appointment: Appointment) => React.ReactNode;
+}) {
+  const { loading: loadingAppointments } = useAppointmentsStore();
+
+  if (loadingAppointments) {
+    throw new Promise(() => {}); // This will trigger Suspense fallback
+  }
+
+  return (
+    <>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="text-center p-6 bg-blue-50 rounded-2xl">
+          <p className="text-2xl font-bold text-blue-600">{upcoming.length}</p>
+          <p className="text-sm text-gray-600">Yaklaşan</p>
+        </div>
+        <div className="text-center p-6 bg-green-50 rounded-2xl">
+          <p className="text-2xl font-bold text-green-600">{past.length}</p>
+          <p className="text-sm text-gray-600">Geçmiş</p>
+        </div>
+      </div>
+
+      {/* Appointments Tabs */}
+      <Tabs defaultValue="upcoming" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="upcoming">Yaklaşan</TabsTrigger>
+          <TabsTrigger value="past">Geçmiş</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="upcoming" className="space-y-4">
+          {upcoming.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                <h3 className="font-medium text-lg mb-2">
+                  Yaklaşan randevunuz bulunmuyor
+                </h3>
+                <p className="text-gray-500 mb-6">Yeni bir randevu alın</p>
+                <Link href="/">
+                  <Button size="lg" className="w-full">
+                    Randevu Al
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
+            <div>{upcoming.map(renderAppointmentCard)}</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="past" className="space-y-4">
+          {past.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                <h3 className="font-medium text-lg mb-2">
+                  Geçmiş randevunuz bulunmuyor
+                </h3>
+                <p className="text-gray-500">
+                  Randevu geçmişiniz burada görünecek
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div>{past.map(renderAppointmentCard)}</div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </>
   );
 }
 
