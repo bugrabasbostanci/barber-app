@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import {
   Calendar,
   Clock,
@@ -22,7 +23,133 @@ import {
   User,
   LogOut,
   Settings,
+  Scissors,
+  Zap,
+  Sparkles,
+  Crown,
+  Star,
+  Award,
 } from "lucide-react";
+
+// Berber hizmetleri
+const services = [
+  {
+    id: 1,
+    name: "Saç Tıraşı",
+    description: "Profesyonel saç kesimi ve şekillendirme",
+    icon: Scissors,
+    color: "bg-blue-500",
+  },
+  {
+    id: 2,
+    name: "Sakal Tıraşı",
+    description: "Profesyonel sakal kesimi ve düzenleme",
+    icon: Award,
+    color: "bg-green-500",
+  },
+  {
+    id: 3,
+    name: "Çocuk Tıraşı",
+    description: "Çocuklar için özel tıraş hizmeti",
+    icon: Star,
+    color: "bg-purple-500",
+  },
+  {
+    id: 4,
+    name: "Ağda",
+    description: "Profesyonel ağda uygulaması",
+    icon: Zap,
+    color: "bg-orange-500",
+  },
+  {
+    id: 5,
+    name: "Maske",
+    description: "Cilt bakım maskesi uygulaması",
+    icon: Sparkles,
+    color: "bg-pink-500",
+  },
+  {
+    id: 6,
+    name: "Yıkama/Fön",
+    description: "Saç yıkama ve fön çekme",
+    icon: Crown,
+    color: "bg-cyan-500",
+  },
+  {
+    id: 7,
+    name: "Saç Maskesi",
+    description: "Besleyici saç maskesi uygulaması",
+    icon: Sparkles,
+    color: "bg-indigo-500",
+  },
+  {
+    id: 8,
+    name: "Kaş Düzenleme",
+    description: "İp/Ağda/Cımbız ile kaş düzenleme",
+    icon: Star,
+    color: "bg-teal-500",
+  },
+  {
+    id: 9,
+    name: "Tek Renk Saç Boyası",
+    description: "Profesyonel saç boyama hizmeti",
+    icon: Crown,
+    color: "bg-red-500",
+  },
+  {
+    id: 10,
+    name: "Damat Tıraşı",
+    description: "Özel gün için premium tıraş paketi",
+    icon: Award,
+    color: "bg-yellow-500",
+  },
+];
+
+
+const ServiceCard = ({
+  name,
+  description,
+  icon: Icon,
+  color,
+}: {
+  name: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+}) => {
+  return (
+    <div
+      className={cn(
+        "relative w-64 cursor-pointer overflow-hidden rounded-xl border p-6 mx-2",
+        "border-gray-200 bg-white hover:bg-gray-50",
+        "transition-all duration-300 hover:shadow-lg"
+      )}
+    >
+      <div className="flex flex-col items-center text-center">
+        <div className={cn("p-3 rounded-full mb-4", color)}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+        <h4 className="font-semibold text-lg mb-2">{name}</h4>
+        <p className="text-sm text-gray-600">{description}</p>
+      </div>
+    </div>
+  );
+};
+
+const ServicesList = () => {
+  return (
+    <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
+      {services.map((service) => (
+        <div
+          key={service.id}
+          className="px-4 py-2 bg-gray-50 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+        >
+          {service.name}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -209,31 +336,14 @@ export default function Home() {
           ) : null}
         </div>
 
-        {/* What's Included */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <h3 className="font-semibold text-lg mb-4 flex items-center">
-              <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-              Hizmetlerimiz
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                <span className="text-sm">
-                  Profesyonel saç kesimi ve şekillendirme
-                </span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                <span className="text-sm">Sakal kesimi ve düzenleme</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                <span className="text-sm">Sıcak havlu uygulaması</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Services Marquee */}
+        <div className="mb-8">
+          <h3 className="font-semibold text-lg mb-6 text-center flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+            Hizmetlerimiz
+          </h3>
+          <ServicesList />
+        </div>
 
         {/* Quick Info */}
         <div className="grid grid-cols-2 gap-4 mb-8">
