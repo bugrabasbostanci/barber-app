@@ -38,6 +38,7 @@ model User {
   createdAppointments  Appointment[]             @relation("CreatedAppointments")
   unavailableTimes     EmployeeUnavailableTime[] @relation("StaffUnavailableTimes")
 
+  @@index([email]) // User lookup'lar için
   @@map("users")
 }
 
@@ -75,6 +76,11 @@ model Appointment {
 
   // Removed unique constraint to allow rebooking after cancellation
   // Business logic will handle conflicts for active appointments
+  @@index([customerId]) // Appointment queries için  
+  @@index([staffId]) // Staff appointment'ları için
+  @@index([date, staffId]) // Time slot queries için
+  @@index([date]) // Date-based lookups için
+  @@index([status]) // Status filtering için
   @@map("appointments")
 }
 
@@ -90,6 +96,8 @@ model EmployeeUnavailableTime {
   // Relation back to the user (must be barber or employee — enforce separately)
   staff User @relation("StaffUnavailableTimes", fields: [staffId], references: [id])
 
+  @@index([staffId]) // Staff unavailable time queries için
+  @@index([date]) // Date-based unavailable time queries için
   @@map("employee_unavailable_times")
 }
 

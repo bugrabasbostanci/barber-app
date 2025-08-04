@@ -1,6 +1,4 @@
 "use client";
-
-import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,12 +17,12 @@ import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import { formatTurkishDateShort } from "@/lib/date-time";
 import { Calendar, Clock, UserCheck, AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import { MyAppointmentsSkeleton } from "@/components/skeletons/my-appointments-skeleton";
 import { useMyAppointments, useCancelAppointment, useAppointmentUtils } from "@/hooks/queries/useAppointments";
 import type { Appointment } from "@/lib/api/appointments";
+import { MyAppointmentsSkeleton } from "@/components/skeletons/my-appointments-skeleton";
 
 function MyAppointmentsContent() {
-  const { loading, isAuthorized } = useRequireCustomer();
+  const { isAuthorized } = useRequireCustomer();
 
   // React Query hooks
   const { isLoading: appointmentsLoading, error: queryError } = useMyAppointments();
@@ -37,8 +35,6 @@ function MyAppointmentsContent() {
   // Local modal state
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
-
-  // Appointments are automatically fetched by the context
 
   // Modal handlers
   const openCancelModal = (appointment: Appointment) => {
@@ -166,24 +162,9 @@ function MyAppointmentsContent() {
     return `${formatTime(startTime)}-${formatTime(endTime)}`;
   };
 
-  // Get computed data from context methods
+  // Get computed data from React Query hooks
   const upcoming = getUpcomingAppointments();
   const past = getPastAppointments();
-
-  if (loading || appointmentsLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-        <div className="max-w-4xl mx-auto py-6 px-4">
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">
-              {loading ? "Yetkilendirme kontrol ediliyor..." : "Randevular yükleniyor..."}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Show error if not authorized
   if (!isAuthorized) {
@@ -207,6 +188,11 @@ function MyAppointmentsContent() {
     );
   }
 
+  // Show skeleton while appointments are loading
+  if (appointmentsLoading) {
+    return <MyAppointmentsSkeleton />;
+  }
+
   return (
     <div className="px-4 py-6">
       {/* Error Message */}
@@ -216,14 +202,12 @@ function MyAppointmentsContent() {
         </Alert>
       )}
 
-      {/* Appointments Content with Suspense */}
-      <Suspense fallback={<MyAppointmentsSkeleton />}>
-        <AppointmentsList
-          upcoming={upcoming}
-          past={past}
-          renderAppointmentCard={renderAppointmentCard}
-        />
-      </Suspense>
+      {/* Appointments Content */}
+      <AppointmentsList
+        upcoming={upcoming}
+        past={past}
+        renderAppointmentCard={renderAppointmentCard}
+      />
 
       {/* Cancel Appointment Dialog */}
       <Dialog open={showCancelModal} onOpenChange={setShowCancelModal}>
@@ -372,23 +356,6 @@ function AppointmentsList({
 }
 
 export default function MyAppointmentsPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-          <header className="bg-white shadow-sm sticky top-0 z-50">
-            <div className="px-4 py-3">
-              <div className="flex items-center justify-center">
-                <div className="text-lg font-semibold text-gray-900">
-                  Yükleniyor...
-                </div>
-              </div>
-            </div>
-          </header>
-        </div>
-      }
-    >
-      <MyAppointmentsContent />
-    </Suspense>
-  );
+  // Route-level loading.tsx handles the initial loading state
+  return <MyAppointmentsContent />;
 }

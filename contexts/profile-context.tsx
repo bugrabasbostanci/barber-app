@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile as useProfileQuery, useUpdateProfile, useDeleteProfile } from '@/hooks/queries/useProfile';
 
 // Types
 export interface UserProfile {
@@ -165,71 +166,51 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ProfileState>(initialState);
   const { user } = useAuth();
 
-  // Auto-fetch on mount if user is available
+  // React Query hooks for data fetching
+  const { data: profileData, isLoading: queryLoading, error: queryError } = useProfileQuery();
+  const updateMutation = useUpdateProfile();
+  const deleteMutation = useDeleteProfile();
+
+  // Sync React Query data with local state
   useEffect(() => {
-    if (user && !state.hasInitialized) {
-      fetchProfile();
-    }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchProfile = useCallback(async (force: boolean = false) => {
-    if (!user) return;
-
-    // Skip if recently fetched and not forced
-    const now = Date.now();
-    if (!force && state.lastFetch && (now - state.lastFetch) < CACHE_DURATION) {
-      return;
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: '' }));
-
-    try {
-      const response = await fetch('/api/profile');
-      
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          const profile = result.data;
-          setState(prev => ({
-            ...prev,
-            profile,
-            isLoading: false,
-            error: '',
-            lastFetch: now,
-            hasInitialized: true,
-            editForm: {
-              firstName: profile.firstName || '',
-              lastName: profile.lastName || '',
-              phone: profile.phone || '',
-              email: profile.email || '',
-            },
-          }));
-        } else {
-          setState(prev => ({
-            ...prev,
-            error: result.error || 'Profil bilgileri yüklenemedi',
-            isLoading: false,
-            hasInitialized: true,
-          }));
-        }
-      } else {
-        setState(prev => ({
-          ...prev,
-          error: 'Profil bilgileri yüklenemedi',
-          isLoading: false,
-          hasInitialized: true,
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch profile:', error);
+    if (profileData) {
       setState(prev => ({
         ...prev,
-        error: 'Bağlantı hatası. Lütfen tekrar deneyin.',
-        isLoading: false,
+        profile: profileData,
         hasInitialized: true,
+        // Reset form with fresh data when not editing
+        editForm: prev.isEditing ? prev.editForm : {
+          firstName: profileData.firstName || '',
+          lastName: profileData.lastName || '',
+          phone: profileData.phone || '',
+          email: profileData.email,
+        },
       }));
     }
-  }, [user, state.lastFetch]);
+  }, [profileData]);
+
+  // Sync loading states
+  useEffect(() => {
+    setState(prev => ({
+      ...prev,
+      isLoading: queryLoading,
+      isSaving: updateMutation.isPending,
+      isDeleting: deleteMutation.isPending,
+      error: queryError?.message || updateMutation.error?.message || deleteMutation.error?.message || '',
+      successMessage: updateMutation.isSuccess ? 'Profil başarıyla güncellendi!' : '',
+    }));
+  }, [queryLoading, updateMutation.isPending, updateMutation.isSuccess, updateMutation.error, deleteMutation.isPending, deleteMutation.error, queryError]);
+
+  // Fetch profile - now powered by React Query
+  const fetchProfile = useCallback(async (force: boolean = false) => {
+    // React Query handles caching and fetching automatically
+    // This function now mainly exists for API compatibility
+    // Force refetch if needed
+    if (force) {
+      // React Query refetch will happen automatically due to invalidation
+      return Promise.resolve();
+    }
+  }, []);
 
   const validateForm = useCallback((): boolean => {
     const phoneErr = validatePhone(state.editForm.phone);
@@ -251,106 +232,43 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    setState(prev => ({ ...prev, isSaving: true, error: '', successMessage: '' }));
-
     try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName: state.editForm.firstName.trim(),
-          lastName: state.editForm.lastName.trim(),
-          phone: state.editForm.phone.trim() || null,
-        }),
-      });
+      const formData = {
+        firstName: state.editForm.firstName.trim(),
+        lastName: state.editForm.lastName.trim(),
+        phone: state.editForm.phone.trim(),
+        email: state.editForm.email, // Keep email as is
+      };
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setState(prev => ({
-            ...prev,
-            profile: result.data,
-            isSaving: false,
-            isEditing: false,
-            successMessage: 'Profil bilgileriniz başarıyla güncellendi',
-            editForm: {
-              firstName: result.data.firstName || '',
-              lastName: result.data.lastName || '',
-              phone: result.data.phone || '',
-              email: result.data.email || '',
-            },
-          }));
-          return true;
-        } else {
-          setState(prev => ({
-            ...prev,
-            error: result.error || 'Profil güncellenemedi',
-            isSaving: false,
-          }));
-        }
-      } else {
-        setState(prev => ({
-          ...prev,
-          error: 'Profil güncellenemedi',
-          isSaving: false,
-        }));
-      }
+      await updateMutation.mutateAsync(formData);
+      
+      // Update local state on success
+      setState(prev => ({
+        ...prev,
+        isEditing: false,
+        successMessage: 'Profil bilgileriniz başarıyla güncellendi',
+      }));
+      
+      return true;
     } catch (error) {
       console.error('Failed to save profile:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Bağlantı hatası. Lütfen tekrar deneyin.',
-        isSaving: false,
-      }));
+      return false;
     }
-
-    return false;
-  }, [state.editForm, validateForm]);
+  }, [state.editForm, validateForm, updateMutation]);
 
   const deleteAccount = useCallback(async (): Promise<boolean> => {
-    setState(prev => ({ ...prev, isDeleting: true, error: '' }));
-
     try {
-      const response = await fetch('/api/profile', {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          setState(prev => ({
-            ...prev,
-            isDeleting: false,
-            successMessage: 'Hesabınız başarıyla silindi',
-          }));
-          return true;
-        } else {
-          setState(prev => ({
-            ...prev,
-            error: result.error || 'Hesap silinemedi',
-            isDeleting: false,
-          }));
-        }
-      } else {
-        setState(prev => ({
-          ...prev,
-          error: 'Hesap silinemedi',
-          isDeleting: false,
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to delete account:', error);
+      await deleteMutation.mutateAsync();
       setState(prev => ({
         ...prev,
-        error: 'Bağlantı hatası. Lütfen tekrar deneyin.',
-        isDeleting: false,
+        successMessage: 'Hesabınız başarıyla silindi',
       }));
+      return true;
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      return false;
     }
-
-    return false;
-  }, []);
+  }, [deleteMutation]);
 
   const setIsEditing = useCallback((editing: boolean) => {
     setState(prev => ({ 
