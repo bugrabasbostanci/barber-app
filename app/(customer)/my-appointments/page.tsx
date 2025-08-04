@@ -18,27 +18,25 @@ import {
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import { formatTurkishDateShort } from "@/lib/date-time";
 import { Calendar, Clock, UserCheck, AlertTriangle } from "lucide-react";
-import { useAppointments, type Appointment } from "@/contexts/app-contexts";
 import { useState } from "react";
 import { MyAppointmentsSkeleton } from "@/components/skeletons/my-appointments-skeleton";
+import { useMyAppointments, useCancelAppointment, useAppointmentUtils } from "@/hooks/queries/useAppointments";
+import type { Appointment } from "@/lib/api/appointments";
 
 function MyAppointmentsContent() {
   const { loading, isAuthorized } = useRequireCustomer();
 
-  // Appointments context
-  const {
-    isLoading: appointmentsLoading,
-    error,
-    cancelAppointment,
-    getUpcomingAppointments,
-    getPastAppointments,
-    canCancelAppointment,
-  } = useAppointments();
+  // React Query hooks
+  const { isLoading: appointmentsLoading, error: queryError } = useMyAppointments();
+  const cancelMutation = useCancelAppointment();
+  const { getUpcomingAppointments, getPastAppointments, canCancelAppointment } = useAppointmentUtils();
+
+  // Convert query error to string
+  const error = queryError?.message || '';
 
   // Local modal state
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
-  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   // Appointments are automatically fetched by the context
 
@@ -51,19 +49,17 @@ function MyAppointmentsContent() {
   const closeCancelModal = () => {
     setShowCancelModal(false);
     setAppointmentToCancel(null);
-    setCancellingId(null);
   };
 
   const handleCancelAppointment = async () => {
     if (!appointmentToCancel) return;
 
-    setCancellingId(appointmentToCancel.id);
-    const success = await cancelAppointment(appointmentToCancel.id);
-    
-    if (success) {
+    try {
+      await cancelMutation.mutateAsync(appointmentToCancel.id);
       closeCancelModal();
-    } else {
-      setCancellingId(null);
+    } catch (error) {
+      // Error is handled by React Query and can be shown via cancelMutation.error
+      console.error('Failed to cancel appointment:', error);
     }
   };
 
@@ -126,7 +122,7 @@ function MyAppointmentsContent() {
               onClick={() => openCancelModal(appointment)}
               disabled={
                 !canCancelAppointment(appointment) ||
-                cancellingId === appointment.id
+                cancelMutation.isPending
               }
             >
               İptal Et
@@ -274,16 +270,16 @@ function MyAppointmentsContent() {
             <Button
               variant="outline"
               onClick={closeCancelModal}
-              disabled={cancellingId === appointmentToCancel?.id}
+              disabled={cancelMutation.isPending}
             >
               Vazgeç
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancelAppointment}
-              disabled={cancellingId === appointmentToCancel?.id}
+              disabled={cancelMutation.isPending}
             >
-              {cancellingId === appointmentToCancel?.id ? (
+              {cancelMutation.isPending ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   İptal Ediliyor...

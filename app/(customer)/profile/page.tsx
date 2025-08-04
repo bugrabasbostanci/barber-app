@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,8 @@ import {
   AlertCircle,
   Key,
 } from "lucide-react";
-import { useProfile, type UserProfile, type ProfileFormData } from "@/contexts/app-contexts";
+import { useProfile, useUpdateProfile, useDeleteProfile } from "@/hooks/queries/useProfile";
+import type { ProfileFormData } from "@/lib/api/profile";
 import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
 // Type for user with extended properties
@@ -33,44 +34,117 @@ interface UserWithRole extends AuthUser {
   isEmailUser?: boolean;
 }
 
+// Validation helpers
+const validatePhone = (phone: string): string => {
+  if (!phone.trim()) return '';
+  
+  const phoneRegex = /^(\+90|0)?[0-9]{10}$/;
+  const cleanPhone = phone.replace(/\s/g, "");
+  
+  if (!phoneRegex.test(cleanPhone)) {
+    return 'Geçerli bir telefon numarası girin (örn: 05551234567)';
+  }
+  
+  return '';
+};
+
+const validateName = (name: string, fieldName: string): string => {
+  if (!name.trim()) {
+    return `${fieldName} gereklidir`;
+  }
+  
+  if (name.trim().length < 2) {
+    return `${fieldName} en az 2 karakter olmalıdır`;
+  }
+  
+  return '';
+};
+
 export default function ProfilePage() {
   const { user, loading: authLoading, isAuthorized } = useRequireCustomer();
 
-  // Profile context
-  const {
-    profile,
-    isLoading: loading,
-    error: errorMessage,
-    isEditing,
-    isSaving,
-    isDeleting,
-    editForm,
-    phoneError,
-    firstNameError,
-    lastNameError,
-    successMessage,
+  // React Query hooks
+  const { data: profile, isLoading, error: queryError } = useProfile();
+  const updateMutation = useUpdateProfile();
+  const deleteMutation = useDeleteProfile();
 
-    // Actions
-    fetchProfile,
-    setIsEditing,
-    updateEditForm,
-    resetEditForm,
-    saveProfile,
-    deleteAccount,
-    getUserDisplayName,
-    isFormValid,
-    hasFormChanges,
-  } = useProfile();
+  // Local state for form
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<ProfileFormData>({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: '',
+  });
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+  });
 
-  // Profile is automatically fetched by the context
+  // Initialize form when profile loads
+  useEffect(() => {
+    if (profile && !isEditing) {
+      setEditForm({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        phone: profile.phone || '',
+        email: profile.email,
+      });
+    }
+  }, [profile, isEditing]);
+
+  const error = queryError?.message || updateMutation.error?.message || deleteMutation.error?.message || '';
+  const successMessage = updateMutation.isSuccess ? 'Profil başarıyla güncellendi!' : '';
+
+  const handleStartEdit = () => {
+    if (profile) {
+      setEditForm({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        phone: profile.phone || '',
+        email: profile.email,
+      });
+      setFieldErrors({ firstName: '', lastName: '', phone: '' });
+      setIsEditing(true);
+    }
+  };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
-    resetEditForm();
+    setFieldErrors({ firstName: '', lastName: '', phone: '' });
+  };
+
+  const validateForm = (): boolean => {
+    const errors = {
+      firstName: validateName(editForm.firstName, 'Ad'),
+      lastName: validateName(editForm.lastName, 'Soyad'),
+      phone: validatePhone(editForm.phone),
+    };
+
+    setFieldErrors(errors);
+    return !errors.firstName && !errors.lastName && !errors.phone;
+  };
+
+  const hasFormChanges = (): boolean => {
+    if (!profile) return false;
+    return (
+      editForm.firstName !== (profile.firstName || '') ||
+      editForm.lastName !== (profile.lastName || '') ||
+      editForm.phone !== (profile.phone || '')
+    );
   };
 
   const handleSave = async () => {
-    await saveProfile();
+    if (!validateForm()) return;
+
+    try {
+      await updateMutation.mutateAsync(editForm);
+      setIsEditing(false);
+    } catch (error) {
+      // Error is handled by React Query
+      console.error('Failed to update profile:', error);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -82,155 +156,253 @@ export default function ProfilePage() {
       return;
     }
 
-    if (!confirm("Son onay: Hesabınızı gerçekten silmek istiyor musunuz?")) {
-      return;
-    }
-
-    const success = await deleteAccount();
-    if (success) {
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 2000);
+    try {
+      await deleteMutation.mutateAsync();
+      // Redirect will be handled by auth state change
+    } catch (error) {
+      console.error('Failed to delete profile:', error);
     }
   };
 
-  // Show loading if auth is loading or not authorized
-  if (authLoading || !isAuthorized || loading) {
+  const getUserDisplayName = (): string => {
+    if (!profile) return '';
+    
+    if (profile.firstName && profile.lastName) {
+      return `${profile.firstName} ${profile.lastName}`;
+    }
+    
+    return profile.email || '';
+  };
+
+  // Loading state
+  if (authLoading || isLoading) {
     return <ProfileSkeleton />;
   }
 
-  if (errorMessage && !loading) {
+  // Not authorized
+  if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="px-4 py-8">
-          <div className="text-center space-y-4">
-            <p className="text-red-600">{errorMessage}</p>
-            <Button onClick={() => fetchProfile(true)}>Tekrar Dene</Button>
-            <Button asChild variant="outline">
-              <Link href="/">Ana Sayfaya Dön</Link>
-            </Button>
-          </div>
-        </div>
+      <div className="px-4 py-6">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Bu sayfaya erişim yetkiniz bulunmuyor.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  if (!profile && !loading) {
+  // No profile data
+  if (!profile) {
     return (
-      <div className="min-h-screen bg-white">
-        <div className="px-4 py-8">
-          <div className="text-center space-y-4">
-            <p className="text-red-600">Profil yüklenemedi.</p>
-            <Button asChild>
-              <Link href="/">Ana Sayfaya Dön</Link>
-            </Button>
-          </div>
-        </div>
+      <div className="px-4 py-6">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Profil bilgileri yüklenemedi.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
+
+  const userWithRole = user as UserWithRole;
+  const isEmailUser = userWithRole?.app_metadata?.provider === 'email';
 
   return (
-    <div className="px-4 py-6">
-      {/* Profile Picture */}
-      <Suspense
-        fallback={
-          <div className="text-center mb-8">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"></div>
-          </div>
-        }
-      >
-        <ProfileHeader
-          getUserDisplayName={getUserDisplayName}
-          profile={profile}
-        />
-      </Suspense>
-
-      {/* Alert Messages */}
+    <div className="px-4 py-6 space-y-6">
+      {/* Success Message */}
       {successMessage && (
-        <Alert className="mb-6 border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
+        <Alert className="bg-green-50 border-green-200">
+          <CheckCircle className="w-4 h-4 text-green-600" />
           <AlertDescription className="text-green-800">
             {successMessage}
           </AlertDescription>
         </Alert>
       )}
 
-      {errorMessage && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{errorMessage}</AlertDescription>
+      {/* Error Message */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="w-4 h-4" />
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
-      {/* Personal Information with Suspense */}
-      {profile && (
-        <Suspense
-          fallback={
-            <Card className="mb-6">
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="h-10 bg-gray-200 rounded"></div>
-                      <div className="h-10 bg-gray-200 rounded"></div>
+      {/* Profile Information */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-lg font-semibold flex items-center">
+            <User className="w-5 h-5 mr-2 text-blue-600" />
+            Profil Bilgileri
+          </CardTitle>
+          {!isEditing && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleStartEdit}
+              disabled={updateMutation.isPending}
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Düzenle
+            </Button>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isEditing ? (
+            <>
+              {/* Edit Form */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="firstName">Ad *</Label>
+                  <Input
+                    id="firstName"
+                    value={editForm.firstName}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, firstName: e.target.value })
+                    }
+                    className={fieldErrors.firstName ? "border-red-500" : ""}
+                  />
+                  {fieldErrors.firstName && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {fieldErrors.firstName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="lastName">Soyad *</Label>
+                  <Input
+                    id="lastName"
+                    value={editForm.lastName}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, lastName: e.target.value })
+                    }
+                    className={fieldErrors.lastName ? "border-red-500" : ""}
+                  />
+                  {fieldErrors.lastName && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {fieldErrors.lastName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="phone">
+                    <Phone className="w-4 h-4 inline mr-1" />
+                    Telefon *
+                  </Label>
+                  <Input
+                    id="phone"
+                    value={editForm.phone}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, phone: e.target.value })
+                    }
+                    placeholder="05551234567"
+                    className={fieldErrors.phone ? "border-red-500" : ""}
+                  />
+                  {fieldErrors.phone && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {fieldErrors.phone}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="email">
+                    <Mail className="w-4 h-4 inline mr-1" />
+                    E-posta
+                  </Label>
+                  <Input
+                    id="email"
+                    value={editForm.email}
+                    disabled
+                    className="bg-gray-50"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    E-posta adresi değiştirilemez
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-2 pt-4">
+                <Button
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending || !hasFormChanges()}
+                  className="flex-1"
+                >
+                  {updateMutation.isPending ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Kaydediliyor...
                     </div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-1" />
+                      Kaydet
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={updateMutation.isPending}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  İptal
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Display Mode */}
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <User className="w-4 h-4 mr-3 text-gray-500" />
+                  <div>
+                    <p className="font-medium">{getUserDisplayName()}</p>
+                    <p className="text-sm text-gray-500">Ad Soyad</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          }
-        >
-          <PersonalInformationCard
-            profile={profile}
-            user={user}
-            isEditing={isEditing}
-            editForm={editForm}
-            phoneError={phoneError}
-            firstNameError={firstNameError}
-            lastNameError={lastNameError}
-            setIsEditing={setIsEditing}
-            updateEditForm={updateEditForm}
-            handleCancelEdit={handleCancelEdit}
-          />
-        </Suspense>
-      )}
 
-      {/* Save Button for Edit Mode */}
-      {isEditing && (
-        <div className="mb-6">
-          <div className="flex space-x-3">
-            <Button
-              onClick={handleCancelEdit}
-              variant="outline"
-              className="flex-1 h-12 text-base bg-transparent"
-            >
-              İptal
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="flex-1 h-12 text-base font-semibold"
-              disabled={isSaving || !isFormValid() || !hasFormChanges()}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
-            </Button>
-          </div>
-        </div>
-      )}
+                <div className="flex items-center">
+                  <Mail className="w-4 h-4 mr-3 text-gray-500" />
+                  <div>
+                    <p className="font-medium">{profile.email}</p>
+                    <p className="text-sm text-gray-500">E-posta</p>
+                  </div>
+                </div>
 
-      {/* Security Actions - Only for email users */}
-      {user?.isEmailUser && (
-        <Card className="mb-6">
+                <div className="flex items-center">
+                  <Phone className="w-4 h-4 mr-3 text-gray-500" />
+                  <div>
+                    <p className="font-medium">
+                      {profile.phone || "Telefon numarası eklenmemiş"}
+                    </p>
+                    <p className="text-sm text-gray-500">Telefon</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Password Reset */}
+      {isEmailUser && (
+        <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Güvenlik</CardTitle>
+            <CardTitle className="text-lg font-semibold flex items-center">
+              <Key className="w-5 h-5 mr-2 text-blue-600" />
+              Güvenlik
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              Şifrenizi değiştirmek için şifre sıfırlama e-postası gönderin.
+            </p>
             <Link href="/auth/reset-password">
-              <Button variant="outline" className="w-full bg-transparent">
+              <Button variant="outline" className="w-full">
                 <Key className="w-4 h-4 mr-2" />
                 Şifre Değiştir
               </Button>
@@ -239,217 +411,39 @@ export default function ProfilePage() {
         </Card>
       )}
 
-      {/* Account Actions */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              className="w-full bg-transparent text-red-600 border-red-200 hover:bg-red-50"
-              onClick={handleDeleteAccount}
-              disabled={isDeleting}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {isDeleting ? "Siliniyor..." : "Hesabı Sil"}
-            </Button>
-          </div>
+      {/* Account Deletion */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-red-600 flex items-center">
+            <Trash2 className="w-5 h-5 mr-2" />
+            Hesabı Sil
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 mb-4">
+            Hesabınızı kalıcı olarak silmek istiyorsanız aşağıdaki butona
+            tıklayın. Bu işlem geri alınamaz.
+          </p>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteAccount}
+            disabled={deleteMutation.isPending}
+            className="w-full"
+          >
+            {deleteMutation.isPending ? (
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Siliniyor...
+              </div>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Hesabımı Sil
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-// Separate component for profile header
-function ProfileHeader({
-  getUserDisplayName,
-  profile,
-}: {
-  getUserDisplayName: () => string;
-  profile: UserProfile | null;
-}) {
-  return (
-    <div className="text-center mb-8">
-      <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-        <User className="w-12 h-12 text-gray-400" />
-      </div>
-      <h2 className="text-2xl font-bold">{getUserDisplayName()}</h2>
-      {profile?.createdAt && (
-        <p className="text-gray-500">
-          {new Date(profile.createdAt).toLocaleDateString("tr-TR", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}{" "}
-          tarihinden beri üye
-        </p>
-      )}
-    </div>
-  );
-}
-
-// Separate component for personal information card
-function PersonalInformationCard({
-  profile,
-  user,
-  isEditing,
-  editForm,
-  phoneError,
-  firstNameError,
-  lastNameError,
-  setIsEditing,
-  updateEditForm,
-  handleCancelEdit,
-}: {
-  profile: UserProfile;
-  user: UserWithRole | null;
-  isEditing: boolean;
-  editForm: ProfileFormData;
-  phoneError: string;
-  firstNameError: string;
-  lastNameError: string;
-  setIsEditing: (editing: boolean) => void;
-  updateEditForm: (field: keyof ProfileFormData, value: string) => void;
-  handleCancelEdit: () => void;
-}) {
-  return (
-    <Card className="mb-6">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg">Kişisel Bilgiler</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => (isEditing ? handleCancelEdit() : setIsEditing(true))}
-          className="flex items-center gap-2 h-8 px-2"
-        >
-          {isEditing ? (
-            <>
-              <X className="w-4 h-4" />
-              <span className="text-sm">İptal</span>
-            </>
-          ) : (
-            <>
-              <Edit className="w-4 h-4" />
-              <span className="text-sm">Düzenle</span>
-            </>
-          )}
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-600">Ad</Label>
-            {isEditing ? (
-              <>
-                <Input
-                  value={editForm.firstName}
-                  onChange={(e) => updateEditForm("firstName", e.target.value)}
-                  placeholder="Adınız"
-                  className={`mt-1 ${
-                    firstNameError
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                      : ""
-                  }`}
-                />
-                {firstNameError && (
-                  <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>{firstNameError}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center mt-2">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
-                <span>{profile.firstName || "Belirtilmemiş"}</span>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <Label className="text-sm font-medium text-gray-600">Soyad</Label>
-            {isEditing ? (
-              <>
-                <Input
-                  value={editForm.lastName}
-                  onChange={(e) => updateEditForm("lastName", e.target.value)}
-                  placeholder="Soyadınız"
-                  className={`mt-1 ${
-                    lastNameError
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                      : ""
-                  }`}
-                />
-                {lastNameError && (
-                  <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>{lastNameError}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center mt-2">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
-                <span>{profile.lastName || "Belirtilmemiş"}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <Label className="text-sm font-medium text-gray-600">
-            Telefon Numarası
-          </Label>
-          {isEditing ? (
-            <>
-              <Input
-                value={editForm.phone}
-                onChange={(e) => updateEditForm("phone", e.target.value)}
-                placeholder="0532 123 45 67"
-                className={`mt-1 ${
-                  phoneError
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                    : ""
-                }`}
-              />
-              {phoneError && (
-                <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>{phoneError}</span>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center mt-2">
-              <Phone className="w-4 h-4 mr-3 text-gray-400" />
-              <span>{profile.phone || "Belirtilmemiş"}</span>
-            </div>
-          )}
-        </div>
-
-        <div>
-          <Label className="text-sm font-medium text-gray-600">
-            E-posta Adresi
-          </Label>
-          {isEditing && user?.isEmailUser ? (
-            <Input
-              value={editForm.email}
-              onChange={(e) => updateEditForm("email", e.target.value)}
-              className="mt-1"
-              type="email"
-            />
-          ) : (
-            <div className="flex items-center mt-2">
-              <Mail className="w-4 h-4 mr-3 text-gray-400" />
-              <span>{profile.email}</span>
-            </div>
-          )}
-          {user?.isGoogleUser && (
-            <p className="text-xs text-gray-500 mt-1">
-              Google hesabınızdan gelen e-posta (değiştirilemez)
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
   );
 }

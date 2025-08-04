@@ -3,6 +3,7 @@
 import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { AppContextsProvider } from '@/contexts/app-contexts';
+import { QueryProvider } from '@/providers/QueryProvider';
 import { AppHeader } from '@/components/layouts/app-header';
 
 interface ClientLayoutProps {
@@ -54,18 +55,20 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const pageConfig = getPageConfig();
 
   return (
-    <AppContextsProvider>
-      <div className="min-h-screen bg-white">
-        {/* Only show AppHeader for non-auth pages */}
-        {!isAuthPage && (
-          <AppHeader
-            title={pageConfig.title}
-            showBackButton={pageConfig.showBackButton}
-            currentPage={pageConfig.currentPage}
-          />
-        )}
-        <div>{children}</div>
-      </div>
-    </AppContextsProvider>
+    <QueryProvider>
+      <AppContextsProvider>
+        <div className="min-h-screen bg-white">
+          {/* Only show AppHeader for non-auth pages */}
+          {!isAuthPage && (
+            <AppHeader
+              title={pageConfig.title}
+              showBackButton={pageConfig.showBackButton}
+              currentPage={pageConfig.currentPage}
+            />
+          )}
+          <div>{children}</div>
+        </div>
+      </AppContextsProvider>
+    </QueryProvider>
   );
 }
