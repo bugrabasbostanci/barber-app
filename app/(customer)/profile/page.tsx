@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/hooks/useAuth";
+import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import {
   User,
@@ -21,7 +21,7 @@ import {
   AlertCircle,
   Key,
 } from "lucide-react";
-import { useProfileStore, type UserProfile, type ProfileFormData } from "@/lib/stores/profile-store";
+import { useProfile, type UserProfile, type ProfileFormData } from "@/contexts/app-contexts";
 import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
 // Type for user with extended properties
@@ -34,13 +34,13 @@ interface UserWithRole extends AuthUser {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading, isAuthorized } = useRequireCustomer();
 
-  // Zustand profile store
+  // Profile context
   const {
     profile,
-    loading,
-    error,
+    isLoading: loading,
+    error: errorMessage,
     isEditing,
     isSaving,
     isDeleting,
@@ -49,7 +49,6 @@ export default function ProfilePage() {
     firstNameError,
     lastNameError,
     successMessage,
-    errorMessage,
 
     // Actions
     fetchProfile,
@@ -61,12 +60,9 @@ export default function ProfilePage() {
     getUserDisplayName,
     isFormValid,
     hasFormChanges,
-  } = useProfileStore();
+  } = useProfile();
 
-  // Fetch profile when component mounts
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+  // Profile is automatically fetched by the context
 
   const handleCancelEdit = () => {
     setIsEditing(false);
@@ -98,16 +94,17 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) {
+  // Show loading if auth is loading or not authorized
+  if (authLoading || !isAuthorized || loading) {
     return <ProfileSkeleton />;
   }
 
-  if (error && !loading) {
+  if (errorMessage && !loading) {
     return (
       <div className="min-h-screen bg-white">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600">{errorMessage}</p>
             <Button onClick={() => fetchProfile(true)}>Tekrar Dene</Button>
             <Button asChild variant="outline">
               <Link href="/">Ana Sayfaya Dön</Link>

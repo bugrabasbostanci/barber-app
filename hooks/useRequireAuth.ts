@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { useAuth } from '@/contexts/auth-context';
 
 export function useRequireAuth(requiredRole?: string) {
-  const { user, loading, initialized } = useAuthStore();
+  const { user, loading, initialized } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export function useRequireAuth(requiredRole?: string) {
 }
 
 export function useRequireCustomer() {
-  const { user, loading, initialized, signOut } = useAuthStore();
+  const { user, loading, initialized, signOut } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function useRequireCustomer() {
 }
 
 export function useRequireBarber() {
-  const { user, loading, initialized } = useAuthStore();
+  const { user, loading, initialized } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

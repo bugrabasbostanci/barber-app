@@ -29,8 +29,18 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // refreshing the auth token
-  await supabase.auth.getUser();
+  // refreshing the auth token and get user info
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Check if user is trying to access auth pages while logged in
+  const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
+  const isPasswordResetPage = request.nextUrl.pathname === '/auth/reset-password';
+  
+  if (isAuthPage && user && !isPasswordResetPage) {
+    // User is authenticated but trying to access auth pages (except password reset), redirect to home
+    const redirectUrl = new URL('/', request.url);
+    return NextResponse.redirect(redirectUrl);
+  }
 
   return supabaseResponse;
 }

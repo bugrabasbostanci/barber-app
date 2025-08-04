@@ -4,8 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { useAuth } from "@/contexts/auth-context";
 import { BrandTitle, SectionTitle, ServiceTitle, TypographyP } from "@/components/ui/typography";
 import {
   Calendar,
@@ -110,8 +109,10 @@ const ServicesList = () => {
 };
 
 export default function Home() {
-  const { user, loading } = useAuth();
-  const hydrated = useAuthStore((state) => state.hydrated);
+  const { user, loading, hydrated, isCustomer, canAccessBarberPanel } = useAuth();
+  
+  // Show loading until both hydrated and not loading
+  const isLoading = !hydrated || loading;
 
   return (
     <div className="px-4 py-8 pb-8">
@@ -123,7 +124,7 @@ export default function Home() {
           </TypographyP>
 
           {/* CTA Button */}
-          {!hydrated || loading ? (
+          {isLoading ? (
             // Loading state - prevents role check issues
             <Button
               size="lg"
@@ -132,7 +133,7 @@ export default function Home() {
             >
               <div className="animate-pulse">Yükleniyor...</div>
             </Button>
-          ) : user?.role === "CUSTOMER" ? (
+          ) : isCustomer() ? (
             // Customer: Active appointment button
             <Button
               size="lg"
@@ -156,7 +157,7 @@ export default function Home() {
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Link>
             </Button>
-          ) : user?.role === "BARBER" || user?.role === "ADMIN" ? (
+          ) : canAccessBarberPanel() ? (
             // Barber: Disabled with explanation
             <div className="space-y-2">
               <Button
@@ -228,7 +229,7 @@ export default function Home() {
         </Card>
 
         {/* Final CTA */}
-        {!hydrated || loading ? (
+        {isLoading ? (
           // Loading state - consistent with hero CTA
           <Button
             size="lg"
@@ -237,7 +238,7 @@ export default function Home() {
           >
             <div className="animate-pulse">Yükleniyor...</div>
           </Button>
-        ) : user?.role === "CUSTOMER" ? (
+        ) : isCustomer() ? (
           // Customer: Active appointment button
           <Button
             size="lg"
@@ -261,7 +262,7 @@ export default function Home() {
               <ArrowRight className="w-6 h-6 ml-2" />
             </Link>
           </Button>
-        ) : user?.role === "BARBER" || user?.role === "ADMIN" ? (
+        ) : canAccessBarberPanel() ? (
           // Barber: Disabled with explanation
           <div className="space-y-2">
             <Button

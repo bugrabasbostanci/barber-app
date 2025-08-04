@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,44 +18,53 @@ import {
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import { formatTurkishDateShort } from "@/lib/date-time";
 import { Calendar, Clock, UserCheck, AlertTriangle } from "lucide-react";
-import {
-  useAppointmentsStore,
-  type Appointment,
-} from "@/lib/stores/appointments-store";
+import { useAppointments, type Appointment } from "@/contexts/app-contexts";
+import { useState } from "react";
 import { MyAppointmentsSkeleton } from "@/components/skeletons/my-appointments-skeleton";
 
 function MyAppointmentsContent() {
-  const { user, loading, isAuthorized } = useRequireCustomer();
+  const { loading, isAuthorized } = useRequireCustomer();
 
-  // Zustand store
+  // Appointments context
   const {
-    loading: error,
-    showCancelModal,
-    appointmentToCancel,
-    cancellingId,
-
-    // Actions
-    fetchAppointments,
-    openCancelModal,
-    closeCancelModal,
-    setShowCancelModal,
+    isLoading: appointmentsLoading,
+    error,
     cancelAppointment,
-    upcomingAppointments,
-    pastAppointments,
+    getUpcomingAppointments,
+    getPastAppointments,
     canCancelAppointment,
-  } = useAppointmentsStore();
+  } = useAppointments();
 
-  // Fetch appointments when user is available
-  useEffect(() => {
-    if (user && isAuthorized) {
-      fetchAppointments();
-    }
-  }, [user, isAuthorized, fetchAppointments]);
+  // Local modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<Appointment | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  // Handle appointment cancellation
+  // Appointments are automatically fetched by the context
+
+  // Modal handlers
+  const openCancelModal = (appointment: Appointment) => {
+    setAppointmentToCancel(appointment);
+    setShowCancelModal(true);
+  };
+
+  const closeCancelModal = () => {
+    setShowCancelModal(false);
+    setAppointmentToCancel(null);
+    setCancellingId(null);
+  };
+
   const handleCancelAppointment = async () => {
     if (!appointmentToCancel) return;
-    await cancelAppointment(appointmentToCancel.id);
+
+    setCancellingId(appointmentToCancel.id);
+    const success = await cancelAppointment(appointmentToCancel.id);
+    
+    if (success) {
+      closeCancelModal();
+    } else {
+      setCancellingId(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -161,18 +170,18 @@ function MyAppointmentsContent() {
     return `${formatTime(startTime)}-${formatTime(endTime)}`;
   };
 
-  // Get computed data from store
-  const upcoming = upcomingAppointments();
-  const past = pastAppointments();
+  // Get computed data from context methods
+  const upcoming = getUpcomingAppointments();
+  const past = getPastAppointments();
 
-  if (loading) {
+  if (loading || appointmentsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
         <div className="max-w-4xl mx-auto py-6 px-4">
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-2 text-gray-600">
-              Yetkilendirme kontrol ediliyor...
+              {loading ? "Yetkilendirme kontrol ediliyor..." : "Randevular yükleniyor..."}
             </p>
           </div>
         </div>
@@ -300,11 +309,7 @@ function AppointmentsList({
   past: Appointment[];
   renderAppointmentCard: (appointment: Appointment) => React.ReactNode;
 }) {
-  const { loading: loadingAppointments } = useAppointmentsStore();
-
-  if (loadingAppointments) {
-    throw new Promise(() => {}); // This will trigger Suspense fallback
-  }
+  // AppointmentsList doesn't need its own loading state anymore
 
   return (
     <>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -10,15 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/lib/stores/auth-store";
-import {
-  ArrowLeft,
-  User,
-  LogOut,
-  Settings,
-  Calendar,
-} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { ArrowLeft, User, LogOut, Settings, Calendar } from "lucide-react";
 
 interface AppHeaderProps {
   title?: string;
@@ -26,7 +20,7 @@ interface AppHeaderProps {
   backButtonText?: string;
   backButtonHref?: string;
   extraActions?: React.ReactNode;
-  currentPage?: 'home' | 'profile' | 'appointments' | string;
+  currentPage?: "home" | "profile" | "appointments" | string;
 }
 
 export function AppHeader({
@@ -35,43 +29,37 @@ export function AppHeader({
   backButtonText = "Geri",
   backButtonHref = "/",
   extraActions,
-  currentPage = 'home',
+  currentPage = "home",
 }: AppHeaderProps) {
-  const { user, loading, signOut } = useAuth();
-  const hydrated = useAuthStore((state) => state.hydrated);
+  const {
+    user,
+    loading,
+    signOut,
+    hydrated,
+    getDisplayName,
+    getUserInitials,
+    isCustomer,
+    canAccessBarberPanel,
+  } = useAuth();
+  const router = useRouter();
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
       await signOut();
+      // Use Next.js router for smooth navigation without page reload
+      router.push("/");
     } catch (error) {
       console.error("Sign out error:", error);
     }
   };
 
-  // Generate user initials from first and last name or email
-  const getUserInitials = () => {
-    if (user?.firstName && user?.lastName) {
-      return user.firstName.charAt(0) + user.lastName.charAt(0);
-    }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return "U";
-  };
-
-  const getUserDisplayName = () => {
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return user?.email?.split("@")[0] || "Kullanıcı";
-  };
-
-  const isUserDataComplete = () => {
-    return user?.firstName && user?.lastName && user?.role;
-  };
+  // User utilities are now provided by AuthContext
 
   return (
-    <header className="bg-white border-b px-4 py-6 sticky top-0 z-50 relative">
+    <header className="bg-white border-b px-4 py-6 sticky top-0 z-50">
       <div className="flex items-center">
         {/* Left side - Back button or Logo */}
         <div className="flex-shrink-0">
@@ -102,11 +90,9 @@ export function AppHeader({
         {/* Right side - Extra actions + Auth section */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {extraActions}
-          
+
           {/* Separator between extraActions and auth */}
-          {extraActions && (
-            <div className="w-px h-6 bg-gray-200 mx-1"></div>
-          )}
+          {extraActions && <div className="w-px h-6 bg-gray-200 mx-1"></div>}
           {!hydrated || loading ? (
             // Minimal loading - faster UX
             <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse opacity-60"></div>
@@ -129,30 +115,14 @@ export function AppHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                  {isUserDataComplete() ? (
-                    <>
-                      <p className="font-semibold text-sm text-gray-900">
-                        {getUserDisplayName()}
-                      </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold text-sm text-gray-900">
-                        {getUserDisplayName()}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {user.email}
-                      </p>
-                      <div className="text-xs text-blue-500 mt-1">
-                        Bilgiler yükleniyor...
-                      </div>
-                    </>
-                  )}
+                  <p className="font-semibold text-sm text-gray-900">
+                    {getDisplayName()}
+                  </p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
                 </DropdownMenuLabel>
 
                 {/* Show Profile link only if not on profile page */}
-                {currentPage !== 'profile' && (
+                {currentPage !== "profile" && (
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
                       <User className="w-4 h-4 mr-3 text-gray-500" />
@@ -162,19 +132,18 @@ export function AppHeader({
                 )}
 
                 {/* Customer specific menu items */}
-                {user.role === "CUSTOMER" && currentPage !== 'appointments' && (
+                {isCustomer() && currentPage !== "appointments" && (
                   <DropdownMenuItem asChild>
                     <Link href="/my-appointments">
                       <Calendar className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm font-medium">
-                        Randevularım
-                      </span>
+                      <span className="text-sm font-medium">Randevularım</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
 
                 {/* Show Home link for customer pages */}
-                {(currentPage === 'profile' || currentPage === 'appointments') && (
+                {(currentPage === "profile" ||
+                  currentPage === "appointments") && (
                   <DropdownMenuItem asChild>
                     <Link href="/">
                       <Calendar className="w-4 h-4 mr-3 text-gray-500" />
@@ -184,39 +153,25 @@ export function AppHeader({
                 )}
 
                 {/* Barber specific menu items */}
-                {user.role === "BARBER" && (
+                {canAccessBarberPanel() && (
                   <DropdownMenuItem asChild>
                     <Link href="/barber/dashboard">
                       <Settings className="w-4 h-4 mr-3 text-gray-500" />
-                      <span className="text-sm font-medium">
-                        Berber Paneli
-                      </span>
+                      <span className="text-sm font-medium">Berber Paneli</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
 
-                {/* Loading state for role-specific items */}
-                {!isUserDataComplete() && (
-                  <DropdownMenuItem disabled>
-                    <div className="flex items-center w-full">
-                      <div className="w-4 h-4 mr-3 bg-gray-200 rounded animate-pulse"></div>
-                      <span className="text-sm text-gray-400 animate-pulse">
-                        Menü yükleniyor...
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                )}
+                {/* Role-specific items are now immediately available through AuthContext */}
 
                 <div className="border-t border-gray-100 my-1"></div>
 
-                <DropdownMenuItem>
-                  <button
-                    className="flex items-center w-full text-left"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="w-4 h-4 mr-3 text-gray-500" />
-                    <span className="text-sm font-medium">Çıkış Yap</span>
-                  </button>
+                <DropdownMenuItem
+                  className="flex items-center cursor-pointer"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                  <span className="text-sm font-medium">Çıkış Yap</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { AuthProvider } from '@/components/providers/auth-provider';
+import { AppContextsProvider } from '@/contexts/app-contexts';
 import { AppHeader } from '@/components/layouts/app-header';
 
 interface ClientLayoutProps {
@@ -11,6 +11,9 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
+
+  // Check if current page is an auth page
+  const isAuthPage = pathname.startsWith('/auth');
 
   // Determine page configuration based on pathname
   const getPageConfig = () => {
@@ -51,15 +54,18 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   const pageConfig = getPageConfig();
 
   return (
-    <AuthProvider>
+    <AppContextsProvider>
       <div className="min-h-screen bg-white">
-        <AppHeader
-          title={pageConfig.title}
-          showBackButton={pageConfig.showBackButton}
-          currentPage={pageConfig.currentPage}
-        />
+        {/* Only show AppHeader for non-auth pages */}
+        {!isAuthPage && (
+          <AppHeader
+            title={pageConfig.title}
+            showBackButton={pageConfig.showBackButton}
+            currentPage={pageConfig.currentPage}
+          />
+        )}
         <div>{children}</div>
       </div>
-    </AuthProvider>
+    </AppContextsProvider>
   );
 }

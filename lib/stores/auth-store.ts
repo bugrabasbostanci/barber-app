@@ -125,17 +125,30 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signOut: async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        set({ user: null });
-        
-        // Clear appointments cache on sign out
         try {
-          const { useAppointmentsStore } = await import('./appointments-store');
-          useAppointmentsStore.getState().clearCache();
-        } catch {
-          // Ignore if appointments store not available
-          console.log('Appointments store not available during sign out');
+          const supabase = createClient();
+          const { error } = await supabase.auth.signOut();
+          
+          if (error) {
+            console.error('Logout error:', error);
+            return;
+          }
+          
+          // Clear user state immediately for smooth UI transition
+          set({ user: null });
+          
+          // Clear appointments cache on sign out
+          try {
+            const { useAppointmentsStore } = await import('./appointments-store');
+            useAppointmentsStore.getState().clearCache();
+          } catch {
+            // Ignore if appointments store not available
+            console.log('Appointments store not available during sign out');
+          }
+          
+          // Note: Navigation will be handled by the component that calls signOut
+        } catch (error) {
+          console.error('Sign out error:', error);
         }
       },
     }),
