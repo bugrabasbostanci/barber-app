@@ -2,6 +2,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ClientLayout } from "@/components/layouts/client-layout";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
 const geist = Geist({
@@ -24,12 +25,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body className={`${geist.className} antialiased`}>
-        <ClientLayout>
-          {children}
-          <SpeedInsights />
-        </ClientLayout>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          storageKey="barber-app-theme"
+        >
+          <ClientLayout>
+            {children}
+            <SpeedInsights />
+          </ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import {
@@ -101,10 +102,10 @@ export default function ProfilePage() {
 
   if (errorMessage && !loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
-            <p className="text-red-600">{errorMessage}</p>
+            <p className="text-destructive">{errorMessage}</p>
             <Button onClick={() => fetchProfile(true)}>Tekrar Dene</Button>
             <Button asChild variant="outline">
               <Link href="/">Ana Sayfaya Dön</Link>
@@ -117,10 +118,10 @@ export default function ProfilePage() {
 
   if (!profile && !loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
-            <p className="text-red-600">Profil yüklenemedi.</p>
+            <p className="text-destructive">Profil yüklenemedi.</p>
             <Button asChild>
               <Link href="/">Ana Sayfaya Dön</Link>
             </Button>
@@ -136,7 +137,7 @@ export default function ProfilePage() {
       <Suspense
         fallback={
           <div className="text-center mb-8">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"></div>
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"></div>
           </div>
         }
       >
@@ -148,9 +149,9 @@ export default function ProfilePage() {
 
       {/* Alert Messages */}
       {successMessage && (
-        <Alert className="mb-6 border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
+        <Alert className="mb-6 border-green-500/20 bg-green-500/10">
+          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className="text-green-800 dark:text-green-200">
             {successMessage}
           </AlertDescription>
         </Alert>
@@ -170,14 +171,14 @@ export default function ProfilePage() {
             <Card className="mb-6">
               <CardContent className="p-6">
                 <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/4"></div>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="h-10 bg-gray-200 rounded"></div>
-                      <div className="h-10 bg-gray-200 rounded"></div>
+                      <div className="h-10 bg-muted rounded"></div>
+                      <div className="h-10 bg-muted rounded"></div>
                     </div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
+                    <div className="h-10 bg-muted rounded"></div>
+                    <div className="h-10 bg-muted rounded"></div>
                   </div>
                 </div>
               </CardContent>
@@ -245,7 +246,7 @@ export default function ProfilePage() {
           <div className="space-y-3">
             <Button
               variant="outline"
-              className="w-full bg-transparent text-red-600 border-red-200 hover:bg-red-50"
+              className="w-full bg-transparent text-destructive border-destructive/20 hover:bg-destructive/10"
               onClick={handleDeleteAccount}
               disabled={isDeleting}
             >
@@ -267,14 +268,30 @@ function ProfileHeader({
   getUserDisplayName: () => string;
   profile: UserProfile | null;
 }) {
+  // Get user initials from first name and last name
+  const getUserInitials = () => {
+    if (profile?.firstName && profile?.lastName) {
+      return `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (profile?.firstName) {
+      return profile.firstName.charAt(0).toUpperCase();
+    }
+    if (profile?.email) {
+      return profile.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
   return (
     <div className="text-center mb-8">
-      <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-        <User className="w-12 h-12 text-gray-400" />
-      </div>
+      <Avatar className="w-24 h-24 mx-auto mb-4">
+        <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-xl">
+          {getUserInitials()}
+        </AvatarFallback>
+      </Avatar>
       <h2 className="text-2xl font-bold">{getUserDisplayName()}</h2>
       {profile?.createdAt && (
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           {new Date(profile.createdAt).toLocaleDateString("tr-TR", {
             day: "numeric",
             month: "long",
@@ -337,7 +354,7 @@ function PersonalInformationCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="text-sm font-medium text-gray-600">Ad</Label>
+            <Label className="text-sm font-medium text-muted-foreground">Ad</Label>
             {isEditing ? (
               <>
                 <Input
@@ -346,12 +363,12 @@ function PersonalInformationCard({
                   placeholder="Adınız"
                   className={`mt-1 ${
                     firstNameError
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      ? "border-destructive focus:border-destructive focus:ring-destructive"
                       : ""
                   }`}
                 />
                 {firstNameError && (
-                  <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                  <div className="flex items-center gap-2 mt-2 text-destructive text-sm">
                     <AlertCircle className="w-4 h-4" />
                     <span>{firstNameError}</span>
                   </div>
@@ -359,14 +376,14 @@ function PersonalInformationCard({
               </>
             ) : (
               <div className="flex items-center mt-2">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
+                <User className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span>{profile.firstName || "Belirtilmemiş"}</span>
               </div>
             )}
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-gray-600">Soyad</Label>
+            <Label className="text-sm font-medium text-muted-foreground">Soyad</Label>
             {isEditing ? (
               <>
                 <Input
@@ -375,12 +392,12 @@ function PersonalInformationCard({
                   placeholder="Soyadınız"
                   className={`mt-1 ${
                     lastNameError
-                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      ? "border-destructive focus:border-destructive focus:ring-destructive"
                       : ""
                   }`}
                 />
                 {lastNameError && (
-                  <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+                  <div className="flex items-center gap-2 mt-2 text-destructive text-sm">
                     <AlertCircle className="w-4 h-4" />
                     <span>{lastNameError}</span>
                   </div>
@@ -388,7 +405,7 @@ function PersonalInformationCard({
               </>
             ) : (
               <div className="flex items-center mt-2">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
+                <User className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span>{profile.lastName || "Belirtilmemiş"}</span>
               </div>
             )}
@@ -396,7 +413,7 @@ function PersonalInformationCard({
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-gray-600">
+          <Label className="text-sm font-medium text-muted-foreground">
             Telefon Numarası
           </Label>
           {isEditing ? (
@@ -407,7 +424,7 @@ function PersonalInformationCard({
                 placeholder="0532 123 45 67"
                 className={`mt-1 ${
                   phoneError
-                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    ? "border-destructive focus:border-destructive focus:ring-destructive"
                     : ""
                 }`}
               />
@@ -420,14 +437,14 @@ function PersonalInformationCard({
             </>
           ) : (
             <div className="flex items-center mt-2">
-              <Phone className="w-4 h-4 mr-3 text-gray-400" />
+              <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
               <span>{profile.phone || "Belirtilmemiş"}</span>
             </div>
           )}
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-gray-600">
+          <Label className="text-sm font-medium text-muted-foreground">
             E-posta Adresi
           </Label>
           {isEditing && user?.isEmailUser ? (
@@ -439,12 +456,12 @@ function PersonalInformationCard({
             />
           ) : (
             <div className="flex items-center mt-2">
-              <Mail className="w-4 h-4 mr-3 text-gray-400" />
+              <Mail className="w-4 h-4 mr-3 text-muted-foreground" />
               <span>{profile.email}</span>
             </div>
           )}
           {user?.isGoogleUser && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Google hesabınızdan gelen e-posta (değiştirilemez)
             </p>
           )}

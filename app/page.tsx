@@ -99,7 +99,7 @@ const ServicesList = () => {
       {services.map((service) => (
         <div
           key={service.id}
-          className="px-4 py-2 bg-gray-50 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+          className="px-4 py-2 bg-muted rounded-full text-sm font-medium text-muted-foreground hover:bg-muted/80 transition-colors"
         >
           {service.name}
         </div>
@@ -119,7 +119,7 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center mb-12">
           <BrandTitle className="mb-4">Randevunuzu Alın</BrandTitle>
-          <TypographyP className="text-gray-500 mb-8 mt-0">
+          <TypographyP className="text-muted-foreground mb-8 mt-0">
             Deneyimli berberlerimizden profesyonel hizmet alın
           </TypographyP>
 
@@ -169,7 +169,7 @@ export default function Home() {
                 Randevu Al
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Button>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Berber paneline menüden erişebilirsiniz
               </p>
             </div>
@@ -199,15 +199,15 @@ export default function Home() {
 
         {/* Quick Info */}
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="text-center p-6 bg-gray-50 rounded-2xl">
+          <div className="text-center p-6 bg-muted rounded-2xl">
             <Clock className="w-8 h-8 mx-auto mb-2 text-blue-600" />
             <p className="font-semibold">45 Dakika</p>
-            <p className="text-sm text-gray-500">Tam hizmet</p>
+            <p className="text-sm text-muted-foreground">Tam hizmet</p>
           </div>
-          <div className="text-center p-6 bg-gray-50 rounded-2xl">
+          <div className="text-center p-6 bg-muted rounded-2xl">
             <Calendar className="w-8 h-8 mx-auto mb-2 text-green-600" />
             <p className="font-semibold">Önceden Rezervasyon</p>
-            <p className="text-sm text-gray-500">7 gün öncesine kadar</p>
+            <p className="text-sm text-muted-foreground">7 gün öncesine kadar</p>
           </div>
         </div>
 
@@ -274,7 +274,7 @@ export default function Home() {
               Randevunuzu Alın
               <ArrowRight className="w-6 h-6 ml-2" />
             </Button>
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               Berber paneline menüden erişebilirsiniz
             </p>
           </div>

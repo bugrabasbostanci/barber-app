@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/auth-context";
 import { ArrowLeft, User, LogOut, Settings, Calendar } from "lucide-react";
+import { ThemeToggleIcon } from "@/components/ui/theme-toggle";
 
 interface AppHeaderProps {
   title?: string;
@@ -59,7 +60,7 @@ export function AppHeader({
   // User utilities are now provided by AuthContext
 
   return (
-    <header className="bg-white border-b px-4 py-6 sticky top-0 z-50">
+    <header className="bg-background border-b border-border px-4 py-6 sticky top-0 z-50">
       <div className="flex items-center">
         {/* Left side - Back button or Logo */}
         <div className="flex-shrink-0">
@@ -90,13 +91,21 @@ export function AppHeader({
         {/* Right side - Extra actions + Auth section */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {extraActions}
+          
+          {/* Theme Toggle */}
+          <ThemeToggleIcon className="mr-1" />
 
-          {/* Separator between extraActions and auth */}
-          {extraActions && <div className="w-px h-6 bg-gray-200 mx-1"></div>}
+          {/* Separator between theme toggle and auth */}
+          <div className="w-px h-6 bg-border mx-1"></div>
           {!hydrated || loading ? (
-            // Minimal loading - faster UX
-            <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse opacity-60"></div>
-          ) : user ? (
+            // Minimal loading - faster UX  
+            <div className="w-10 h-10 bg-muted rounded-full animate-pulse opacity-60 flex items-center justify-center">
+              <span className="text-xs text-muted-foreground">⏳</span>
+            </div>
+          ) : null}
+          
+          {/* Always show user menu if user exists, regardless of loading states */}
+          {user ? (
             /* Avatar Dropdown Menu */
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -106,26 +115,25 @@ export function AppHeader({
                       src={user.user_metadata.avatar_url}
                       alt="Avatar"
                     />
-                  ) : (
-                    <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  )}
+                  ) : null}
+                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors">
+                    {getUserInitials() || "U"}
+                  </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                  <p className="font-semibold text-sm text-gray-900">
+                <DropdownMenuLabel className="px-4 py-3 border-b border-border">
+                  <p className="font-semibold text-sm text-foreground">
                     {getDisplayName()}
                   </p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                 </DropdownMenuLabel>
 
                 {/* Show Profile link only if not on profile page */}
                 {currentPage !== "profile" && (
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
-                      <User className="w-4 h-4 mr-3 text-gray-500" />
+                      <User className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Profil</span>
                     </Link>
                   </DropdownMenuItem>
@@ -135,7 +143,7 @@ export function AppHeader({
                 {isCustomer() && currentPage !== "appointments" && (
                   <DropdownMenuItem asChild>
                     <Link href="/my-appointments">
-                      <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                      <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Randevularım</span>
                     </Link>
                   </DropdownMenuItem>
@@ -146,7 +154,7 @@ export function AppHeader({
                   currentPage === "appointments") && (
                   <DropdownMenuItem asChild>
                     <Link href="/">
-                      <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                      <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Ana Sayfa</span>
                     </Link>
                   </DropdownMenuItem>
@@ -156,7 +164,7 @@ export function AppHeader({
                 {canAccessBarberPanel() && (
                   <DropdownMenuItem asChild>
                     <Link href="/barber/dashboard">
-                      <Settings className="w-4 h-4 mr-3 text-gray-500" />
+                      <Settings className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Berber Paneli</span>
                     </Link>
                   </DropdownMenuItem>
@@ -164,18 +172,21 @@ export function AppHeader({
 
                 {/* Role-specific items are now immediately available through AuthContext */}
 
-                <div className="border-t border-gray-100 my-1"></div>
+                <div className="border-t border-border my-1"></div>
 
                 <DropdownMenuItem
                   className="flex items-center cursor-pointer"
                   onClick={handleSignOut}
                 >
-                  <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                  <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm font-medium">Çıkış Yap</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
+          ) : null}
+          
+          {/* Show login buttons if no user and not loading */}
+          {!user && hydrated && !loading && (
             // Non-authenticated user buttons
             <>
               <Link href="/auth/login">
@@ -199,7 +210,7 @@ export function AppHeader({
 
       {/* Subtitle for home page */}
       {!showBackButton && (
-        <p className="text-gray-500 text-sm mt-1">Men&apos;s Club</p>
+        <p className="text-muted-foreground text-sm mt-1">Men&apos;s Club</p>
       )}
     </header>
   );

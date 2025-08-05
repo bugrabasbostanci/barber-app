@@ -57,7 +57,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <QueryProvider>
       <AppContextsProvider>
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-background text-foreground">
           {/* Only show AppHeader for non-auth pages */}
           {!isAuthPage && (
             <AppHeader

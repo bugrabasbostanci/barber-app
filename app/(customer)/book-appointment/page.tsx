@@ -67,19 +67,19 @@ export default function BookAppointmentPage() {
   // Show loading while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         {/* Step indicator skeleton */}
-        <div className="px-4 py-2 bg-white border-b">
-          <div className="h-4 bg-gray-200 rounded w-20 mx-auto animate-pulse"></div>
+        <div className="px-4 py-2 bg-background border-b border-border">
+          <div className="h-4 bg-muted rounded w-20 mx-auto animate-pulse"></div>
         </div>
 
         {/* Progress bar skeleton */}
-        <div className="px-4 py-3 bg-white border-b">
+        <div className="px-4 py-3 bg-background border-b border-border">
           <div className="flex space-x-2">
             {[1, 2, 3, 4].map((stepNum) => (
               <div
                 key={stepNum}
-                className="flex-1 h-2 rounded-full bg-gray-200 animate-pulse"
+                className="flex-1 h-2 rounded-full bg-muted animate-pulse"
               />
             ))}
           </div>
@@ -91,10 +91,10 @@ export default function BookAppointmentPage() {
         </div>
 
         {/* Navigation skeleton */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
           <div className="flex space-x-3">
-            <div className="flex-1 h-14 bg-gray-200 rounded-lg animate-pulse"></div>
-            <div className="flex-1 h-14 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="flex-1 h-14 bg-muted rounded-lg animate-pulse"></div>
+            <div className="flex-1 h-14 bg-muted rounded-lg animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function BookAppointmentPage() {
   // Show error if not authorized
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto py-6 px-4">
           <Alert variant="destructive" className="mt-4">
             <AlertDescription>
@@ -133,9 +133,9 @@ export default function BookAppointmentPage() {
         return (
           <div className="space-y-6 pb-24">
             <div className="text-center">
-              <Calendar className="w-12 h-12 mx-auto text-blue-600 mb-4" />
+              <Calendar className="w-12 h-12 mx-auto text-primary mb-4" />
               <h2 className="text-2xl font-bold mb-2">Tarih Seçin</h2>
-              <p className="text-gray-500">Tercih ettiğiniz günü seçin</p>
+              <p className="text-muted-foreground">Tercih ettiğiniz günü seçin</p>
             </div>
             <Suspense fallback={<DateSelectionSkeleton />}>
               <DateSelectionNew
@@ -150,9 +150,9 @@ export default function BookAppointmentPage() {
         return (
           <div className="space-y-6 pb-24">
             <div className="text-center">
-              <UserCheck className="w-12 h-12 mx-auto text-blue-600 mb-4" />
+              <UserCheck className="w-12 h-12 mx-auto text-primary mb-4" />
               <h2 className="text-2xl font-bold mb-2">Berberinizi Seçin</h2>
-              <p className="text-gray-500">Tercih ettiğiniz berberi seçin</p>
+              <p className="text-muted-foreground">Tercih ettiğiniz berberi seçin</p>
             </div>
             <Suspense fallback={<StaffSelectionSkeleton />}>
               <StaffSelectionNew
@@ -170,9 +170,9 @@ export default function BookAppointmentPage() {
         return (
           <div className="space-y-6 pb-24">
             <div className="text-center">
-              <Clock className="w-12 h-12 mx-auto text-blue-600 mb-4" />
+              <Clock className="w-12 h-12 mx-auto text-primary mb-4" />
               <h2 className="text-2xl font-bold mb-2">Saat Seçin</h2>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 {bookingData.staffId && getStaffName(bookingData.staffId)} için{" "}
                 {bookingData.date && formatTurkishDate(bookingData.date)}{" "}
                 tarihinde müsait saatler
@@ -193,9 +193,9 @@ export default function BookAppointmentPage() {
         return (
           <div className="space-y-6 pb-24">
             <div className="text-center">
-              <Phone className="w-12 h-12 mx-auto text-blue-600 mb-4" />
+              <Phone className="w-12 h-12 mx-auto text-primary mb-4" />
               <h2 className="text-2xl font-bold mb-2">İletişim Bilgileri</h2>
-              <p className="text-gray-500">Size onay mesajı göndereceğiz</p>
+              <p className="text-muted-foreground">Size onay mesajı göndereceğiz</p>
             </div>
             <BookingConfirmationNew
               bookingData={bookingData}
@@ -210,15 +210,15 @@ export default function BookAppointmentPage() {
       case 5:
         return (
           <div className="text-center space-y-8 pb-32">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-10 h-10 text-green-600" />
+            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+              <Check className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-green-600 mb-2">
+              <h2 className="text-2xl font-bold text-green-600 dark:text-green-400 mb-2">
                 Randevu Onaylandı!
               </h2>
-              <p className="text-gray-600">Randevunuz hazır</p>
+              <p className="text-muted-foreground">Randevunuz hazır</p>
             </div>
 
             <Card>
@@ -255,7 +255,7 @@ export default function BookAppointmentPage() {
                       })()}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm text-gray-600">
+                  <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Süre:</span>
                     <span>45 dakika</span>
                   </div>
@@ -263,7 +263,7 @@ export default function BookAppointmentPage() {
               </CardContent>
             </Card>
 
-            <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">
+            <div className="text-sm text-muted-foreground bg-muted p-4 rounded-xl">
               <p>• Randevudan 2 saat öncesine kadar iptal edebilirsiniz</p>
               <p>• Lütfen 15 dakika erken gelin</p>
             </div>
@@ -276,11 +276,11 @@ export default function BookAppointmentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Step indicator */}
       {currentStep < 5 && (
-        <div className="px-4 py-2 bg-white border-b">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="px-4 py-2 bg-background border-b border-border">
+          <p className="text-xs text-muted-foreground text-center">
             Adım {currentStep} / 4
           </p>
         </div>
@@ -288,13 +288,13 @@ export default function BookAppointmentPage() {
 
       {/* Progress */}
       {currentStep < 5 && (
-        <div className="px-4 py-3 bg-white border-b">
+        <div className="px-4 py-3 bg-background border-b border-border">
           <div className="flex space-x-2">
             {[1, 2, 3, 4].map((stepNum) => (
               <div
                 key={stepNum}
                 className={`flex-1 h-2 rounded-full transition-all ${
-                  stepNum <= currentStep ? "bg-blue-500" : "bg-gray-200"
+                  stepNum <= currentStep ? "bg-primary" : "bg-muted"
                 }`}
               />
             ))}
@@ -307,7 +307,7 @@ export default function BookAppointmentPage() {
 
       {/* Navigation */}
       {currentStep < 5 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
           <div className="flex space-x-3">
             {currentStep > 1 && (
               <Button
@@ -335,10 +335,10 @@ export default function BookAppointmentPage() {
       )}
 
       {currentStep === 5 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 space-y-3">
+        <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 space-y-3">
           <button
             onClick={resetBooking}
-            className="w-full h-14 text-base font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="w-full h-14 text-base font-semibold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             Başka Randevu Al
           </button>
@@ -404,7 +404,7 @@ function StaffSelectionNew({
   if (staffMembers.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500 mb-4">Şu anda müsait berber bulunmuyor</p>
+        <p className="text-muted-foreground mb-4">Şu anda müsait berber bulunmuyor</p>
       </div>
     );
   }
@@ -420,13 +420,13 @@ function StaffSelectionNew({
             onClick={() => onStaffSelect(staff.id)}
             className={`w-full p-5 rounded-xl border-2 transition-all ${
               isSelected
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-200 hover:border-gray-300"
+                ? "border-primary bg-primary/10"
+                : "border-border hover:border-muted-foreground/30"
             }`}
           >
             <div className="flex items-center space-x-4">
               {/* Avatar */}
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-lg">
+              <div className="w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold text-lg">
                 {getInitials(staff.firstName, staff.lastName)}
               </div>
 
@@ -435,15 +435,15 @@ function StaffSelectionNew({
                 <p className="font-semibold text-lg">
                   {staff.firstName} {staff.lastName}
                 </p>
-                <p className="text-sm text-blue-600 font-medium">
+                <p className="text-sm text-primary font-medium">
                   {getStaffTitle(staff.role)}
                 </p>
               </div>
 
               {/* Selection Indicator */}
               {isSelected && (
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                  <Check className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
             </div>
@@ -517,7 +517,7 @@ function TimeSelectionNew({
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-500 mb-4">{error}</p>
+        <p className="text-destructive mb-4">{error}</p>
         <Button
           variant="outline"
           onClick={() => window.location.reload()}
@@ -532,13 +532,13 @@ function TimeSelectionNew({
   if (availableSlots.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Clock className="w-8 h-8 text-orange-600" />
+        <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Clock className="w-8 h-8 text-orange-600 dark:text-orange-400" />
         </div>
-        <h3 className="font-semibold text-lg mb-2 text-gray-800">
+        <h3 className="font-semibold text-lg mb-2 text-foreground">
           Bu tarih için müsait saat yok
         </h3>
-        <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+        <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
           Seçilen berber bu tarih için tamamen dolu. Başka bir tarih veya berber
           deneyebilirsiniz.
         </p>
@@ -550,7 +550,7 @@ function TimeSelectionNew({
           >
             Farklı Tarih Seç
           </Button>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted-foreground/60">
             veya geri dönüp başka berber seçin
           </p>
         </div>
@@ -566,13 +566,13 @@ function TimeSelectionNew({
           onClick={() => onTimeSelect(time)}
           className={`p-4 rounded-xl border-2 transition-all ${
             selectedTime === time
-              ? "border-blue-500 bg-blue-50 font-semibold text-blue-700"
-              : "border-gray-200 hover:border-gray-300"
+              ? "border-primary bg-primary/10 font-semibold text-primary"
+              : "border-border hover:border-muted-foreground/30"
           }`}
         >
           <div className="text-center">
             <p className="font-medium">{time}</p>
-            <p className="text-xs text-gray-500 mt-1">45 dk</p>
+            <p className="text-xs text-muted-foreground mt-1">45 dk</p>
           </div>
         </button>
       ))}
@@ -636,7 +636,7 @@ function BookingConfirmationNew({
   return (
     <div className="space-y-6">
       {/* Booking Summary */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3">Randevu Özeti</h3>
           <div className="space-y-2 text-sm">
@@ -656,7 +656,7 @@ function BookingConfirmationNew({
                 {bookingData.timeSlot} - {getEndTime()}
               </span>
             </div>
-            <div className="flex justify-between text-sm text-gray-600 pt-2 border-t">
+            <div className="flex justify-between text-sm text-muted-foreground pt-2 border-t border-border">
               <span>Süre:</span>
               <span>45 dakika</span>
             </div>
@@ -692,12 +692,12 @@ function BookingConfirmationNew({
             placeholder="0532 123 45 67"
             className={`h-14 text-base mt-2 ${
               phoneError
-                ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                ? "border-destructive focus:border-destructive focus:ring-destructive"
                 : ""
             }`}
           />
           {phoneError && (
-            <div className="flex items-center gap-2 mt-2 text-red-600 text-sm">
+            <div className="flex items-center gap-2 mt-2 text-destructive text-sm">
               <AlertCircle className="w-4 h-4" />
               <span>{phoneError}</span>
             </div>
@@ -713,7 +713,7 @@ function BookingConfirmationNew({
             value={customerInfo.notes || ""}
             onChange={(e) => onCustomerInfoChange({ notes: e.target.value })}
             placeholder="Berberiniz için özel istekleriniz veya notlarınız..."
-            className="w-full h-24 p-3 text-base mt-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full h-24 p-3 text-base mt-2 border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background"
           />
         </div>
       </div>
@@ -847,14 +847,14 @@ function DateSelectionNew({
               onClick={() => onDateSelect(dateString)}
               className={`w-full p-4 rounded-xl border-2 transition-all ${
                 isSelected
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-muted-foreground/30"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div className="text-left">
                   <p className="font-semibold text-lg">{formatDate(date)}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {date.toLocaleDateString("tr-TR", {
                       weekday: "long",
                       day: "numeric",
@@ -869,8 +869,8 @@ function DateSelectionNew({
       </div>
 
       {/* Sunday Notice */}
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-        <p className="text-sm text-red-600 text-center">
+      <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4">
+        <p className="text-sm text-destructive text-center">
           <strong>Not:</strong> Pazar günleri kapalıyız
         </p>
       </div>
