@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
+import { BarberPageHeader } from "@/components/layouts/barber-page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,28 +37,7 @@ interface Staff {
 export default function NewAppointment() {
   const router = useRouter();
 
-  // Auth check
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/auth/check-role");
-        if (!response.ok) {
-          router.push("/auth/login");
-          return;
-        }
-        const data = await response.json();
-        if (!data.success || data.role !== "BARBER") {
-          router.push("/auth/login");
-          return;
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.push("/auth/login");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+  // Auth check is handled by BarberLayout
 
   // Form state
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -207,28 +187,24 @@ export default function NewAppointment() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b px-4 sm:px-6 py-4 sm:py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/barber/dashboard">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-6 h-6 mr-3" />
-                Geri
-              </Button>
-            </Link>
-            <div className="ml-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Yeni Randevu
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Manuel olarak randevu oluşturun
-              </p>
-            </div>
-          </div>
+      <BarberPageHeader>
+        <Link href="/barber/dashboard">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="w-6 h-6 mr-3" />
+            Geri
+          </Button>
+        </Link>
+        <div className="ml-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+            Yeni Randevu
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Manuel olarak randevu oluşturun
+          </p>
         </div>
-      </header>
+      </BarberPageHeader>
 
       <div className="p-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -322,7 +298,7 @@ export default function NewAppointment() {
                   {loadingTimeSlots ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto mb-2"></div>
-                      <p className="text-gray-600">Saatler yükleniyor...</p>
+                      <p className="text-muted-foreground">Saatler yükleniyor...</p>
                     </div>
                   ) : timeSlots.length > 0 ? (
                     <div className="grid grid-cols-4 gap-3">
@@ -333,7 +309,7 @@ export default function NewAppointment() {
                           className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
                             selectedTime === time
                               ? "border-black bg-black text-white"
-                              : "border-gray-200 hover:border-gray-300 bg-white"
+                              : "border-border hover:border-border/80 bg-background"
                           }`}
                         >
                           {time}
@@ -342,7 +318,7 @@ export default function NewAppointment() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         Bu tarih için uygun saat bulunmuyor
                       </p>
                     </div>
@@ -429,7 +405,7 @@ export default function NewAppointment() {
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="w-full sm:w-auto bg-black hover:bg-gray-800"
+            className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90"
           >
             {isLoading ? "Oluşturuluyor..." : "Randevu Oluştur"}
           </Button>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -15,6 +14,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react";
+import { BarberPageHeader } from "@/components/layouts/barber-page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -67,30 +67,7 @@ interface Appointment {
 }
 
 export default function BarberAppointments() {
-  const router = useRouter();
-
-  // Auth check
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/auth/check-role");
-        if (!response.ok) {
-          router.push("/auth/login");
-          return;
-        }
-        const data = await response.json();
-        if (!data.success || data.role !== "BARBER") {
-          router.push("/auth/login");
-          return;
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.push("/auth/login");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+  // Auth check is handled by BarberLayout
 
   // State
   const [searchTerm, setSearchTerm] = useState("");
@@ -185,16 +162,16 @@ export default function BarberAppointments() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "CONFIRMED":
-        return "bg-green-100 text-green-800";
+        return "bg-green-500/10 text-green-700 dark:text-green-400";
       case "SCHEDULED":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
       case "COMPLETED":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
       case "CANCELLED":
       case "NO_SHOW":
-        return "bg-red-100 text-red-800";
+        return "bg-red-500/10 text-red-700 dark:text-red-400";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -216,7 +193,7 @@ export default function BarberAppointments() {
   };
 
   const getStaffColor = () => {
-    return "text-blue-600"; // Simplified for now
+    return "text-primary"; // Theme-aware
   };
 
   const formatDate = (dateString: string) => {
@@ -278,26 +255,26 @@ export default function BarberAppointments() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="space-y-2">
               <div className="flex items-center">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
+                <User className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span className="font-semibold text-lg">{customerName}</span>
               </div>
               {customerPhone && (
                 <div className="flex items-center">
-                  <Phone className="w-4 h-4 mr-3 text-gray-400" />
-                  <span className="text-gray-600">{customerPhone}</span>
+                  <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">{customerPhone}</span>
                 </div>
               )}
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-3 text-gray-400" />
+                <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span className="font-medium">
                   {formatDate(appointment.date)}
                 </span>
               </div>
               <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-3 text-gray-400" />
+                <Clock className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span>
                   {appointment.startTime} - {appointment.endTime}
                 </span>
@@ -308,8 +285,8 @@ export default function BarberAppointments() {
           {/* Notes */}
           {appointment.notes && (
             <div className="mb-4">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-sm text-gray-600">
+              <div className="bg-muted rounded-lg p-3">
+                <p className="text-sm text-muted-foreground">
                   Not: {appointment.notes}
                 </p>
               </div>
@@ -347,7 +324,7 @@ export default function BarberAppointments() {
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 bg-transparent text-red-600 border-red-200 hover:bg-red-50"
+              className="flex-1 bg-transparent text-destructive border-destructive/20 hover:bg-destructive/10"
               onClick={() => {
                 setAppointmentToDelete(appointment.id);
                 setShowDeleteDialog(true);
@@ -364,9 +341,9 @@ export default function BarberAppointments() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
           <p>Yükleniyor...</p>
         </div>
       </div>
@@ -374,37 +351,35 @@ export default function BarberAppointments() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header - Responsive */}
-      <header className="bg-white border-b px-4 sm:px-6 py-4 sm:py-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center">
-            <Link href="/barber/dashboard">
-              <Button variant="ghost" size="lg" className="text-base">
-                <ArrowLeft className="w-6 h-6 mr-3" />
-                Geri
-              </Button>
-            </Link>
-            <div className="ml-4">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Randevu Yönetimi
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Tüm randevuları görüntüle ve yönet
-              </p>
-            </div>
-          </div>
+      <BarberPageHeader>
+        <Link href="/barber/dashboard">
+          <Button variant="ghost" size="lg" className="text-base">
+            <ArrowLeft className="w-6 h-6 mr-3" />
+            Geri
+          </Button>
+        </Link>
+        <div className="ml-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+            Randevu Yönetimi
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Tüm randevuları görüntüle ve yönet
+          </p>
+        </div>
+        <div className="flex-1 flex justify-end mr-4">
           <Link href="/barber/appointments/new">
             <Button
               size="lg"
-              className="bg-black hover:bg-gray-800 text-white text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
+              className="bg-foreground text-background hover:bg-foreground/90 text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
             >
               <Plus className="w-5 h-5 sm:mr-2" />
               Yeni Randevu
             </Button>
           </Link>
         </div>
-      </header>
+      </BarberPageHeader>
 
       <div className="p-4 sm:p-6">
         {/* Filters - Responsive */}
@@ -417,7 +392,7 @@ export default function BarberAppointments() {
               {/* Search */}
               <div className="sm:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Müşteri adı veya telefon ara..."
                     value={searchTerm}
@@ -512,34 +487,34 @@ export default function BarberAppointments() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-primary">
                 {upcomingAppointments.length}
               </div>
-              <div className="text-sm text-gray-600">Yaklaşan</div>
+              <div className="text-sm text-muted-foreground">Yaklaşan</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {completedAppointments.length}
               </div>
-              <div className="text-sm text-gray-600">Tamamlanan</div>
+              <div className="text-sm text-muted-foreground">Tamamlanan</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {cancelledAppointments.length}
               </div>
-              <div className="text-sm text-gray-600">İptal</div>
+              <div className="text-sm text-muted-foreground">İptal</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-foreground">
                 {filteredAppointments.length}
               </div>
-              <div className="text-sm text-gray-600">Toplam</div>
+              <div className="text-sm text-muted-foreground">Toplam</div>
             </CardContent>
           </Card>
         </div>
@@ -562,11 +537,11 @@ export default function BarberAppointments() {
             {upcomingAppointments.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <Calendar className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
                   <h3 className="font-medium text-lg mb-2">
                     Yaklaşan randevu bulunamadı
                   </h3>
-                  <p className="text-gray-500 mb-6">
+                  <p className="text-muted-foreground mb-6">
                     Filtreleri kontrol edin veya yeni randevu oluşturun
                   </p>
                   <Link href="/barber/appointments/new">
@@ -593,11 +568,11 @@ export default function BarberAppointments() {
             {completedAppointments.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <Calendar className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
                   <h3 className="font-medium text-lg mb-2">
                     Tamamlanan randevu bulunamadı
                   </h3>
-                  <p className="text-gray-500">Filtreleri kontrol edin</p>
+                  <p className="text-muted-foreground">Filtreleri kontrol edin</p>
                 </CardContent>
               </Card>
             ) : (
@@ -616,11 +591,11 @@ export default function BarberAppointments() {
             {cancelledAppointments.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                  <Calendar className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
                   <h3 className="font-medium text-lg mb-2">
                     İptal edilen randevu bulunamadı
                   </h3>
-                  <p className="text-gray-500">Filtreleri kontrol edin</p>
+                  <p className="text-muted-foreground">Filtreleri kontrol edin</p>
                 </CardContent>
               </Card>
             ) : (

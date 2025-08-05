@@ -92,8 +92,10 @@ export const useAuthStore = create<AuthState>()(
       refreshUser: async () => {
         try {
           const response = await fetch("/api/profile");
+          
           if (response.ok) {
             const result = await response.json();
+            
             if (result.success && result.data) {
               const supabase = createClient();
               const {

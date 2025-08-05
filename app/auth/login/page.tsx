@@ -122,9 +122,9 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+      <header className="bg-background border-b border-border px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <Link href="/">
             <Button variant="ghost" size="sm">
@@ -141,7 +141,7 @@ function LoginForm() {
         {/* Logo/Brand */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-2">Tekrar Hoş Geldiniz</h2>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             The Barber Shop hesabınıza giriş yapın
           </p>
         </div>
@@ -164,12 +164,12 @@ function LoginForm() {
               <div>
                 <Label
                   htmlFor="email"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-muted-foreground"
                 >
                   E-posta Adresi
                 </Label>
                 <div className="relative mt-1">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -188,12 +188,12 @@ function LoginForm() {
               <div>
                 <Label
                   htmlFor="password"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-muted-foreground"
                 >
                   Şifre
                 </Label>
                 <div className="relative mt-1">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -204,7 +204,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -223,7 +223,7 @@ function LoginForm() {
               <div className="flex justify-end">
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700"
+                  className="text-sm text-primary hover:text-primary/80"
                 >
                   Şifremi unuttum?
                 </Link>
@@ -243,10 +243,10 @@ function LoginForm() {
         {/* Divider */}
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
+            <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">veya</span>
+            <span className="px-4 bg-background text-muted-foreground">veya</span>
           </div>
         </div>
 
@@ -283,11 +283,11 @@ function LoginForm() {
 
         {/* Sign Up Link */}
         <div className="text-center">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Hesabınız yok mu?{" "}
             <Link
               href="/auth/register"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-primary hover:text-primary/80 font-medium"
             >
               Kayıt ol
             </Link>
@@ -302,8 +302,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white">
-          <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+        <div className="min-h-screen bg-background text-foreground">
+          <header className="bg-background border-b border-border px-4 py-4 sticky top-0 z-50">
             <div className="flex items-center justify-between">
               <Link href="/">
                 <Button variant="ghost" size="sm">
@@ -318,13 +318,13 @@ export default function LoginPage() {
           <div className="px-4 py-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 Sign in to your The Barber Shop account
               </p>
             </div>
             <Card>
               <CardContent className="p-6">
-                <div className="text-center text-gray-500">Yükleniyor...</div>
+                <div className="text-center text-muted-foreground">Yükleniyor...</div>
               </CardContent>
             </Card>
           </div>

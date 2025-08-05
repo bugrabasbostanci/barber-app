@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -11,6 +10,7 @@ import {
   Clock,
   Calendar,
 } from "lucide-react";
+import { BarberPageHeader } from "@/components/layouts/barber-page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,30 +45,7 @@ interface Staff {
 }
 
 export default function BarberCalendar() {
-  const router = useRouter();
-
-  // Auth check
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/auth/check-role");
-        if (!response.ok) {
-          router.push("/auth/login");
-          return;
-        }
-        const data = await response.json();
-        if (!data.success || data.role !== "BARBER") {
-          router.push("/auth/login");
-          return;
-        }
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.push("/auth/login");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+  // Auth check is handled by BarberLayout
 
   // State
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -243,9 +220,9 @@ export default function BarberCalendar() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
           <p>Yükleniyor...</p>
         </div>
       </div>
@@ -253,47 +230,47 @@ export default function BarberCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header - Tablet Optimized */}
-      <header className="bg-white border-b px-4 sm:px-6 py-4 sm:py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/barber/dashboard">
-              <Button variant="ghost" size="lg" className="text-base">
-                <ArrowLeft className="w-6 h-6 mr-3" />
-                Geri
-              </Button>
-            </Link>
-            <div className="ml-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Takvim Yönetimi
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Randevu takvimi ve planlama
-              </p>
-            </div>
-          </div>
+      <BarberPageHeader>
+        <Link href="/barber/dashboard">
+          <Button variant="ghost" size="lg" className="text-base">
+            <ArrowLeft className="w-6 h-6 mr-3" />
+            Geri
+          </Button>
+        </Link>
+        <div className="ml-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+            Takvim Yönetimi
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Randevu takvimi ve planlama
+          </p>
+        </div>
+        <div className="flex-1 flex justify-end mr-4">
           <Link href="/barber/appointments/new">
             <Button
               size="lg"
-              className="bg-black hover:bg-gray-800 text-white text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
+              className="bg-foreground text-background hover:bg-foreground/90 text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
             >
               <Plus className="w-5 h-5 sm:mr-2" />
               <span className="hidden sm:inline">Yeni Randevu</span>
             </Button>
           </Link>
         </div>
-      </header>
+      </BarberPageHeader>
 
       <div className="p-6">
         {/* Staff Legend - Tablet Friendly */}
         <div className="flex items-center justify-center space-x-8 mb-6">
           {staff.map((staffMember, index) => {
-            const colorClass = index === 0 ? "blue-200" : "green-200";
+            const legendColorClass = index === 0 
+              ? "w-6 h-6 bg-blue-200 dark:bg-blue-600 rounded-full" 
+              : "w-6 h-6 bg-green-200 dark:bg-green-600 rounded-full";
             return (
               <div key={staffMember.id} className="flex items-center space-x-3">
-                <div className={`w-6 h-6 bg-${colorClass} rounded-full`}></div>
-                <span className="text-lg font-medium text-gray-900">
+                <div className={legendColorClass}></div>
+                <span className="text-lg font-medium text-foreground">
                   {staffMember.firstName} {staffMember.lastName}
                 </span>
               </div>
@@ -374,13 +351,13 @@ export default function BarberCalendar() {
                       return (
                         <div
                           key={slot.start}
-                          className="bg-gray-50 rounded-lg p-4"
+                          className="bg-muted rounded-lg p-4"
                         >
                           <div className="flex items-center justify-between mb-3">
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold text-foreground">
                               {slot.start} - {slot.end}
                             </div>
-                            <Clock className="w-4 h-4 text-gray-400" />
+                            <Clock className="w-4 h-4 text-muted-foreground" />
                           </div>
 
                           <div className="space-y-2">
@@ -398,16 +375,16 @@ export default function BarberCalendar() {
                                   "";
                                 const colorClass =
                                   index === 0
-                                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                                    : "bg-green-50 border-green-200 text-green-700";
+                                    ? "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200"
+                                    : "bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700 text-green-700 dark:text-green-200";
                                 const textColorClass =
                                   index === 0
-                                    ? "text-blue-800"
-                                    : "text-green-800";
+                                    ? "text-blue-800 dark:text-blue-100"
+                                    : "text-green-800 dark:text-green-100";
                                 const subTextColorClass =
                                   index === 0
-                                    ? "text-blue-600"
-                                    : "text-green-600";
+                                    ? "text-blue-600 dark:text-blue-300"
+                                    : "text-green-600 dark:text-green-300";
 
                                 return (
                                   <div
@@ -456,8 +433,8 @@ export default function BarberCalendar() {
                         })
                     ) && (
                       <div className="text-center py-8">
-                        <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500">
+                        <Calendar className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
+                        <p className="text-muted-foreground">
                           Bu gün için randevu bulunmuyor
                         </p>
                       </div>
@@ -469,19 +446,19 @@ export default function BarberCalendar() {
                 <div className="hidden lg:grid lg:grid-cols-3 gap-6">
                   {/* Time Column */}
                   <div className="space-y-3">
-                    <div className="h-12 flex items-center justify-center font-medium text-gray-600 border-b">
+                    <div className="h-12 flex items-center justify-center font-medium text-muted-foreground border-b border-border">
                       Saat
                     </div>
                     {timeSlots.map((slot) => (
                       <div
                         key={slot.start}
-                        className="h-16 flex items-center justify-center text-sm text-gray-500 border-b border-gray-100"
+                        className="h-16 flex items-center justify-center text-sm text-muted-foreground border-b border-border"
                       >
                         <div className="text-center">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-muted-foreground">
                             {slot.start}
                           </div>
-                          {/* <div className="text-sm text-gray-500">
+                          {/* <div className="text-sm text-muted-foreground">
                             {slot.end}
                           </div> */}
                         </div>
@@ -493,13 +470,27 @@ export default function BarberCalendar() {
                   {staff.slice(0, 2).map((staffMember, staffIndex) => {
                     const staffName =
                       `${staffMember.firstName} ${staffMember.lastName}`.trim();
-                    const colorClass = staffIndex === 0 ? "blue" : "green";
+                    
+                    // Define static classes for better dark mode support
+                    const headerClasses = staffIndex === 0 
+                      ? "h-12 flex items-center justify-center font-medium text-foreground border-b border-border bg-blue-50 dark:bg-blue-900/20"
+                      : "h-12 flex items-center justify-center font-medium text-foreground border-b border-border bg-green-50 dark:bg-green-900/20";
+                    
+                    const appointmentBgClasses = staffIndex === 0
+                      ? "bg-blue-100 dark:bg-blue-900/30 rounded-md p-2 h-full"
+                      : "bg-green-100 dark:bg-green-900/30 rounded-md p-2 h-full";
+                    
+                    const appointmentTextClasses = staffIndex === 0
+                      ? "text-xs font-medium text-blue-900 dark:text-blue-100"
+                      : "text-xs font-medium text-green-900 dark:text-green-100";
+                    
+                    const notesTextClasses = staffIndex === 0
+                      ? "text-xs text-blue-700 dark:text-blue-200"
+                      : "text-xs text-green-700 dark:text-green-200";
 
                     return (
                       <div key={staffMember.id} className="space-y-3">
-                        <div
-                          className={`h-12 flex items-center justify-center font-medium text-gray-900 border-b bg-${colorClass}-50`}
-                        >
+                        <div className={headerClasses}>
                           {staffName}
                         </div>
                         {timeSlots.map((slot) => {
@@ -516,27 +507,21 @@ export default function BarberCalendar() {
                           return (
                             <div
                               key={slot.start}
-                              className="h-16 border border-gray-200 rounded-lg p-2"
+                              className="h-16 border border-border rounded-lg p-2"
                             >
                               {appointment ? (
-                                <div
-                                  className={`bg-${colorClass}-100 rounded-md p-2 h-full`}
-                                >
-                                  <div
-                                    className={`text-xs font-medium text-${colorClass}-900`}
-                                  >
+                                <div className={appointmentBgClasses}>
+                                  <div className={appointmentTextClasses}>
                                     {customerName || "Müşteri"}
                                   </div>
                                   {appointment.notes && (
-                                    <div
-                                      className={`text-xs text-${colorClass}-700`}
-                                    >
+                                    <div className={notesTextClasses}>
                                       {appointment.notes}
                                     </div>
                                   )}
                                 </div>
                               ) : (
-                                <div className="h-full bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"></div>
+                                <div className="h-full bg-muted rounded-md hover:bg-muted/80 cursor-pointer transition-colors"></div>
                               )}
                             </div>
                           );
@@ -609,7 +594,7 @@ export default function BarberCalendar() {
                                   weekday: "long",
                                 })}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-muted-foreground">
                                 {date.toLocaleDateString("tr-TR", {
                                   day: "2-digit",
                                   month: "long",
@@ -643,8 +628,8 @@ export default function BarberCalendar() {
                                   );
                                   const colorClass =
                                     staffIndex === 0
-                                      ? "bg-blue-50 text-blue-700"
-                                      : "bg-green-50 text-green-700";
+                                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-200"
+                                      : "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-200";
 
                                   return (
                                     <div
@@ -658,13 +643,13 @@ export default function BarberCalendar() {
                                   );
                                 })}
                               {dayAppointments.length > 3 && (
-                                <div className="text-xs text-gray-500 text-center">
+                                <div className="text-xs text-muted-foreground text-center">
                                   +{dayAppointments.length - 3} daha fazla
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="text-sm text-gray-500 text-center py-2">
+                            <div className="text-sm text-muted-foreground text-center py-2">
                               Randevu yok
                             </div>
                           )}
@@ -676,11 +661,13 @@ export default function BarberCalendar() {
 
                 {/* Desktop Week Grid - V2 Style */}
                 <div className="hidden lg:grid lg:grid-cols-8 gap-2">
-                  <div className="font-medium text-gray-600 p-2">Saat</div>
+                  <div className="font-medium text-muted-foreground p-2">
+                    Saat
+                  </div>
                   {getWeekDates(currentWeek).map((date, index) => (
                     <div
                       key={index}
-                      className="text-center p-2 font-medium text-gray-900"
+                      className="text-center p-2 font-medium text-foreground"
                     >
                       <div className="text-sm">
                         {date.toLocaleDateString("tr-TR", { weekday: "short" })}
@@ -692,7 +679,7 @@ export default function BarberCalendar() {
                   {/* Time slots for week view - All 45-minute slots */}
                   {timeSlots.map((slot) => (
                     <div key={slot.start} className="contents">
-                      <div className="text-sm text-gray-500 p-2 border-t">
+                      <div className="text-sm text-muted-foreground p-2 border-t">
                         {slot.start}
                       </div>
                       {getWeekDates(currentWeek).map((date, dayIndex) => {
@@ -705,7 +692,7 @@ export default function BarberCalendar() {
                         return (
                           <div
                             key={dayIndex}
-                            className="h-16 border border-gray-200 rounded-lg p-1 border-t"
+                            className="h-16 border border-border rounded-lg p-1 border-t"
                           >
                             {appointment
                               ? (() => {
@@ -717,8 +704,15 @@ export default function BarberCalendar() {
                                       `${s.firstName} ${s.lastName}`.trim() ===
                                       staffName
                                   );
-                                  const colorClass =
-                                    staffIndex === 0 ? "blue" : "green";
+                                  
+                                  const bgClass = staffIndex === 0
+                                    ? "bg-blue-100 dark:bg-blue-900/30 rounded-md p-1 h-full"
+                                    : "bg-green-100 dark:bg-green-900/30 rounded-md p-1 h-full";
+                                  
+                                  const textClass = staffIndex === 0
+                                    ? "text-xs font-medium text-blue-900 dark:text-blue-100"
+                                    : "text-xs font-medium text-green-900 dark:text-green-100";
+                                  
                                   const customerName = appointment.customer
                                     ? `${
                                         appointment.customer.firstName || ""
@@ -729,12 +723,8 @@ export default function BarberCalendar() {
                                       "Müşteri";
 
                                   return (
-                                    <div
-                                      className={`bg-${colorClass}-100 rounded-md p-1 h-full`}
-                                    >
-                                      <div
-                                        className={`text-xs font-medium text-${colorClass}-900`}
-                                      >
+                                    <div className={bgClass}>
+                                      <div className={textClass}>
                                         {customerName}
                                       </div>
                                     </div>
@@ -793,7 +783,7 @@ export default function BarberCalendar() {
                     {["P", "S", "Ç", "P", "C", "C", "P"].map((day, index) => (
                       <div
                         key={index}
-                        className="text-center font-bold text-sm text-gray-700 p-2"
+                        className="text-center font-bold text-sm text-muted-foreground p-2"
                       >
                         {day}
                       </div>
@@ -811,11 +801,11 @@ export default function BarberCalendar() {
                       return (
                         <div
                           key={index}
-                          className="aspect-square border border-gray-200 rounded p-1"
+                          className="aspect-square border border-border rounded p-1"
                         >
                           {day && (
                             <>
-                              <div className="text-sm font-medium text-gray-900 mb-1">
+                              <div className="text-sm font-medium text-foreground mb-1">
                                 {day.getDate()}
                               </div>
                               {dayAppointments.length > 0 && (
@@ -834,14 +824,14 @@ export default function BarberCalendar() {
                                     if (staffAppointments.length === 0)
                                       return null;
 
-                                    const colorClass =
+                                    const indicatorClass =
                                       staffIndex === 0
-                                        ? "bg-blue-200"
-                                        : "bg-green-200";
+                                        ? "w-full h-1 bg-blue-200 dark:bg-blue-600 rounded"
+                                        : "w-full h-1 bg-green-200 dark:bg-green-600 rounded";
                                     return (
                                       <div
                                         key={staffMember.id}
-                                        className={`w-full h-1 ${colorClass} rounded`}
+                                        className={indicatorClass}
                                       ></div>
                                     );
                                   })}
@@ -857,13 +847,13 @@ export default function BarberCalendar() {
                   {/* Legend for mobile */}
                   <div className="flex items-center justify-center space-x-4 mt-4 text-xs">
                     {staff.map((staffMember, index) => {
-                      const colorClass =
-                        index === 0 ? "bg-blue-200" : "bg-green-200";
+                      const mobileLegendClass =
+                        index === 0 
+                          ? "w-3 h-1 bg-blue-200 dark:bg-blue-600 rounded mr-1" 
+                          : "w-3 h-1 bg-green-200 dark:bg-green-600 rounded mr-1";
                       return (
                         <div key={staffMember.id} className="flex items-center">
-                          <div
-                            className={`w-3 h-1 ${colorClass} rounded mr-1`}
-                          ></div>
+                          <div className={mobileLegendClass}></div>
                           <span>
                             {staffMember.firstName} {staffMember.lastName}
                           </span>
@@ -880,7 +870,7 @@ export default function BarberCalendar() {
                     (day) => (
                       <div
                         key={day}
-                        className="text-center font-medium text-gray-600 p-2"
+                        className="text-center font-medium text-muted-foreground p-2"
                       >
                         {day}
                       </div>
@@ -898,15 +888,15 @@ export default function BarberCalendar() {
                     return (
                       <div
                         key={index}
-                        className="h-24 border border-gray-200 rounded-lg p-1"
+                        className="h-24 border border-border rounded-lg p-1"
                       >
                         {day && (
                           <>
-                            <div className="text-sm font-medium text-gray-900 mb-1">
+                            <div className="text-sm font-medium text-foreground mb-1">
                               {day.getDate()}
                             </div>
                             {dayAppointments.length > 0 && (
-                              <div className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 mb-1">
+                              <div className="text-xs bg-primary/10 text-primary rounded px-1 py-0.5 mb-1">
                                 {dayAppointments.length} randevu
                               </div>
                             )}

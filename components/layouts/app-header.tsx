@@ -42,6 +42,7 @@ export function AppHeader({
     isCustomer,
     canAccessBarberPanel,
   } = useAuth();
+
   const router = useRouter();
 
   const handleSignOut = async (e: React.MouseEvent) => {

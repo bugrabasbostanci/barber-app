@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma';
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { localDateToUTC, createUTCTime, extractTimeString } from "@/lib/date-time";
 import { logger } from "@/lib/logger";
+import { createClient } from "@/lib/supabase/server";
 
 
 // GET - Fetch time blocks

@@ -13,8 +13,9 @@ interface ClientLayoutProps {
 export function ClientLayout({ children }: ClientLayoutProps) {
   const pathname = usePathname();
 
-  // Check if current page is an auth page
+  // Check if current page is an auth page or barber page
   const isAuthPage = pathname.startsWith('/auth');
+  const isBarberPage = pathname.startsWith('/barber');
 
   // Determine page configuration based on pathname
   const getPageConfig = () => {
@@ -53,6 +54,11 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   };
 
   const pageConfig = getPageConfig();
+
+  // If it's a barber page, don't wrap with providers (handled by BarberLayout)
+  if (isBarberPage) {
+    return <div>{children}</div>;
+  }
 
   return (
     <QueryProvider>

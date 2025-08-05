@@ -7,11 +7,11 @@ import { ValidationError } from "@/lib/errors";
 import { NextRequest } from "next/server";
 
 
-async function getMyAppointmentsHandler(request: NextRequest, context?: { user: AuthenticatedUser }) {
+async function getMyAppointmentsHandler(request: NextRequest, context?: Record<string, unknown>) {
   if (!context?.user) {
     throw new ValidationError([{ code: 'unauthorized', message: 'Unauthorized' }]);
   }
-  const { user } = context;
+  const user = context.user as AuthenticatedUser;
 
   // Get user's appointments
   const appointments = await prisma.appointment.findMany({

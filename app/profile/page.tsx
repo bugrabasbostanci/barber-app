@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useRequireCustomer } from "@/hooks/useRequireAuth";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import type { User as AuthUser } from "@supabase/supabase-js";
 import {
   User,
@@ -35,7 +35,7 @@ interface UserWithRole extends AuthUser {
 }
 
 export default function ProfilePage() {
-  const { user, loading: authLoading, isAuthorized } = useRequireCustomer();
+  const { user, loading: authLoading, isAuthorized } = useRequireAuth();
 
   // Profile context
   const {

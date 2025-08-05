@@ -4,14 +4,14 @@ import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
-import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
 
 // GET - Fetch user profile
-async function getProfileHandler(request: NextRequest, context?: { user: AuthenticatedUser }) {
+async function getProfileHandler(request: NextRequest, context?: Record<string, unknown>) {
   if (!context?.user) {
     throw new ValidationError([{ code: 'unauthorized', message: 'Unauthorized' }]);
   }
-  const { user } = context;
+  const user = context.user as AuthenticatedUser;
 
   // Get user profile from database
   let userProfile = await prisma.user.findUnique({
@@ -56,14 +56,14 @@ async function getProfileHandler(request: NextRequest, context?: { user: Authent
   });
 }
 
-export const GET = withErrorHandler(withAuth(requireCustomer())(getProfileHandler));
+export const GET = withErrorHandler(withAuth(requireAuth())(getProfileHandler));
 
 // PATCH - Update user profile (partial update)
-async function patchProfileHandler(request: NextRequest, context?: { user: AuthenticatedUser }) {
+async function patchProfileHandler(request: NextRequest, context?: Record<string, unknown>) {
   if (!context?.user) {
     throw new ValidationError([{ code: 'unauthorized', message: 'Unauthorized' }]);
   }
-  const { user } = context;
+  const user = context.user as AuthenticatedUser;
 
   const body = await request.json();
   const updateData: {
@@ -104,14 +104,14 @@ async function patchProfileHandler(request: NextRequest, context?: { user: Authe
   });
 }
 
-export const PATCH = withErrorHandler(withAuth(requireCustomer())(patchProfileHandler));
+export const PATCH = withErrorHandler(withAuth(requireAuth())(patchProfileHandler));
 
 // PUT - Update user profile  
-async function putProfileHandler(request: NextRequest, context?: { user: AuthenticatedUser }) {
+async function putProfileHandler(request: NextRequest, context?: Record<string, unknown>) {
   if (!context?.user) {
     throw new ValidationError([{ code: 'unauthorized', message: 'Unauthorized' }]);
   }
-  const { user } = context;
+  const user = context.user as AuthenticatedUser;
 
   const { firstName, lastName, phone } = await request.json();
 
@@ -150,14 +150,14 @@ async function putProfileHandler(request: NextRequest, context?: { user: Authent
   });
 }
 
-export const PUT = withErrorHandler(withAuth(requireCustomer())(putProfileHandler));
+export const PUT = withErrorHandler(withAuth(requireAuth())(putProfileHandler));
 
 // DELETE - Delete user account
-async function deleteProfileHandler(request: NextRequest, context?: { user: AuthenticatedUser }) {
+async function deleteProfileHandler(request: NextRequest, context?: Record<string, unknown>) {
   if (!context?.user) {
     throw new ValidationError([{ code: 'unauthorized', message: 'Unauthorized' }]);
   }
-  const { user } = context;
+  const user = context.user as AuthenticatedUser;
 
   // Start a transaction to delete user data
   await prisma.$transaction(async (tx) => {
@@ -192,4 +192,4 @@ async function deleteProfileHandler(request: NextRequest, context?: { user: Auth
   });
 }
 
-export const DELETE = withErrorHandler(withAuth(requireCustomer())(deleteProfileHandler));
+export const DELETE = withErrorHandler(withAuth(requireAuth())(deleteProfileHandler));
