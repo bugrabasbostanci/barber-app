@@ -1,8 +1,8 @@
 "use client";
 
-// Re-export from AuthContext for backward compatibility
+// Re-export from Auth feature for backward compatibility
 export { 
-  useAuth, 
+  useAuthContext as useAuth, 
   useAuthUser as useUser, 
   useAuthLoading,
   useUserRole,
@@ -12,4 +12,4 @@ export {
   useIsStaff,
   useCanBookAppointments,
   useCanAccessBarberPanel
-} from '@/contexts/auth-context';
+} from '@/features/auth';

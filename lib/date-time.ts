@@ -1,47 +1,41 @@
-// lib/date-time.ts
-// Native JavaScript + Intl.DateTimeFormat ile tarih yönetimi
-// Luxon dependency'si kaldırıldı - Bundle size optimize edildi
+// Re-export from shared utilities for backward compatibility
+import { DateUtils } from '@/shared/utils/dateUtils';
+export { DateUtils };
 
-// Türkiye timezone'u
+// Legacy function mappings for backward compatibility
+export const formatTurkishDate = DateUtils.formatTurkishDate;
+export const formatTurkishDateShort = DateUtils.formatTurkishDateShort;
+export const dateToLocalString = DateUtils.dateToLocalString;
+
+// Keep original timezone-specific functions for now
 export const TURKEY_TZ = "Europe/Istanbul";
 export const DEFAULT_TZ = TURKEY_TZ;
 
 /**
  * Tarih string'ini timezone-agnostic Date objesine çevirir
- * @param dateStr - "2025-07-31" formatında tarih
  */
 export function localDateToUTC(dateStr: string): Date {
-  // UTC'de tarihi oluştur (timezone shift'i önlemek için)
   return new Date(dateStr + 'T12:00:00.000Z');
 }
 
 /**
- * Local tarih ve saat string'lerini UTC Date objesine çevirir (timezone-safe)
- * @param dateStr - "2025-07-31" formatında tarih
- * @param timeStr - "14:30" formatında saat
+ * Local tarih ve saat string'lerini UTC Date objesine çevirir
  */
 export function localDateTimeToUTC(dateStr: string, timeStr: string): Date {
-  // Local timezone'da tarih+saat oluştur
   const [year, month, day] = dateStr.split('-').map(Number);
   const [hours, minutes] = timeStr.split(':').map(Number);
-  // month - 1 çünkü JavaScript ayları 0-based
   return new Date(year, month - 1, day, hours, minutes);
 }
 
 /**
  * Date objesini local tarih string'ine çevirir
- * @param date - Date objesi
  */
 export function utcToLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return DateUtils.dateToLocalString(date);
 }
 
 /**
  * Date objesini local saat string'ine çevirir
- * @param date - Date objesi
  */
 export function utcToLocalTime(date: Date): string {
   const hours = String(date.getHours()).padStart(2, '0');
@@ -51,12 +45,8 @@ export function utcToLocalTime(date: Date): string {
 
 /**
  * Date objesini local datetime objesine çevirir
- * @param date - Date objesi
  */
-export function utcToLocalDateTime(date: Date): {
-  date: string;
-  time: string;
-} {
+export function utcToLocalDateTime(date: Date): { date: string; time: string } {
   return {
     date: utcToLocalDate(date),
     time: utcToLocalTime(date),
@@ -64,8 +54,7 @@ export function utcToLocalDateTime(date: Date): {
 }
 
 /**
- * Sadece saat bilgisi için Date oluşturur (1970-01-01 bazlı)
- * @param timeStr - "14:30" formatında saat
+ * Sadece saat bilgisi için Date oluşturur
  */
 export function createUTCTime(timeStr: string): Date {
   return new Date(`1970-01-01T${timeStr}:00Z`);
@@ -73,45 +62,15 @@ export function createUTCTime(timeStr: string): Date {
 
 /**
  * Date objesinden saat string'i çıkarır
- * @param date - Date objesi (1970-01-01 bazlı)
  */
 export function extractTimeString(date: Date): string {
-  // UTC saati olarak çıkar (timezone dönüşümü yapma)
   const hours = String(date.getUTCHours()).padStart(2, '0');
   const minutes = String(date.getUTCMinutes()).padStart(2, '0');
   return `${hours}:${minutes}`;
 }
 
 /**
- * Türkçe tarih formatı - Modern Intl.DateTimeFormat kullanarak
- * @param dateStr - "2025-07-31" formatında tarih
- */
-export function formatTurkishDate(dateStr: string): string {
-  // Local timezone'da tarih oluştur (timezone offset problemini önler)
-  const date = new Date(dateStr + 'T00:00:00');
-  
-  // Modern web standard ile Türkçe formatlama
-  return new Intl.DateTimeFormat('tr-TR', {
-    weekday: 'long',   // "Çarşamba"
-    year: 'numeric',   // "2025"  
-    month: 'long',     // "Temmuz"
-    day: 'numeric'     // "30"
-  }).format(date);
-}
-
-/**
- * JavaScript Date'den YYYY-MM-DD formatına çevirir (timezone-safe)
- * @param date - JavaScript Date objesi
- */
-export function dateToLocalString(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-/**
- * Kullanıcının timezone'unu algılar (basitleştirildi)
+ * Kullanıcının timezone'unu algılar
  */
 export function getUserTimezone(): string {
   try {
@@ -123,18 +82,14 @@ export function getUserTimezone(): string {
 
 /**
  * İki tarih arasındaki saat farkını hesaplar
- * @param date1 - İlk tarih
- * @param date2 - İkinci tarih
  */
 export function getHoursDifference(date1: Date, date2: Date): number {
   const diffMs = Math.abs(date1.getTime() - date2.getTime());
-  return diffMs / (1000 * 60 * 60); // milliseconds to hours
+  return diffMs / (1000 * 60 * 60);
 }
 
 /**
  * Randevu saatinin geçip geçmediğini kontrol eder
- * @param dateStr - "2025-07-31" formatında tarih
- * @param timeStr - "14:30" formatında saat
  */
 export function isAppointmentPast(dateStr: string, timeStr: string): boolean {
   const appointmentTime = new Date(`${dateStr}T${timeStr}:00`);
@@ -144,9 +99,6 @@ export function isAppointmentPast(dateStr: string, timeStr: string): boolean {
 
 /**
  * Randevunun iptal edilebilir olup olmadığını kontrol eder
- * @param dateStr - "2025-07-31" formatında tarih
- * @param timeStr - "14:30" formatında saat
- * @param cancellationHours - İptal için gereken minimum saat
  */
 export function canCancelAppointment(
   dateStr: string,
@@ -160,24 +112,7 @@ export function canCancelAppointment(
 }
 
 /**
- * Türkçe tarih formatı (kısa versiyon)
- * @param dateStr - "2025-07-31" formatında tarih
- */
-export function formatTurkishDateShort(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00');
-  
-  return new Intl.DateTimeFormat('tr-TR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  }).format(date);
-}
-
-/**
  * Tarih aralığı kontrolü
- * @param dateStr - Kontrol edilecek tarih
- * @param startDate - Başlangıç tarihi  
- * @param endDate - Bitiş tarihi
  */
 export function isDateInRange(dateStr: string, startDate: string, endDate: string): boolean {
   const date = new Date(dateStr + 'T00:00:00');
