@@ -1,30 +1,16 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest } from "next/server";
 import { extractTimeString, utcToLocalDate } from "@/lib/date-time";
+import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { ApiResponseBuilder } from "@/lib/api/response";
-import { UnauthorizedError, ForbiddenError } from "@/lib/errors";
 
 
-async function getMyAppointmentsHandler() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new UnauthorizedError();
-  }
-
-  // Check if user exists and has CUSTOMER role
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-  });
-
-  if (!dbUser || dbUser.role !== 'CUSTOMER') {
-    throw new ForbiddenError("Bu işlemi gerçekleştirmek için müşteri hesabınız olmalı");
-  }
+async function getMyAppointmentsHandler(
+  request: NextRequest, 
+  context: Record<string, unknown> = {}
+) {
+  const user = context.user as AuthenticatedUser;
 
     // Get user's appointments
     const appointments = await prisma.appointment.findMany({
@@ -74,4 +60,6 @@ async function getMyAppointmentsHandler() {
   return ApiResponseBuilder.success(formattedAppointments);
 }
 
-export const GET = withErrorHandler(getMyAppointmentsHandler);
+export const GET = withErrorHandler(
+  withAuth(requireCustomer())(getMyAppointmentsHandler)
+);

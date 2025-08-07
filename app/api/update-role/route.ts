@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withCSRFProtection } from "@/lib/middleware/csrf";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { UnauthorizedError, ValidationError } from "@/lib/errors";
 
@@ -45,4 +46,6 @@ async function updateRoleHandler(request: NextRequest) {
   });
 }
 
-export const POST = withErrorHandler(updateRoleHandler);
+export const POST = withErrorHandler(
+  withCSRFProtection()(updateRoleHandler)
+);

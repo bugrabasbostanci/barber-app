@@ -1,22 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
+import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { ApiResponseBuilder } from "@/lib/api/response";
-import { UnauthorizedError, ValidationError } from "@/lib/errors";
+import { ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { createClient } from "@/lib/supabase/server";
 
 // GET - Fetch user profile
-async function getProfileHandler() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new UnauthorizedError();
-  }
+async function getProfileHandler(
+  request: NextRequest, 
+  context: Record<string, unknown> = {}
+) {
+  const user = context.user as AuthenticatedUser;
 
     // Get user profile from database
     let userProfile = await prisma.user.findUnique({
@@ -37,10 +33,10 @@ async function getProfileHandler() {
       userProfile = await prisma.user.create({
         data: {
           id: user.id,
-          email: user.email!,
-          firstName: user.user_metadata?.first_name || "",
-          lastName: user.user_metadata?.last_name || "",
-          phone: user.user_metadata?.phone || null,
+          email: user.email,
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          phone: null,
           role: "CUSTOMER",
         },
         select: {
@@ -61,19 +57,16 @@ async function getProfileHandler() {
   });
 }
 
-export const GET = withErrorHandler(getProfileHandler);
+export const GET = withErrorHandler(
+  withAuth(requireAuth())(getProfileHandler)
+);
 
 // PATCH - Update user profile (partial update)
-async function patchProfileHandler(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new UnauthorizedError();
-  }
+async function patchProfileHandler(
+  request: NextRequest, 
+  context: Record<string, unknown> = {}
+) {
+  const user = context.user as AuthenticatedUser;
 
     const body = await request.json();
     const updateData: {
@@ -114,19 +107,16 @@ async function patchProfileHandler(request: NextRequest) {
   });
 }
 
-export const PATCH = withErrorHandler(patchProfileHandler);
+export const PATCH = withErrorHandler(
+  withAuth(requireAuth())(patchProfileHandler)
+);
 
 // PUT - Update user profile  
-async function putProfileHandler(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new UnauthorizedError();
-  }
+async function putProfileHandler(
+  request: NextRequest, 
+  context: Record<string, unknown> = {}
+) {
+  const user = context.user as AuthenticatedUser;
 
   const { firstName, lastName, phone } = await request.json();
 
@@ -165,19 +155,17 @@ async function putProfileHandler(request: NextRequest) {
   });
 }
 
-export const PUT = withErrorHandler(putProfileHandler);
+export const PUT = withErrorHandler(
+  withAuth(requireAuth())(putProfileHandler)
+);
 
 // DELETE - Delete user account
-async function deleteProfileHandler() {
+async function deleteProfileHandler(
+  request: NextRequest, 
+  context: Record<string, unknown> = {}
+) {
+  const user = context.user as AuthenticatedUser;
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    throw new UnauthorizedError();
-  }
 
     // Start a transaction to delete user data
     await prisma.$transaction(async (tx) => {
@@ -210,4 +198,6 @@ async function deleteProfileHandler() {
   });
 }
 
-export const DELETE = withErrorHandler(deleteProfileHandler);
+export const DELETE = withErrorHandler(
+  withAuth(requireAuth())(deleteProfileHandler)
+);

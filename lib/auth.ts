@@ -163,7 +163,7 @@ export async function changePassword(
 ) {
   const supabase = createClient();
 
-  // First, verify current password by trying to sign in
+  // Get current user to ensure they are authenticated
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -171,26 +171,39 @@ export async function changePassword(
     return { data: null, error: { message: "Kullanıcı bulunamadı" } };
   }
 
-  // Verify current password
-  const { error: signInError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: currentPassword,
-  });
+  // For security, we should validate current password on backend
+  // But for now, we'll use Supabase's secure password update
+  // The user must be authenticated to reach this function
+  
+  try {
+    // Verify current password safely without affecting current session
+    // Use a separate API call to verify password
+    const response = await fetch('/api/auth/verify-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword })
+    });
 
-  if (signInError) {
-    return { data: null, error: { message: "Mevcut şifre yanlış" } };
+    if (!response.ok) {
+      return { data: null, error: { message: "Mevcut şifre yanlış" } };
+    }
+
+    // Update to new password
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    // Return Turkish error message
+    return {
+      data,
+      error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
+    };
+  } catch {
+    return { 
+      data: null, 
+      error: { message: "Şifre değiştirme işleminde hata oluştu" } 
+    };
   }
-
-  // Update to new password
-  const { data, error } = await supabase.auth.updateUser({
-    password: newPassword,
-  });
-
-  // Return Turkish error message
-  return {
-    data,
-    error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
-  };
 }
 
 export async function getUser() {
