@@ -370,7 +370,7 @@ export default function BarberAppointments() {
           <Link href="/barber/appointments/new">
             <Button
               size="lg"
-              className="bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 text-white dark:text-black text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
+              className="bg-black hover:bg-gray-800 dark:bg-white  dark:hover:bg-gray-200 text-white dark:text-black text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
             >
               <Plus className="w-5 h-5 sm:mr-2" />
               Yeni Randevu
@@ -570,7 +570,9 @@ export default function BarberAppointments() {
                   <h3 className="font-medium text-lg mb-2">
                     Tamamlanan randevu bulunamadı
                   </h3>
-                  <p className="text-muted-foreground">Filtreleri kontrol edin</p>
+                  <p className="text-muted-foreground">
+                    Filtreleri kontrol edin
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -593,7 +595,9 @@ export default function BarberAppointments() {
                   <h3 className="font-medium text-lg mb-2">
                     İptal edilen randevu bulunamadı
                   </h3>
-                  <p className="text-muted-foreground">Filtreleri kontrol edin</p>
+                  <p className="text-muted-foreground">
+                    Filtreleri kontrol edin
+                  </p>
                 </CardContent>
               </Card>
             ) : (
