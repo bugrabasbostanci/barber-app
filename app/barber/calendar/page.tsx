@@ -14,6 +14,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
 
@@ -77,6 +83,8 @@ export default function BarberCalendar() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -241,11 +249,31 @@ export default function BarberCalendar() {
     return days;
   };
 
+  const handleAppointmentClick = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsModalOpen(true);
+  };
+
+  const formatAppointmentTime = (appointment: Appointment) => {
+    return `${appointment.startTime} - ${appointment.endTime}`;
+  };
+
+  const getCustomerName = (appointment: Appointment) => {
+    if (appointment.customer) {
+      return `${appointment.customer.firstName || ""} ${appointment.customer.lastName || ""}`.trim();
+    }
+    return appointment.manualCustomerName || "Bilinmeyen Müşteri";
+  };
+
+  const getCustomerPhone = (appointment: Appointment) => {
+    return appointment.customer?.phone || appointment.manualCustomerPhone || "";
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
           <p>Yükleniyor...</p>
         </div>
       </div>
@@ -253,9 +281,9 @@ export default function BarberCalendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header - Tablet Optimized */}
-      <header className="bg-white border-b px-4 sm:px-6 py-4 sm:py-6">
+      <header className="bg-background border-b px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link href="/barber/dashboard">
@@ -265,10 +293,8 @@ export default function BarberCalendar() {
               </Button>
             </Link>
             <div className="ml-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Takvim Yönetimi
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
+              <h1 className="text-xl sm:text-2xl font-bold">Takvim Yönetimi</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 Randevu takvimi ve planlama
               </p>
             </div>
@@ -276,7 +302,7 @@ export default function BarberCalendar() {
           <Link href="/barber/appointments/new">
             <Button
               size="lg"
-              className="bg-black hover:bg-gray-800 text-white text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
+              className="bg-black hover:bg-gray-800 dark:bg-white  dark:hover:bg-gray-200 text-white dark:text-black text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
             >
               <Plus className="w-5 h-5 sm:mr-2" />
               <span className="hidden sm:inline">Yeni Randevu</span>
@@ -293,7 +319,7 @@ export default function BarberCalendar() {
             return (
               <div key={staffMember.id} className="flex items-center space-x-3">
                 <div className={`w-6 h-6 bg-${colorClass} rounded-full`}></div>
-                <span className="text-lg font-medium text-gray-900">
+                <span className="text-lg font-medium">
                   {staffMember.firstName} {staffMember.lastName}
                 </span>
               </div>
@@ -374,13 +400,13 @@ export default function BarberCalendar() {
                       return (
                         <div
                           key={slot.start}
-                          className="bg-gray-50 rounded-lg p-4"
+                          className="bg-muted/50 rounded-lg p-4"
                         >
                           <div className="flex items-center justify-between mb-3">
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold">
                               {slot.start} - {slot.end}
                             </div>
-                            <Clock className="w-4 h-4 text-gray-400" />
+                            <Clock className="w-4 h-4 text-muted-foreground" />
                           </div>
 
                           <div className="space-y-2">
@@ -398,21 +424,22 @@ export default function BarberCalendar() {
                                   "";
                                 const colorClass =
                                   index === 0
-                                    ? "bg-blue-50 border-blue-200 text-blue-700"
-                                    : "bg-green-50 border-green-200 text-green-700";
+                                    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400"
+                                    : "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-400";
                                 const textColorClass =
                                   index === 0
-                                    ? "text-blue-800"
-                                    : "text-green-800";
+                                    ? "text-blue-800 dark:text-blue-400"
+                                    : "text-green-800 dark:text-green-400";
                                 const subTextColorClass =
                                   index === 0
-                                    ? "text-blue-600"
-                                    : "text-green-600";
+                                    ? "text-blue-600 dark:text-blue-400"
+                                    : "text-green-600 dark:text-green-400";
 
                                 return (
                                   <div
                                     key={`${staffMember.id}-${slot.start}`}
-                                    className={`${colorClass} border-l-4 p-3 rounded`}
+                                    className={`${colorClass} border-l-4 p-3 rounded cursor-pointer hover:opacity-80 transition-opacity`}
+                                    onClick={() => appointment && handleAppointmentClick(appointment)}
                                   >
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="text-xs font-medium">
@@ -456,8 +483,8 @@ export default function BarberCalendar() {
                         })
                     ) && (
                       <div className="text-center py-8">
-                        <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                        <p className="text-gray-500">
+                        <Calendar className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+                        <p className="text-muted-foreground">
                           Bu gün için randevu bulunmuyor
                         </p>
                       </div>
@@ -469,16 +496,16 @@ export default function BarberCalendar() {
                 <div className="hidden lg:grid lg:grid-cols-3 gap-6">
                   {/* Time Column */}
                   <div className="space-y-3">
-                    <div className="h-12 flex items-center justify-center font-medium text-gray-600 border-b">
+                    <div className="h-12 flex items-center justify-center font-medium text-muted-foreground border-b">
                       Saat
                     </div>
                     {timeSlots.map((slot) => (
                       <div
                         key={slot.start}
-                        className="h-16 flex items-center justify-center text-sm text-gray-500 border-b border-gray-100"
+                        className="h-16 flex items-center justify-center text-sm text-muted-foreground border-b border-border"
                       >
                         <div className="text-center">
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-muted-foreground">
                             {slot.start}
                           </div>
                           {/* <div className="text-sm text-gray-500">
@@ -498,7 +525,7 @@ export default function BarberCalendar() {
                     return (
                       <div key={staffMember.id} className="space-y-3">
                         <div
-                          className={`h-12 flex items-center justify-center font-medium text-gray-900 border-b bg-${colorClass}-50`}
+                          className={`h-12 flex items-center justify-center font-medium border-b bg-${colorClass}-50 dark:bg-${colorClass}-900/20`}
                         >
                           {staffName}
                         </div>
@@ -516,27 +543,28 @@ export default function BarberCalendar() {
                           return (
                             <div
                               key={slot.start}
-                              className="h-16 border border-gray-200 rounded-lg p-2"
+                              className="h-16 border border-border rounded-lg p-2"
                             >
                               {appointment ? (
                                 <div
-                                  className={`bg-${colorClass}-100 rounded-md p-2 h-full`}
+                                  className={`bg-${colorClass}-100 dark:bg-${colorClass}-900/20 rounded-md p-2 h-full cursor-pointer hover:opacity-80 transition-opacity`}
+                                  onClick={() => handleAppointmentClick(appointment)}
                                 >
                                   <div
-                                    className={`text-xs font-medium text-${colorClass}-900`}
+                                    className={`text-xs font-medium text-${colorClass}-900 dark:text-${colorClass}-400`}
                                   >
                                     {customerName || "Müşteri"}
                                   </div>
                                   {appointment.notes && (
                                     <div
-                                      className={`text-xs text-${colorClass}-700`}
+                                      className={`text-xs text-${colorClass}-700 dark:text-${colorClass}-400`}
                                     >
                                       {appointment.notes}
                                     </div>
                                   )}
                                 </div>
                               ) : (
-                                <div className="h-full bg-gray-50 rounded-md hover:bg-gray-100 cursor-pointer transition-colors"></div>
+                                <div className="h-full bg-muted/30 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"></div>
                               )}
                             </div>
                           );
@@ -609,7 +637,7 @@ export default function BarberCalendar() {
                                   weekday: "long",
                                 })}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="text-sm text-muted-foreground">
                                 {date.toLocaleDateString("tr-TR", {
                                   day: "2-digit",
                                   month: "long",
@@ -643,8 +671,8 @@ export default function BarberCalendar() {
                                   );
                                   const colorClass =
                                     staffIndex === 0
-                                      ? "bg-blue-50 text-blue-700"
-                                      : "bg-green-50 text-green-700";
+                                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
+                                      : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400";
 
                                   return (
                                     <div
@@ -658,13 +686,13 @@ export default function BarberCalendar() {
                                   );
                                 })}
                               {dayAppointments.length > 3 && (
-                                <div className="text-xs text-gray-500 text-center">
+                                <div className="text-xs text-muted-foreground text-center">
                                   +{dayAppointments.length - 3} daha fazla
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="text-sm text-gray-500 text-center py-2">
+                            <div className="text-sm text-muted-foreground text-center py-2">
                               Randevu yok
                             </div>
                           )}
@@ -676,12 +704,11 @@ export default function BarberCalendar() {
 
                 {/* Desktop Week Grid - V2 Style */}
                 <div className="hidden lg:grid lg:grid-cols-8 gap-2">
-                  <div className="font-medium text-gray-600 p-2">Saat</div>
+                  <div className="font-medium text-muted-foreground p-2">
+                    Saat
+                  </div>
                   {getWeekDates(currentWeek).map((date, index) => (
-                    <div
-                      key={index}
-                      className="text-center p-2 font-medium text-gray-900"
-                    >
+                    <div key={index} className="text-center p-2 font-medium">
                       <div className="text-sm">
                         {date.toLocaleDateString("tr-TR", { weekday: "short" })}
                       </div>
@@ -692,7 +719,7 @@ export default function BarberCalendar() {
                   {/* Time slots for week view - All 45-minute slots */}
                   {timeSlots.map((slot) => (
                     <div key={slot.start} className="contents">
-                      <div className="text-sm text-gray-500 p-2 border-t">
+                      <div className="text-sm text-muted-foreground p-2 border-t">
                         {slot.start}
                       </div>
                       {getWeekDates(currentWeek).map((date, dayIndex) => {
@@ -705,7 +732,7 @@ export default function BarberCalendar() {
                         return (
                           <div
                             key={dayIndex}
-                            className="h-16 border border-gray-200 rounded-lg p-1 border-t"
+                            className="h-16 border border-border rounded-lg p-1 border-t"
                           >
                             {appointment
                               ? (() => {
@@ -730,10 +757,10 @@ export default function BarberCalendar() {
 
                                   return (
                                     <div
-                                      className={`bg-${colorClass}-100 rounded-md p-1 h-full`}
+                                      className={`bg-${colorClass}-100 dark:bg-${colorClass}-900/20 rounded-md p-1 h-full`}
                                     >
                                       <div
-                                        className={`text-xs font-medium text-${colorClass}-900`}
+                                        className={`text-xs font-medium text-${colorClass}-900 dark:text-${colorClass}-400`}
                                       >
                                         {customerName}
                                       </div>
@@ -793,7 +820,7 @@ export default function BarberCalendar() {
                     {["P", "S", "Ç", "P", "C", "C", "P"].map((day, index) => (
                       <div
                         key={index}
-                        className="text-center font-bold text-sm text-gray-700 p-2"
+                        className="text-center font-bold text-sm p-2"
                       >
                         {day}
                       </div>
@@ -811,11 +838,11 @@ export default function BarberCalendar() {
                       return (
                         <div
                           key={index}
-                          className="aspect-square border border-gray-200 rounded p-1"
+                          className="aspect-square border border-border rounded p-1"
                         >
                           {day && (
                             <>
-                              <div className="text-sm font-medium text-gray-900 mb-1">
+                              <div className="text-sm font-medium mb-1">
                                 {day.getDate()}
                               </div>
                               {dayAppointments.length > 0 && (
@@ -880,7 +907,7 @@ export default function BarberCalendar() {
                     (day) => (
                       <div
                         key={day}
-                        className="text-center font-medium text-gray-600 p-2"
+                        className="text-center font-medium text-muted-foreground p-2"
                       >
                         {day}
                       </div>
@@ -898,15 +925,15 @@ export default function BarberCalendar() {
                     return (
                       <div
                         key={index}
-                        className="h-24 border border-gray-200 rounded-lg p-1"
+                        className="h-24 border border-border rounded-lg p-1"
                       >
                         {day && (
                           <>
-                            <div className="text-sm font-medium text-gray-900 mb-1">
+                            <div className="text-sm font-medium mb-1">
                               {day.getDate()}
                             </div>
                             {dayAppointments.length > 0 && (
-                              <div className="text-xs bg-blue-100 text-blue-800 rounded px-1 py-0.5 mb-1">
+                              <div className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded px-1 py-0.5 mb-1">
                                 {dayAppointments.length} randevu
                               </div>
                             )}
@@ -921,6 +948,89 @@ export default function BarberCalendar() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Appointment Details Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Randevu Detayları</DialogTitle>
+          </DialogHeader>
+          
+          {selectedAppointment && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground">Tarih</h4>
+                  <p className="font-semibold">
+                    {formatTurkishDate(selectedAppointment.date)}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground">Saat</h4>
+                  <p className="font-semibold">
+                    {formatAppointmentTime(selectedAppointment)}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground">Müşteri</h4>
+                <p className="font-semibold text-lg">
+                  {getCustomerName(selectedAppointment)}
+                </p>
+              </div>
+
+              {getCustomerPhone(selectedAppointment) && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground">Telefon</h4>
+                  <p className="font-semibold">
+                    {getCustomerPhone(selectedAppointment)}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground">Berber</h4>
+                <p className="font-semibold">
+                  {selectedAppointment.staff.firstName} {selectedAppointment.staff.lastName}
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground">Durum</h4>
+                <p className="font-semibold">
+                  {selectedAppointment.status === 'CONFIRMED' ? 'Onaylanmış' : 
+                   selectedAppointment.status === 'CANCELLED' ? 'İptal Edilmiş' : 
+                   selectedAppointment.status === 'COMPLETED' ? 'Tamamlanmış' : 
+                   'Beklemede'}
+                </p>
+              </div>
+
+              {selectedAppointment.notes && (
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground">Notlar</h4>
+                  <p className="text-sm bg-muted p-3 rounded-md">
+                    {selectedAppointment.notes}
+                  </p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground">Oluşturulma Tarihi</h4>
+                <p className="text-sm">
+                  {new Date(selectedAppointment.createdAt).toLocaleDateString('tr-TR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

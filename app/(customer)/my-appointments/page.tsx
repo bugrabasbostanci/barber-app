@@ -80,22 +80,22 @@ function MyAppointmentsContent() {
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           {getStatusBadge(appointment.status)}
-          <span className="text-sm text-gray-500">{appointment.shop.name}</span>
+          <span className="text-sm text-muted-foreground">{appointment.shop.name}</span>
         </div>
 
         <div className="space-y-3 mb-4">
           <div className="flex items-center">
-            <Calendar className="w-4 h-4 mr-3 text-gray-400" />
+            <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
             <span className="font-medium">{formatDate(appointment.date)}</span>
           </div>
 
           <div className="flex items-center">
-            <Clock className="w-4 h-4 mr-3 text-gray-400" />
+            <Clock className="w-4 h-4 mr-3 text-muted-foreground" />
             <span>{formatTimeRange(appointment.startTime)}</span>
           </div>
 
           <div className="flex items-center">
-            <UserCheck className="w-4 h-4 mr-3 text-gray-400" />
+            <UserCheck className="w-4 h-4 mr-3 text-muted-foreground" />
             <span>
               {appointment.staff.firstName} {appointment.staff.lastName}
             </span>
@@ -103,8 +103,8 @@ function MyAppointmentsContent() {
 
           {appointment.notes && (
             <div className="flex items-start">
-              <div className="w-4 h-4 mr-3 mt-0.5 text-gray-400">💬</div>
-              <span className="text-sm text-gray-600">{appointment.notes}</span>
+              <div className="w-4 h-4 mr-3 mt-0.5 text-muted-foreground">💬</div>
+              <span className="text-sm text-muted-foreground">{appointment.notes}</span>
             </div>
           )}
         </div>
@@ -225,22 +225,22 @@ function MyAppointmentsContent() {
 
           {/* Appointment Details */}
           {appointmentToCancel && (
-            <div className="bg-gray-50 rounded-lg p-4 my-4">
+            <div className="bg-muted/50 rounded-lg p-4 my-4">
               <div className="space-y-3">
                 <div className="flex items-center">
-                  <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                  <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm font-medium">
                     {formatDate(appointmentToCancel.date)}
                   </span>
                 </div>
                 <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-3 text-gray-500" />
+                  <Clock className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm">
                     {formatTimeRange(appointmentToCancel.startTime)}
                   </span>
                 </div>
                 <div className="flex items-center">
-                  <UserCheck className="w-4 h-4 mr-3 text-gray-500" />
+                  <UserCheck className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm">
                     {appointmentToCancel.staff.firstName}{" "}
                     {appointmentToCancel.staff.lastName}
@@ -297,11 +297,11 @@ function AppointmentsList({
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="text-center p-6 bg-blue-50 rounded-2xl">
           <p className="text-2xl font-bold text-blue-600">{upcoming.length}</p>
-          <p className="text-sm text-gray-600">Yaklaşan</p>
+          <p className="text-sm text-muted-foreground">Yaklaşan</p>
         </div>
         <div className="text-center p-6 bg-green-50 rounded-2xl">
           <p className="text-2xl font-bold text-green-600">{past.length}</p>
-          <p className="text-sm text-gray-600">Geçmiş</p>
+          <p className="text-sm text-muted-foreground">Geçmiş</p>
         </div>
       </div>
 
@@ -320,7 +320,7 @@ function AppointmentsList({
                 <h3 className="font-medium text-lg mb-2">
                   Yaklaşan randevunuz bulunmuyor
                 </h3>
-                <p className="text-gray-500 mb-6">Yeni bir randevu alın</p>
+                <p className="text-muted-foreground mb-6">Yeni bir randevu alın</p>
                 <Link href="/">
                   <Button size="lg" className="w-full">
                     Randevu Al
@@ -341,7 +341,7 @@ function AppointmentsList({
                 <h3 className="font-medium text-lg mb-2">
                   Geçmiş randevunuz bulunmuyor
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-muted-foreground">
                   Randevu geçmişiniz burada görünecek
                 </p>
               </CardContent>

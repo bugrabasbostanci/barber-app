@@ -101,7 +101,7 @@ export default function ProfilePage() {
 
   if (errorMessage && !loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
             <p className="text-red-600">{errorMessage}</p>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
 
   if (!profile && !loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
             <p className="text-red-600">Profil yüklenemedi.</p>
@@ -136,7 +136,7 @@ export default function ProfilePage() {
       <Suspense
         fallback={
           <div className="text-center mb-8">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"></div>
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"></div>
           </div>
         }
       >
@@ -170,14 +170,14 @@ export default function ProfilePage() {
             <Card className="mb-6">
               <CardContent className="p-6">
                 <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                  <div className="h-4 bg-muted rounded w-1/4"></div>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="h-10 bg-gray-200 rounded"></div>
-                      <div className="h-10 bg-gray-200 rounded"></div>
+                      <div className="h-10 bg-muted rounded"></div>
+                      <div className="h-10 bg-muted rounded"></div>
                     </div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
-                    <div className="h-10 bg-gray-200 rounded"></div>
+                    <div className="h-10 bg-muted rounded"></div>
+                    <div className="h-10 bg-muted rounded"></div>
                   </div>
                 </div>
               </CardContent>
@@ -269,12 +269,12 @@ function ProfileHeader({
 }) {
   return (
     <div className="text-center mb-8">
-      <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-        <User className="w-12 h-12 text-gray-400" />
+      <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+        <User className="w-12 h-12 text-muted-foreground" />
       </div>
       <h2 className="text-2xl font-bold">{getUserDisplayName()}</h2>
       {profile?.createdAt && (
-        <p className="text-gray-500">
+        <p className="text-muted-foreground">
           {new Date(profile.createdAt).toLocaleDateString("tr-TR", {
             day: "numeric",
             month: "long",
@@ -337,7 +337,7 @@ function PersonalInformationCard({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label className="text-sm font-medium text-gray-600">Ad</Label>
+            <Label className="text-sm font-medium text-muted-foreground">Ad</Label>
             {isEditing ? (
               <>
                 <Input
@@ -359,14 +359,14 @@ function PersonalInformationCard({
               </>
             ) : (
               <div className="flex items-center mt-2">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
+                <User className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span>{profile.firstName || "Belirtilmemiş"}</span>
               </div>
             )}
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-gray-600">Soyad</Label>
+            <Label className="text-sm font-medium text-muted-foreground">Soyad</Label>
             {isEditing ? (
               <>
                 <Input
@@ -388,7 +388,7 @@ function PersonalInformationCard({
               </>
             ) : (
               <div className="flex items-center mt-2">
-                <User className="w-4 h-4 mr-3 text-gray-400" />
+                <User className="w-4 h-4 mr-3 text-muted-foreground" />
                 <span>{profile.lastName || "Belirtilmemiş"}</span>
               </div>
             )}
@@ -396,7 +396,7 @@ function PersonalInformationCard({
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-gray-600">
+          <Label className="text-sm font-medium text-muted-foreground">
             Telefon Numarası
           </Label>
           {isEditing ? (
@@ -420,14 +420,14 @@ function PersonalInformationCard({
             </>
           ) : (
             <div className="flex items-center mt-2">
-              <Phone className="w-4 h-4 mr-3 text-gray-400" />
+              <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
               <span>{profile.phone || "Belirtilmemiş"}</span>
             </div>
           )}
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-gray-600">
+          <Label className="text-sm font-medium text-muted-foreground">
             E-posta Adresi
           </Label>
           {isEditing && user?.isEmailUser ? (
@@ -439,12 +439,12 @@ function PersonalInformationCard({
             />
           ) : (
             <div className="flex items-center mt-2">
-              <Mail className="w-4 h-4 mr-3 text-gray-400" />
+              <Mail className="w-4 h-4 mr-3 text-muted-foreground" />
               <span>{profile.email}</span>
             </div>
           )}
           {user?.isGoogleUser && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Google hesabınızdan gelen e-posta (değiştirilemez)
             </p>
           )}

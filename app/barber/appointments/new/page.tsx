@@ -207,7 +207,7 @@ export default function NewAppointment() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex items-center justify-between">
@@ -219,10 +219,10 @@ export default function NewAppointment() {
               </Button>
             </Link>
             <div className="ml-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              <h1 className="text-xl sm:text-2xl font-bold">
                 Yeni Randevu
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 Manuel olarak randevu oluşturun
               </p>
             </div>
@@ -321,8 +321,8 @@ export default function NewAppointment() {
                 <CardContent>
                   {loadingTimeSlots ? (
                     <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto mb-2"></div>
-                      <p className="text-gray-600">Saatler yükleniyor...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto mb-2"></div>
+                      <p className="text-muted-foreground">Saatler yükleniyor...</p>
                     </div>
                   ) : timeSlots.length > 0 ? (
                     <div className="grid grid-cols-4 gap-3">
@@ -332,8 +332,8 @@ export default function NewAppointment() {
                           onClick={() => setSelectedTime(time)}
                           className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${
                             selectedTime === time
-                              ? "border-black bg-black text-white"
-                              : "border-gray-200 hover:border-gray-300 bg-white"
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-border hover:border-muted-foreground bg-background"
                           }`}
                         >
                           {time}
@@ -342,7 +342,7 @@ export default function NewAppointment() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         Bu tarih için uygun saat bulunmuyor
                       </p>
                     </div>
@@ -429,7 +429,7 @@ export default function NewAppointment() {
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="w-full sm:w-auto bg-black hover:bg-gray-800"
+            className="w-full sm:w-auto bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
           >
             {isLoading ? "Oluşturuluyor..." : "Randevu Oluştur"}
           </Button>

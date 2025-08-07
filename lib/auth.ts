@@ -49,15 +49,8 @@ function getAuthErrorMessage(error: { message?: string } | null): string {
   return "Bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
 }
 
-export interface AuthUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  role: Role;
-  isActive: boolean;
-}
+// Re-export the centralized type for backward compatibility
+export type { DatabaseUser as AuthUser } from "@/lib/types/auth";
 
 // Client-side auth functions only
 export async function signUp(

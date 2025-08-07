@@ -341,9 +341,9 @@ export default function BarberSchedule() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b px-4 sm:px-6 py-4 sm:py-6">
+      <header className="bg-background border-b px-4 sm:px-6 py-4 sm:py-6">
         <div className="flex items-center">
           <Link href="/barber/dashboard">
             <Button variant="ghost" size="lg" className="text-base">
@@ -352,10 +352,10 @@ export default function BarberSchedule() {
             </Button>
           </Link>
           <div className="ml-6">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold">
               Zaman Yönetimi
             </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Çalışma saatleri ve müsaitlik ayarları
             </p>
           </div>
@@ -371,7 +371,7 @@ export default function BarberSchedule() {
                 <Clock className="w-5 h-5 mr-2" />
                 Zaman Bloklama
               </CardTitle>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Belirli tarih ve saatlerde randevu alınmasını engelleyin.
               </p>
             </CardHeader>
@@ -528,7 +528,7 @@ export default function BarberSchedule() {
               {/* Add Button */}
               <Button
                 onClick={handleAddTimeBlock}
-                className="w-full bg-black hover:bg-gray-800"
+                className="w-full bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Zaman Bloğu Ekle
@@ -537,19 +537,19 @@ export default function BarberSchedule() {
               {/* Blocked Times List */}
               {blockedTimes.length > 0 && (
                 <div className="mt-6 space-y-3">
-                  <h4 className="font-medium text-gray-900">
+                  <h4 className="font-medium">
                     Bloklanmış Zamanlar:
                   </h4>
                   {blockedTimes.map((block) => (
                     <div
                       key={block.id}
-                      className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
                     >
                       <div>
                         <div className="font-medium">
                           {formatDate(block.date)}
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-sm text-muted-foreground">
                           <span className="font-medium">
                             {block.staff
                               ? `${block.staff.firstName} ${block.staff.lastName}`
@@ -564,7 +564,7 @@ export default function BarberSchedule() {
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="text-sm text-muted-foreground mt-1">
                           {block.reason}
                         </div>
                       </div>
@@ -593,46 +593,46 @@ export default function BarberSchedule() {
                 <Clock className="w-5 h-5 mr-2" />
                 Çalışma Saatleri
               </CardTitle>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Genel çalışma saatlerinizi ve kapalı günleri ayarlayın.
               </p>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* General Settings */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium">
                     Randevu Süresi
                   </Label>
                   <div className="flex items-center mt-1">
                     <span className="text-lg font-semibold">
                       {appointmentDuration}
                     </span>
-                    <span className="text-sm text-gray-500 ml-1">dakika</span>
+                    <span className="text-sm text-muted-foreground ml-1">dakika</span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium">
                     Rezervasyon Süresi
                   </Label>
                   <div className="flex items-center mt-1">
                     <span className="text-lg font-semibold">
                       {reservationDays}
                     </span>
-                    <span className="text-sm text-gray-500 ml-1">
+                    <span className="text-sm text-muted-foreground ml-1">
                       gün önceden
                     </span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium">
                     İptal Sınırı
                   </Label>
                   <div className="flex items-center mt-1">
                     <span className="text-lg font-semibold">
                       {cancellationHours}
                     </span>
-                    <span className="text-sm text-gray-500 ml-1">
+                    <span className="text-sm text-muted-foreground ml-1">
                       saat önce
                     </span>
                   </div>
@@ -650,7 +650,7 @@ export default function BarberSchedule() {
                       className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg"
                     >
                       <div className="flex items-center justify-between sm:justify-start mb-2 sm:mb-0">
-                        <span className="font-medium text-gray-900 mr-4">
+                        <span className="font-medium mr-4">
                           {dayName}
                         </span>
                         <div className="flex items-center space-x-2">
@@ -670,7 +670,7 @@ export default function BarberSchedule() {
 
                       {dayData.isOpen && (
                         <div className="flex items-center space-x-2">
-                          <Label className="text-sm text-gray-600">
+                          <Label className="text-sm text-muted-foreground">
                             Başlangıç:
                           </Label>
                           <Input
@@ -686,7 +686,7 @@ export default function BarberSchedule() {
                             step="900"
                             className="w-24 bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                           />
-                          <Label className="text-sm text-gray-600">
+                          <Label className="text-sm text-muted-foreground">
                             Bitiş:
                           </Label>
                           <Input
@@ -721,7 +721,7 @@ export default function BarberSchedule() {
                 </Button>
                 <Button
                   onClick={handleSave}
-                  className="flex-1 bg-black hover:bg-gray-800"
+                  className="flex-1 bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Kaydet

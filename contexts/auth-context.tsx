@@ -3,24 +3,7 @@
 import React, { createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { User } from '@supabase/supabase-js';
-
-// Extended user type with role and profile info
-export interface AuthUser extends User {
-  role?: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  isGoogleUser?: boolean;
-  isEmailUser?: boolean;
-}
-
-interface AuthState {
-  user: AuthUser | null;
-  loading: boolean;
-  initialized: boolean;
-  hydrated: boolean;
-}
+import { AuthUser, AuthState } from '@/lib/types/auth';
 
 interface AuthContextType {
   // State
@@ -96,8 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth on mount
   useEffect(() => {
+    // Set hydrated immediately to prevent loading flicker
     setHydrated(true);
-    initialize();
+    
+    // Initialize auth in next tick to allow hydrated state to update first
+    const timer = setTimeout(() => {
+      initialize();
+    }, 0);
+    
+    return () => clearTimeout(timer);
   }, [initialize, setHydrated]);
 
   // Enhanced signOut with navigation

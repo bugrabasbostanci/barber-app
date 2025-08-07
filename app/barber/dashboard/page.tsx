@@ -2,11 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Calendar, Users, Clock, Plus, ArrowRight } from "lucide-react";
-import {
-  getDashboardStats,
-  checkUserRole,
-} from "@/lib/admin-actions";
+import { getDashboardStats, checkUserRole } from "@/lib/admin-actions";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
 
 // Force dynamic rendering since we use cookies for auth
@@ -29,20 +27,23 @@ export default async function BarberDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Berber Paneli</h1>
-            <p className="text-gray-500 mt-1">{getCurrentDate()}</p>
+            <p className="text-muted-foreground mt-1">{getCurrentDate()}</p>
           </div>
-          <Link href="/barber/appointments/new">
-            <Button className="bg-black hover:bg-gray-800">
-              <Plus className="w-4 h-4 mr-2" />
-              Yeni Randevu
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link href="/barber/appointments/new">
+              <Button className="bg-black hover:bg-primary/90 dark:bg-white dark:text-black dark:hover:bg-gray-200">
+                <Plus className="w-4 h-4 mr-2" />
+                Yeni Randevu
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -56,7 +57,9 @@ export default async function BarberDashboard() {
                 <div className="text-3xl font-bold text-blue-600 mb-2">
                   {stats.todayAppointments}
                 </div>
-                <div className="text-sm text-gray-600">Bugünkü Randevu</div>
+                <div className="text-sm text-muted-foreground">
+                  Bugünkü Randevu
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -64,7 +67,9 @@ export default async function BarberDashboard() {
                 <div className="text-3xl font-bold text-green-600 mb-2">
                   {stats.todayCustomers}
                 </div>
-                <div className="text-sm text-gray-600">Bugünkü Müşteri</div>
+                <div className="text-sm text-muted-foreground">
+                  Bugünkü Müşteri
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -72,7 +77,9 @@ export default async function BarberDashboard() {
                 <div className="text-3xl font-bold text-purple-600 mb-2">
                   {stats.totalCustomers}
                 </div>
-                <div className="text-sm text-gray-600">Toplam Müşteri</div>
+                <div className="text-sm text-muted-foreground">
+                  Toplam Müşteri
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -80,7 +87,9 @@ export default async function BarberDashboard() {
                 <div className="text-3xl font-bold text-orange-600 mb-2">
                   {stats.totalUsers}
                 </div>
-                <div className="text-sm text-gray-600">Toplam Kullanıcı</div>
+                <div className="text-sm text-muted-foreground">
+                  Toplam Kullanıcı
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -100,11 +109,11 @@ export default async function BarberDashboard() {
                         <Calendar className="w-5 h-5 mr-2" />
                         <h3 className="font-semibold">Takvim</h3>
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         Günlük, haftalık görünüm
                       </p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -120,9 +129,11 @@ export default async function BarberDashboard() {
                         <Users className="w-5 h-5 mr-2" />
                         <h3 className="font-semibold">Randevular</h3>
                       </div>
-                      <p className="text-sm text-gray-600">Randevu yönetimi</p>
+                      <p className="text-sm text-muted-foreground">
+                        Randevu yönetimi
+                      </p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>
@@ -138,9 +149,11 @@ export default async function BarberDashboard() {
                         <Clock className="w-5 h-5 mr-2" />
                         <h3 className="font-semibold">Zaman Yönetimi</h3>
                       </div>
-                      <p className="text-sm text-gray-600">Çalışma saatleri</p>
+                      <p className="text-sm text-muted-foreground">
+                        Çalışma saatleri
+                      </p>
                     </div>
-                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                 </CardContent>
               </Card>

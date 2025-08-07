@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/auth-context";
 import { ArrowLeft, User, LogOut, Settings, Calendar } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface AppHeaderProps {
   title?: string;
@@ -33,7 +34,6 @@ export function AppHeader({
 }: AppHeaderProps) {
   const {
     user,
-    loading,
     signOut,
     hydrated,
     getDisplayName,
@@ -48,18 +48,37 @@ export function AppHeader({
     e.stopPropagation();
 
     try {
+      console.log("Starting sign out process...");
+
+      // Call server-side logout with redirect
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (response.redirected) {
+        // Server returned a redirect, follow it
+        window.location.href = response.url;
+        return;
+      }
+
+      // Fallback: client-side signout and navigation
       await signOut();
-      // Use Next.js router for smooth navigation without page reload
-      router.push("/");
+      console.log("Sign out completed, navigating to home...");
+      router.replace("/"); // Use replace instead of push to clear history
     } catch (error) {
       console.error("Sign out error:", error);
+      // Force logout by clearing storage and redirecting
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/";
     }
   };
 
   // User utilities are now provided by AuthContext
 
   return (
-    <header className="bg-white border-b px-4 py-6 sticky top-0 z-50">
+    <header className="bg-background border-b px-4 py-6 sticky top-0 z-50">
       <div className="flex items-center">
         {/* Left side - Back button or Logo */}
         <div className="flex-shrink-0">
@@ -91,11 +110,17 @@ export function AppHeader({
         <div className="flex items-center gap-2 flex-shrink-0">
           {extraActions}
 
+          <ThemeToggle />
+
           {/* Separator between extraActions and auth */}
-          {extraActions && <div className="w-px h-6 bg-gray-200 mx-1"></div>}
-          {!hydrated || loading ? (
-            // Minimal loading - faster UX
-            <div className="w-10 h-10 bg-gray-100 rounded-full animate-pulse opacity-60"></div>
+          {(extraActions || true) && (
+            <div className="w-px h-6 bg-border mx-1"></div>
+          )}
+          {!hydrated ? (
+            // Loading state with proper dimensions to prevent layout shift
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-muted rounded-full animate-pulse"></div>
+            </div>
           ) : user ? (
             /* Avatar Dropdown Menu */
             <DropdownMenu>
@@ -107,25 +132,25 @@ export function AppHeader({
                       alt="Avatar"
                     />
                   ) : (
-                    <AvatarFallback className="bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
+                    <AvatarFallback className="bg-blue-600 dark:bg-blue-700 text-white font-semibold hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors">
                       {getUserInitials()}
                     </AvatarFallback>
                   )}
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel className="px-4 py-3 border-b border-gray-100">
-                  <p className="font-semibold text-sm text-gray-900">
+                <DropdownMenuLabel className="px-4 py-3 border-b border-border">
+                  <p className="font-semibold text-sm text-foreground">
                     {getDisplayName()}
                   </p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
                 </DropdownMenuLabel>
 
                 {/* Show Profile link only if not on profile page */}
                 {currentPage !== "profile" && (
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
-                      <User className="w-4 h-4 mr-3 text-gray-500" />
+                      <User className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Profil</span>
                     </Link>
                   </DropdownMenuItem>
@@ -135,7 +160,7 @@ export function AppHeader({
                 {isCustomer() && currentPage !== "appointments" && (
                   <DropdownMenuItem asChild>
                     <Link href="/my-appointments">
-                      <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                      <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Randevularım</span>
                     </Link>
                   </DropdownMenuItem>
@@ -146,7 +171,7 @@ export function AppHeader({
                   currentPage === "appointments") && (
                   <DropdownMenuItem asChild>
                     <Link href="/">
-                      <Calendar className="w-4 h-4 mr-3 text-gray-500" />
+                      <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Ana Sayfa</span>
                     </Link>
                   </DropdownMenuItem>
@@ -156,7 +181,7 @@ export function AppHeader({
                 {canAccessBarberPanel() && (
                   <DropdownMenuItem asChild>
                     <Link href="/barber/dashboard">
-                      <Settings className="w-4 h-4 mr-3 text-gray-500" />
+                      <Settings className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm font-medium">Berber Paneli</span>
                     </Link>
                   </DropdownMenuItem>
@@ -164,42 +189,42 @@ export function AppHeader({
 
                 {/* Role-specific items are now immediately available through AuthContext */}
 
-                <div className="border-t border-gray-100 my-1"></div>
+                <div className="border-t border-border my-1"></div>
 
                 <DropdownMenuItem
                   className="flex items-center cursor-pointer"
                   onClick={handleSignOut}
                 >
-                  <LogOut className="w-4 h-4 mr-3 text-gray-500" />
+                  <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
                   <span className="text-sm font-medium">Çıkış Yap</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            // Non-authenticated user buttons
-            <>
+            // Non-authenticated user buttons - maintain consistent spacing
+            <div className="flex items-center gap-2">
               <Link href="/auth/login">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs md:text-sm"
+                  className="text-xs md:text-sm h-10"
                 >
                   Giriş
                 </Button>
               </Link>
               <Link href="/auth/register">
-                <Button size="sm" className="text-xs md:text-sm">
+                <Button size="sm" className="text-xs md:text-sm h-10">
                   Kayıt Ol
                 </Button>
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>
 
       {/* Subtitle for home page */}
       {!showBackButton && (
-        <p className="text-gray-500 text-sm mt-1">Men&apos;s Club</p>
+        <p className="text-muted-foreground text-sm mt-1">Men&apos;s Club</p>
       )}
     </header>
   );

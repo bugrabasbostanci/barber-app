@@ -73,9 +73,9 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+        <header className="bg-background border-b px-4 py-4 sticky top-0 z-50">
           <div className="flex items-center justify-between">
             <Link href="/auth/login">
               <Button variant="ghost" size="sm">
@@ -95,11 +95,11 @@ export default function ForgotPasswordPage() {
               <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold mb-2">E-postanızı Kontrol Edin</h2>
-            <p className="text-gray-500 mb-2">
+            <p className="text-muted-foreground mb-2">
               Şifre sıfırlama bağlantısını gönderdiğimiz adres:
             </p>
             <p className="font-medium text-gray-900 mb-6">{email}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               E-postayı görmüyorsanız, spam klasörünüzü kontrol edin veya
               farklı bir e-posta adresiyle tekrar deneyin.
             </p>
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
 
           {/* Resend Link */}
           <div className="text-center mt-8">
-            <p className="text-gray-600 text-sm mb-2">
+            <p className="text-muted-foreground text-sm mb-2">
               E-postayı almadınız mı?
             </p>
             <button
@@ -144,9 +144,9 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white border-b px-4 py-4 sticky top-0 z-50">
+      <header className="bg-background border-b px-4 py-4 sticky top-0 z-50">
         <div className="flex items-center justify-between">
           <Link href="/auth/login">
             <Button variant="ghost" size="sm">
@@ -163,7 +163,7 @@ export default function ForgotPasswordPage() {
         {/* Logo/Brand */}
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-2">Şifremi Unuttunuz mu?</h2>
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             E-posta adresinizi girin, size şifrenizi sıfırlamak için
             bir bağlantı gönderelim.
           </p>
@@ -182,12 +182,12 @@ export default function ForgotPasswordPage() {
               <div>
                 <Label
                   htmlFor="email"
-                  className="text-sm font-medium text-gray-600"
+                  className="text-sm font-medium text-muted-foreground"
                 >
                   E-posta Adresi
                 </Label>
                 <div className="relative mt-1">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
@@ -216,7 +216,7 @@ export default function ForgotPasswordPage() {
 
         {/* Girişe Dön */}
         <div className="text-center">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Şifrenizi hatırladınız mı?{" "}
             <Link
               href="/auth/login"

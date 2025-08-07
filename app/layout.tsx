@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ClientLayout } from "@/components/layouts/client-layout";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -24,12 +25,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
-      <body className={`${geist.className} antialiased`}>
-        <ClientLayout>
-          {children}
-          <SpeedInsights />
-        </ClientLayout>
+    <html lang="tr" suppressHydrationWarning={true}>
+      <body
+        className={`${geist.className} antialiased`}
+        suppressHydrationWarning={true}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          storageKey="barber-app-theme"
+        >
+          <ClientLayout>
+            {children}
+            <SpeedInsights />
+          </ClientLayout>
+        </ThemeProvider>
       </body>
     </html>
   );

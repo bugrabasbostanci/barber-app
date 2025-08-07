@@ -1,33 +1,36 @@
 import { create } from "zustand";
 import { persist, devtools } from "zustand/middleware";
-import { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { AuthUser, AuthState } from "@/lib/types/auth";
 
-interface UserWithRole extends User {
-  role?: string;
-  firstName?: string;
-  lastName?: string;
-  isGoogleUser?: boolean;
-  isEmailUser?: boolean;
-}
-
-interface AuthState {
-  // State
-  user: UserWithRole | null;
-  loading: boolean;
-  initialized: boolean;
-  hydrated: boolean;
+interface ExtendedAuthState extends AuthState {
+  // State - user already defined in AuthState
+  user: AuthUser | null;
 
   // Actions
-  setUser: (user: UserWithRole | null) => void;
+  setUser: (user: AuthUser | null) => void;
   setLoading: (loading: boolean) => void;
   setHydrated: (hydrated: boolean) => void;
   initialize: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+
+  // Role-based utilities
+  isCustomer: () => boolean;
+  isBarber: () => boolean;
+  isStaff: () => boolean;
+  isAdmin: () => boolean;
+  hasRole: (role: string) => boolean;
+  hasAnyRole: (roles: string[]) => boolean;
+  
+  // User info utilities
+  getDisplayName: () => string;
+  getUserInitials: () => string;
+  canBookAppointments: () => boolean;
+  canAccessBarberPanel: () => boolean;
 }
 
-export const useAuthStore = create<AuthState>()(
+export const useAuthStore = create<ExtendedAuthState>()(
   devtools(
     persist(
     (set, get) => ({
@@ -48,17 +51,23 @@ export const useAuthStore = create<AuthState>()(
         const supabase = createClient();
 
         try {
+          // Set loading immediately but keep any persisted user data visible
+          set({ loading: false, initialized: true });
+
           const {
             data: { session },
           } = await supabase.auth.getSession();
 
           if (session?.user) {
+            // Check if we have cached user data from persistence
+            const cachedUser = get().user;
+            
             // Optimistic: Set basic user info immediately
-            const basicUser: UserWithRole = {
+            const basicUser: AuthUser = {
               ...session.user,
-              role: get().user?.role, // Use cached role if available
-              firstName: get().user?.firstName,
-              lastName: get().user?.lastName,
+              role: cachedUser?.role, // Use cached role if available
+              firstName: cachedUser?.firstName,
+              lastName: cachedUser?.lastName,
               isGoogleUser:
                 session.user.identities?.some((i) => i.provider === "google") ||
                 false,
@@ -67,12 +76,15 @@ export const useAuthStore = create<AuthState>()(
                 false,
             };
             
-            set({ user: basicUser, loading: false, initialized: true });
+            // Only update if user data changed to prevent unnecessary re-renders
+            if (!cachedUser || cachedUser.id !== session.user.id) {
+              set({ user: basicUser });
+            }
             
-            // Background refresh for latest data
-            get().refreshUser();
+            // Background refresh for latest data - don't await to prevent blocking
+            setTimeout(() => get().refreshUser(), 0);
           } else {
-            set({ user: null, loading: false, initialized: true });
+            set({ user: null });
           }
         } catch (error) {
           console.error("Auth initialization error:", error);
@@ -81,10 +93,11 @@ export const useAuthStore = create<AuthState>()(
 
         // Listen for auth changes
         supabase.auth.onAuthStateChange(async (event, session) => {
-          if (session?.user) {
-            await get().refreshUser();
-          } else {
+          if (event === 'SIGNED_OUT') {
             set({ user: null });
+          } else if (session?.user) {
+            // Don't await to prevent blocking UI
+            setTimeout(() => get().refreshUser(), 0);
           }
         });
       },
@@ -101,7 +114,7 @@ export const useAuthStore = create<AuthState>()(
               } = await supabase.auth.getUser();
 
               if (supabaseUser) {
-                const userWithRole: UserWithRole = {
+                const userWithRole: AuthUser = {
                   ...supabaseUser,
                   role: result.data.role,
                   firstName: result.data.firstName,
@@ -126,13 +139,7 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         try {
-          const supabase = createClient();
-          const { error } = await supabase.auth.signOut();
-          
-          if (error) {
-            console.error('Logout error:', error);
-            return;
-          }
+          console.log('Auth store: Starting signOut process...');
           
           // Clear user state immediately for smooth UI transition
           set({ user: null });
@@ -146,10 +153,98 @@ export const useAuthStore = create<AuthState>()(
             console.log('Appointments store not available during sign out');
           }
           
-          // Note: Navigation will be handled by the component that calls signOut
+          // Clear browser storage immediately for responsive UI
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+          }
+          
+          // Client-side logout as fallback
+          const supabase = createClient();
+          const { error } = await supabase.auth.signOut();
+          
+          if (error) {
+            console.error('Client logout error:', error);
+            // Even if Supabase fails, we've already cleared local state
+          }
+          
+          console.log('Auth store: SignOut completed successfully');
+          
         } catch (error) {
           console.error('Sign out error:', error);
+          // Clear state even if there's an error
+          set({ user: null });
+          
+          // Fallback: clear browser storage
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+          }
         }
+      },
+
+      // Role-based utilities
+      isCustomer: () => {
+        const { user } = get();
+        return user?.role === 'CUSTOMER';
+      },
+
+      isBarber: () => {
+        const { user } = get();
+        return user?.role === 'BARBER';
+      },
+
+      isStaff: () => {
+        const { user } = get();
+        return ['EMPLOYEE', 'BARBER', 'ADMIN'].includes(user?.role || '');
+      },
+
+      isAdmin: () => {
+        const { user } = get();
+        return user?.role === 'ADMIN';
+      },
+
+      hasRole: (role: string) => {
+        const { user } = get();
+        return user?.role === role;
+      },
+
+      hasAnyRole: (roles: string[]) => {
+        const { user } = get();
+        return roles.includes(user?.role || '');
+      },
+
+      // User info utilities
+      getDisplayName: () => {
+        const { user } = get();
+        if (user?.firstName && user?.lastName) {
+          return `${user.firstName} ${user.lastName}`;
+        }
+        if (user?.email) {
+          return user.email.split('@')[0];
+        }
+        return 'Kullanıcı';
+      },
+
+      getUserInitials: () => {
+        const { user } = get();
+        if (user?.firstName && user?.lastName) {
+          return (user.firstName.charAt(0) + user.lastName.charAt(0)).toUpperCase();
+        }
+        if (user?.email) {
+          return user.email.charAt(0).toUpperCase();
+        }
+        return 'K';
+      },
+
+      canBookAppointments: () => {
+        const { user } = get();
+        return user?.role === 'CUSTOMER' && user?.isActive !== false;
+      },
+
+      canAccessBarberPanel: () => {
+        const { user } = get();
+        return ['BARBER', 'ADMIN', 'EMPLOYEE'].includes(user?.role || '');
       },
     }),
       {

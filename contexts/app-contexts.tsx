@@ -35,7 +35,7 @@ export { useAppointments } from './appointments-context';
 export { useProfile } from './profile-context';
 
 // Re-export types for convenience
-export type { AuthUser } from './auth-context';
+export type { AuthUser } from '@/lib/types/auth';
 export type { BookingData, CustomerInfo, Staff, TimeSlot } from './booking-context';
 export type { Appointment } from './appointments-context';
 export type { UserProfile, ProfileFormData } from './profile-context';
