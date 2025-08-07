@@ -11,9 +11,7 @@ import {
   Clock,
   User,
   Phone,
-  Edit,
   Trash2,
-  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +42,7 @@ import {
 import { dateToLocalString, formatTurkishDateShort } from "@/lib/date-time";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Appointment {
   id: string;
@@ -233,13 +232,13 @@ export default function BarberAppointments() {
         setAppointments((prev) => prev.filter((apt) => apt.id !== id));
         setShowDeleteDialog(false);
         setAppointmentToDelete(null);
-        alert("Randevu başarıyla silindi!");
+        toast.success("Randevu başarıyla silindi!");
       } else {
-        alert("Randevu silinirken bir hata oluştu.");
+        toast.error("Randevu silinirken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
-      alert("Randevu silinirken bir hata oluştu.");
+      toast.error("Randevu silinirken bir hata oluştu.");
     }
   };
 
@@ -317,37 +316,11 @@ export default function BarberAppointments() {
           )}
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex justify-end">
             <Button
               size="sm"
               variant="outline"
-              className="flex-1 bg-transparent"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Detaylar
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 bg-transparent"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Düzenle
-            </Button>
-            {customerPhone && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 bg-transparent"
-              >
-                <Phone className="w-4 h-4 mr-2" />
-                Ara
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="outline"
-              className="flex-1 bg-transparent text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="bg-transparent text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20"
               onClick={() => {
                 setAppointmentToDelete(appointment.id);
                 setShowDeleteDialog(true);

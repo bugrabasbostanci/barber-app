@@ -31,10 +31,12 @@ export default async function BarberDashboard() {
       {/* Header */}
       <header className="border-b px-4 py-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Berber Paneli</h1>
-            <p className="text-muted-foreground mt-1">{getCurrentDate()}</p>
-          </div>
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <div>
+              <h1 className="text-2xl font-bold cursor-pointer">Berber Paneli</h1>
+              <p className="text-muted-foreground mt-1">{getCurrentDate()}</p>
+            </div>
+          </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link href="/barber/appointments/new">

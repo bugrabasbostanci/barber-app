@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AppError, ValidationError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { sanitizeError, sanitizeValidationError, shouldIncludeDetailedErrors } from '@/lib/utils/error-sanitizer';
 
 // Type for handlers that support context (middleware chain)
 type ContextHandler = (req: NextRequest, context: Record<string, unknown>) => Promise<NextResponse>;
@@ -33,59 +34,65 @@ export function withErrorHandler<T extends StandardHandler | ContextHandler>(
       
       // Handle different error types
       if (error instanceof AppError) {
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: error.message, 
-            code: error.code,
-            ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-          },
-          { status: error.statusCode }
-        );
+        const response = { 
+          success: false, 
+          error: error.message, 
+          code: error.code,
+          stack: undefined as string | undefined
+        };
+        
+        // Only include stack trace in development with explicit flag
+        if (shouldIncludeDetailedErrors()) {
+          response.stack = error.stack;
+        }
+        
+        return NextResponse.json(response, { status: error.statusCode });
       }
       
       if (error instanceof ValidationError) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Validation failed',
-            code: 'VALIDATION_ERROR',
-            issues: error.issues,
-            ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-          },
-          { status: 400 }
-        );
-      }
-      
-      // Handle Prisma errors
-      if (error && typeof error === 'object' && 'code' in error) {
-        if (error.code === 'P2002') {
-          return NextResponse.json(
-            { success: false, error: 'Duplicate entry', code: 'DUPLICATE_ENTRY' },
-            { status: 409 }
-          );
+        const sanitizedValidation = sanitizeValidationError(error.issues);
+        const response = {
+          success: false,
+          error: sanitizedValidation.message,
+          code: sanitizedValidation.code,
+          issues: sanitizedValidation.issues,
+          stack: undefined as string | undefined
+        };
+        
+        // Only include stack trace in development with explicit flag
+        if (shouldIncludeDetailedErrors()) {
+          response.stack = error.stack;
         }
         
-        if (error.code === 'P2025') {
-          return NextResponse.json(
-            { success: false, error: 'Resource not found', code: 'NOT_FOUND' },
-            { status: 404 }
-          );
-        }
+        return NextResponse.json(response, { status: 400 });
       }
       
-      // Default error response
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Internal server error',
-          ...(process.env.NODE_ENV === 'development' && { 
-            originalError: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined
-          })
-        },
-        { status: 500 }
-      );
+      // Handle all other errors with sanitization
+      const sanitizedError = sanitizeError(error);
+      const response = {
+        success: false,
+        error: sanitizedError.message,
+        code: sanitizedError.code,
+        originalError: undefined as string | undefined,
+        stack: undefined as string | undefined
+      };
+      
+      // Only include detailed error info in development with explicit flag
+      if (shouldIncludeDetailedErrors()) {
+        response.originalError = error instanceof Error ? error.message : String(error);
+        response.stack = error instanceof Error ? error.stack : undefined;
+      }
+      
+      // Determine status code based on error type
+      let statusCode = 500;
+      if (error && typeof error === 'object' && 'code' in error) {
+        const prismaCode = (error as { code: string }).code;
+        if (prismaCode === 'P2002') statusCode = 409;
+        else if (prismaCode === 'P2025') statusCode = 404;
+        else if (prismaCode === 'P2003' || prismaCode === 'P2014') statusCode = 400;
+      }
+      
+      return NextResponse.json(response, { status: statusCode });
     }
   }) as T;
 }

@@ -26,6 +26,7 @@ import { BUSINESS_RULES } from "@/lib/constants";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Staff {
   id: string;
@@ -136,7 +137,7 @@ export default function NewAppointment() {
       !customerName ||
       !customerPhone
     ) {
-      alert("Lütfen zorunlu alanları doldurun");
+      toast.error("Lütfen zorunlu alanları doldurun");
       return;
     }
 
@@ -163,14 +164,14 @@ export default function NewAppointment() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        alert("Randevu başarıyla oluşturuldu!");
+        toast.success("Randevu başarıyla oluşturuldu!");
         router.push("/barber/appointments");
       } else {
-        alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
+        toast.error(result.error || "Randevu oluşturulurken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error creating appointment:", error);
-      alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast.error("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {
       setIsLoading(false);
     }

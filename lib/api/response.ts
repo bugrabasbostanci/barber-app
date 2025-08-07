@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sanitizeValidationError } from '@/lib/utils/error-sanitizer';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -44,11 +45,12 @@ export class ApiResponseBuilder {
   }
   
   static validation(issues: unknown[]): NextResponse {
+    const sanitized = sanitizeValidationError(issues);
     return NextResponse.json({
       success: false,
-      error: 'Validation failed',
-      code: 'VALIDATION_ERROR',
-      issues
+      error: sanitized.message,
+      code: sanitized.code,
+      issues: sanitized.issues
     }, { status: 400 });
   }
   

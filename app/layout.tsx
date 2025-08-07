@@ -4,6 +4,7 @@ import { Geist } from "next/font/google";
 import { ClientLayout } from "@/components/layouts/client-layout";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
             {children}
             <SpeedInsights />
           </ClientLayout>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
