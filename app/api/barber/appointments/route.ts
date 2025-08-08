@@ -7,6 +7,7 @@ import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { NotFoundError, ConflictError } from "@/lib/errors";
+import { validateAppointmentCreation } from "@/lib/business-rules";
 import { z } from "zod";
 
 // Validation schemas
@@ -144,6 +145,9 @@ async function createManualAppointment(
     // Sanitize string inputs (customerName could be undefined for existing customers)
     const sanitizedCustomerName = customerName ? sanitizeString(customerName) : null;
     const sanitizedNotes = notes ? sanitizeString(notes) : null;
+
+    // Validate business rules before proceeding
+    validateAppointmentCreation({ date, startTime });
 
     // Get default shop
     const shop = await prisma.shop.findFirst();
