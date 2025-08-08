@@ -40,12 +40,33 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# generated files
 /lib/generated/prisma
 
-/lib/generated/prisma
+# documentation and planning (local development)
+/docs
+/plans
 
-/lib/generated/prisma
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-/lib/generated/prisma
+# OS generated files
+.DS_Store
+Thumbs.db
 
-/lib/generated/prisma
+# temporary files
+*.tmp
+*.temp
+
+# logs
+logs/
+*.log
+
+# database
+*.sqlite
+*.sqlite3
+*.db

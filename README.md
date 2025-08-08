@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Berber Randevu Sistemi 💈
 
-## Getting Started
+Türk berberleri için tasarlanmış modern randevu yönetim sistemi. Müşteriler online randevu alabilir, berberler tüm randevularını kolayca yönetebilir.
 
-First, run the development server:
+## 🚀 Özellikler
 
+### Müşteri Paneli
+- **Online Randevu Alma**: Uygun saatleri görüntüle ve randevu al
+- **Randevu Yönetimi**: Randevularını görüntüle ve iptal et
+- **Profil Yönetimi**: Kişisel bilgileri güncelle
+
+### Berber Paneli
+- **Randevu Takvimi**: Tüm randevuları tek ekranda görüntüle
+- **Manuel Randevu**: Telefonla gelen randevuları sisteme ekle
+- **Zaman Blokları**: Müsait olmadığın saatleri blokla
+- **Müşteri Yönetimi**: Müşteri bilgilerini görüntüle
+
+## 🛠️ Teknoloji Stack
+
+- **Framework**: Next.js 15.4.4 (App Router)
+- **Dil**: TypeScript
+- **Veritabanı**: PostgreSQL + Prisma ORM
+- **Kimlik Doğrulama**: Supabase Auth
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Doğrulama**: Zod
+
+## 📋 İş Kuralları
+
+- **Çalışma Saatleri**: 09:30 - 21:30 (Pazartesi-Cumartesi)
+- **Randevu Süresi**: 45 dakika
+- **Kapalı Günler**: Pazar günleri
+- **Rezervasyon**: 7 gün önceden randevu alınabilir
+- **İptal**: Randevudan 2 saat öncesine kadar iptal edilebilir
+
+## 🚦 Kurulum
+
+1. **Proje klonlama**:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone [repository-url]
+cd barber-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Bağımlılıkları yükleme**:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Ortam değişkenlerini ayarlama**:
+```bash
+cp .env.example .env
+# .env dosyasını düzenle
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. **Veritabanını başlatma**:
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
 
-## Learn More
+5. **Development server'ı çalıştırma**:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Tarayıcıda [http://localhost:3000](http://localhost:3000) adresini aç.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📁 Proje Yapısı
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── auth/              # Authentication pages
+│   ├── barber/            # Barber dashboard
+│   └── (customer)/        # Customer pages
+├── components/            # React components
+│   ├── ui/               # shadcn/ui components
+│   └── barber/           # Barber specific components
+├── lib/                  # Utility functions
+│   ├── supabase/         # Supabase clients
+│   └── middleware/       # API middleware
+├── prisma/               # Database schema
+└── docs/                 # Documentation (gitignored)
+```
 
-## Deploy on Vercel
+## 🧪 Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+# Development server
+npm run dev
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Lint kontrol
+npm run lint
+
+# TypeScript kontrol
+npx tsc --noEmit
+
+# Production build
+npm run build
+
+# Production server
+npm start
+```
+
+## 🔐 Güvenlik
+
+- Supabase Auth ile güvenli kimlik doğrulama
+- Row Level Security (RLS) politikaları
+- API route'ları için middleware koruması
+- CSRF koruma altyapısı (isteğe bağlı aktive edilebilir)
+
+## 📈 Durum
+
+**Durum**: MVP Geliştirme Aşaması
+**Dal**: `barber-ux-improvement`
+
+## 🤝 Katkıda Bulunma
+
+Bu proje aktif geliştirme aşamasındadır. Katkıda bulunmak için:
+
+1. Fork yapın
+2. Feature branch oluşturun
+3. Değişikliklerinizi commit edin
+4. Pull request gönderin
+
+## 📄 Lisans
+
+Bu proje özel lisans altındadır.
