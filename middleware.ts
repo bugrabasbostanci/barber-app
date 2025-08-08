@@ -3,24 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
   // update user's auth session and handle auth page redirects
-  const response = await updateSession(request);
-  
-  // Add security headers
-  if (response) {
-    // Set SameSite cookie policy
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-XSS-Protection', '1; mode=block');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    
-    // Add CSP header to prevent XSS
-    response.headers.set(
-      'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.supabase.co wss://api.supabase.co https://nhbxragnkjqitmkvzkwn.supabase.co;"
-    );
-  }
-  
-  return response;
+  return await updateSession(request);
 }
 
 export const config = {

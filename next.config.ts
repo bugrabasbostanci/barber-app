@@ -8,6 +8,48 @@ const nextConfig: NextConfig = {
     // ppr: "incremental",
   },
 
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // unsafe-eval and unsafe-inline needed for Next.js dev
+              "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for Tailwind CSS
+              "img-src 'self' data: https:",
+              "connect-src 'self' https://api.supabase.co wss://api.supabase.co https://nhbxragnkjqitmkvzkwn.supabase.co https://vercel.live https://vitals.vercel-insights.com",
+              "font-src 'self'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+              "upgrade-insecure-requests"
+            ].join('; ')
+          }
+        ]
+      }
+    ]
+  },
+
   images: {
     remotePatterns: [
       {
