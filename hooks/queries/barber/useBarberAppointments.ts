@@ -237,6 +237,213 @@ export function useCreateManualAppointment() {
 }
 
 // Custom hook for appointment utilities (barber-specific)
+// Update appointment status mutation (confirm/cancel/complete)
+export function useUpdateAppointmentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: BarberAppointment['status'] }) => {
+      const response = await fetch(`/api/barber/appointments/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update appointment status');
+      }
+      
+      const result = await response.json();
+      return result.data;
+    },
+    onMutate: async ({ id, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: barberAppointmentKeys.all });
+
+      // Find the original appointment
+      let originalAppointment: BarberAppointment | null = null;
+      
+      // Optimistically update all relevant queries
+      queryClient.setQueriesData<BarberAppointment[]>(
+        { queryKey: barberAppointmentKeys.all },
+        (old) => {
+          if (!old) return old;
+          return old.map(apt => {
+            if (apt.id === id) {
+              originalAppointment = apt;
+              return { ...apt, status };
+            }
+            return apt;
+          });
+        }
+      );
+
+      return { originalAppointment };
+    },
+    onError: (err, { id }, context) => {
+      // Rollback optimistic update
+      if (context?.originalAppointment) {
+        queryClient.setQueriesData<BarberAppointment[]>(
+          { queryKey: barberAppointmentKeys.all },
+          (old) => {
+            if (!old) return old;
+            return old.map(apt => 
+              apt.id === id ? context.originalAppointment! : apt
+            );
+          }
+        );
+      }
+    },
+    onSuccess: (updatedAppointment, { id }) => {
+      // Update with server response
+      queryClient.setQueriesData<BarberAppointment[]>(
+        { queryKey: barberAppointmentKeys.all },
+        (old) => {
+          if (!old) return old;
+          return old.map(apt => apt.id === id ? updatedAppointment : apt);
+        }
+      );
+    },
+    onSettled: () => {
+      // Always invalidate related queries
+      queryClient.invalidateQueries({ queryKey: barberAppointmentKeys.all });
+    },
+  });
+}
+
+// Bulk update appointment status mutation
+export function useBulkUpdateAppointmentStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[]; status: BarberAppointment['status'] }) => {
+      const response = await fetch('/api/barber/appointments/bulk/status', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, status }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to bulk update appointment status');
+      }
+      
+      const result = await response.json();
+      return result.data;
+    },
+    onMutate: async ({ ids, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: barberAppointmentKeys.all });
+
+      // Store original appointments
+      const originalAppointments: BarberAppointment[] = [];
+      
+      // Optimistically update all relevant queries
+      queryClient.setQueriesData<BarberAppointment[]>(
+        { queryKey: barberAppointmentKeys.all },
+        (old) => {
+          if (!old) return old;
+          return old.map(apt => {
+            if (ids.includes(apt.id)) {
+              originalAppointments.push(apt);
+              return { ...apt, status };
+            }
+            return apt;
+          });
+        }
+      );
+
+      return { originalAppointments };
+    },
+    onError: (err, { ids }, context) => {
+      // Rollback optimistic update
+      if (context?.originalAppointments) {
+        queryClient.setQueriesData<BarberAppointment[]>(
+          { queryKey: barberAppointmentKeys.all },
+          (old) => {
+            if (!old) return old;
+            const originalMap = new Map(context.originalAppointments.map(apt => [apt.id, apt]));
+            return old.map(apt => originalMap.get(apt.id) || apt);
+          }
+        );
+      }
+    },
+    onSuccess: (updatedAppointments: BarberAppointment[]) => {
+      // Update with server response
+      queryClient.setQueriesData<BarberAppointment[]>(
+        { queryKey: barberAppointmentKeys.all },
+        (old) => {
+          if (!old) return old;
+          const updatedMap = new Map(updatedAppointments.map((apt: BarberAppointment) => [apt.id, apt]));
+          return old.map(apt => updatedMap.get(apt.id) || apt);
+        }
+      );
+    },
+    onSettled: () => {
+      // Always invalidate related queries
+      queryClient.invalidateQueries({ queryKey: barberAppointmentKeys.all });
+    },
+  });
+}
+
+// Delete appointment mutation
+export function useDeleteAppointment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (appointmentId: string) => {
+      const response = await fetch(`/api/barber/appointments/${appointmentId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete appointment');
+      }
+      
+      return appointmentId;
+    },
+    onMutate: async (appointmentId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: barberAppointmentKeys.all });
+
+      // Find and remove the appointment optimistically
+      let removedAppointment: BarberAppointment | null = null;
+
+      queryClient.setQueriesData<BarberAppointment[]>(
+        { queryKey: barberAppointmentKeys.all },
+        (old) => {
+          if (!old) return old;
+          const updated = old.filter(apt => {
+            if (apt.id === appointmentId) {
+              removedAppointment = apt;
+              return false;
+            }
+            return true;
+          });
+          return updated;
+        }
+      );
+
+      return { removedAppointment };
+    },
+    onError: (err, appointmentId, context) => {
+      // Add the appointment back on error
+      if (context?.removedAppointment) {
+        queryClient.setQueriesData<BarberAppointment[]>(
+          { queryKey: barberAppointmentKeys.all },
+          (old) => old ? [...old, context.removedAppointment!] : [context.removedAppointment!]
+        );
+      }
+    },
+    onSettled: () => {
+      // Always invalidate related queries
+      queryClient.invalidateQueries({ queryKey: barberAppointmentKeys.all });
+    },
+  });
+}
+
 export function useBarberAppointmentUtils() {
   const { data: appointments = [] } = useBarberAppointments();
 

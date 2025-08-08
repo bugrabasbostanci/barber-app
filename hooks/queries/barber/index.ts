@@ -6,6 +6,7 @@ export * from './useBarberAvailability';
 export * from './useBarberSettings';
 export * from './useBarberStatistics';
 export * from './useBackgroundSync';
+export * from './useOptimisticUpdates';
 
 // Re-export cache configuration utilities
 export * from './cache-config';

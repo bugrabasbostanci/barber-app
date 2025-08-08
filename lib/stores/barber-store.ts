@@ -158,6 +158,15 @@ interface BarberState {
     revenue: number;
   };
 
+  // Enhanced rollback mechanisms
+  rollbackAppointmentChanges: (originalAppointments: BarberAppointment[]) => void;
+  rollbackAvailabilityChanges: (originalWeeklySchedule: WeeklySchedule, originalCustomSlots: AvailabilitySlot[]) => void;
+  
+  // Optimistic update helpers
+  createOptimisticAppointment: (appointmentData: Partial<BarberAppointment>) => string;
+  removeOptimisticAppointment: (tempId: string) => void;
+  updateOptimisticAppointment: (tempId: string, realAppointment: BarberAppointment) => void;
+
   // Cache Management
   invalidateAppointmentsCache: () => void;
   invalidateAvailabilityCache: () => void;
@@ -568,7 +577,9 @@ export const useBarberStore = create<BarberState>()(
       },
 
       addCustomSlot: (slot) => {
-        const customSlots = [...get().customSlots, { ...slot, id: `slot_${Date.now()}` }];
+        const state = get();
+        const newSlot = { ...slot, id: slot.id || `slot_${Date.now()}` };
+        const customSlots = [...state.customSlots, newSlot];
         set({ customSlots });
       },
 
@@ -578,7 +589,8 @@ export const useBarberStore = create<BarberState>()(
       },
 
       updateCustomSlot: (id, updates) => {
-        const customSlots = get().customSlots.map(slot =>
+        const state = get();
+        const customSlots = state.customSlots.map(slot =>
           slot.id === id ? { ...slot, ...updates } : slot
         );
         set({ customSlots });
@@ -623,7 +635,12 @@ export const useBarberStore = create<BarberState>()(
 
       saveAvailability: async () => {
         try {
-          const { weeklySchedule, customSlots } = get();
+          const state = get();
+          const { weeklySchedule, customSlots } = state;
+          
+          // Store original state for rollback
+          const originalWeeklySchedule = { ...state.weeklySchedule };
+          const originalCustomSlots = [...state.customSlots];
           
           const response = await fetch("/api/barber/availability", {
             method: "POST",
@@ -634,10 +651,15 @@ export const useBarberStore = create<BarberState>()(
           const result = await response.json();
 
           if (response.ok && result.success) {
-            set({ availabilityLastFetched: Date.now() });
+            set({ availabilityLastFetched: Date.now(), availabilityError: null });
             return true;
           } else {
-            set({ availabilityError: result.error || "Müsaitlik kaydedilemedi" });
+            // Rollback on server error
+            set({ 
+              weeklySchedule: originalWeeklySchedule,
+              customSlots: originalCustomSlots,
+              availabilityError: result.error || "Müsaitlik kaydedilemedi" 
+            });
             return false;
           }
         } catch (error) {
@@ -753,6 +775,57 @@ export const useBarberStore = create<BarberState>()(
             .filter(apt => apt.status === "COMPLETED")
             .length * 50, // Assuming 50 TL per appointment
         };
+      },
+
+      // Enhanced rollback mechanisms
+      rollbackAppointmentChanges: (originalAppointments: BarberAppointment[]) => {
+        set({ appointments: originalAppointments, appointmentsError: null });
+      },
+
+      rollbackAvailabilityChanges: (originalWeeklySchedule: WeeklySchedule, originalCustomSlots: AvailabilitySlot[]) => {
+        set({ 
+          weeklySchedule: originalWeeklySchedule, 
+          customSlots: originalCustomSlots,
+          availabilityError: null 
+        });
+      },
+
+      // Optimistic update helpers
+      createOptimisticAppointment: (appointmentData: Partial<BarberAppointment>) => {
+        const tempId = `temp_${Date.now()}`;
+        const tempAppointment: BarberAppointment = {
+          id: tempId,
+          date: appointmentData.date || dateToLocalString(new Date()),
+          startTime: appointmentData.startTime || "09:30",
+          endTime: appointmentData.endTime || "10:15",
+          status: appointmentData.status || "SCHEDULED",
+          notes: appointmentData.notes,
+          customer: appointmentData.customer || {
+            id: "temp",
+            firstName: "Yeni",
+            lastName: "Müşteri",
+            email: "temp@example.com"
+          },
+          createdAt: new Date().toISOString(),
+        };
+
+        const state = get();
+        set({ appointments: [...state.appointments, tempAppointment] });
+        return tempId;
+      },
+
+      removeOptimisticAppointment: (tempId: string) => {
+        const state = get();
+        set({ appointments: state.appointments.filter(apt => apt.id !== tempId) });
+      },
+
+      updateOptimisticAppointment: (tempId: string, realAppointment: BarberAppointment) => {
+        const state = get();
+        set({
+          appointments: state.appointments.map(apt => 
+            apt.id === tempId ? realAppointment : apt
+          )
+        });
       },
 
       // Cache Management

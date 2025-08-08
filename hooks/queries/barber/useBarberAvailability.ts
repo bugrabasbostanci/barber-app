@@ -248,27 +248,55 @@ export function useUpdateTimeBlock() {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: availabilityKeys.all });
 
-      // Optimistically update the time block
-      queryClient.setQueryData<TimeBlock[]>(
-        availabilityKeys.timeBlocks({ staffId: updatedTimeBlock.staffId, date: updatedTimeBlock.date }),
-        (old) => old?.map(block => 
-          block.id === updatedTimeBlock.id 
-            ? {
+      // Store the original time block for rollback
+      let originalTimeBlock: TimeBlock | null = null;
+
+      // Optimistically update all relevant queries
+      queryClient.setQueriesData<TimeBlock[]>(
+        { queryKey: availabilityKeys.timeBlocks() },
+        (old) => {
+          if (!old) return old;
+          return old.map(block => {
+            if (block.id === updatedTimeBlock.id) {
+              originalTimeBlock = block;
+              return {
                 ...block,
                 startTime: updatedTimeBlock.isFullDay ? null : updatedTimeBlock.startTime || null,
                 endTime: updatedTimeBlock.isFullDay ? null : updatedTimeBlock.endTime || null,
                 reason: updatedTimeBlock.reason,
                 isFullDay: updatedTimeBlock.isFullDay,
-              }
-            : block
-        ) || []
+              };
+            }
+            return block;
+          });
+        }
       );
 
-      return { updatedTimeBlock };
+      return { originalTimeBlock };
     },
     onError: (err, variables, context) => {
-      // Rollback on error - invalidate to refetch fresh data
-      queryClient.invalidateQueries({ queryKey: availabilityKeys.all });
+      // Rollback optimistic update
+      if (context?.originalTimeBlock) {
+        queryClient.setQueriesData<TimeBlock[]>(
+          { queryKey: availabilityKeys.timeBlocks() },
+          (old) => {
+            if (!old) return old;
+            return old.map(block => 
+              block.id === variables.id ? context.originalTimeBlock! : block
+            );
+          }
+        );
+      }
+    },
+    onSuccess: (updatedTimeBlock) => {
+      // Update with server response
+      queryClient.setQueriesData<TimeBlock[]>(
+        { queryKey: availabilityKeys.timeBlocks() },
+        (old) => {
+          if (!old) return old;
+          return old.map(block => block.id === updatedTimeBlock.id ? updatedTimeBlock : block);
+        }
+      );
     },
     onSettled: () => {
       // Always invalidate related queries
@@ -290,7 +318,7 @@ export function useDeleteTimeBlock() {
       // Find and remove the time block optimistically
       let removedTimeBlock: TimeBlock | null = null;
 
-      // We need to update all time blocks queries
+      // Update all time blocks queries
       queryClient.setQueriesData<TimeBlock[]>(
         { queryKey: availabilityKeys.timeBlocks() },
         (old) => {
@@ -315,6 +343,183 @@ export function useDeleteTimeBlock() {
           { queryKey: availabilityKeys.timeBlocks() },
           (old) => old ? [...old, context.removedTimeBlock!] : [context.removedTimeBlock!]
         );
+      }
+    },
+    onSettled: () => {
+      // Always invalidate related queries
+      queryClient.invalidateQueries({ queryKey: availabilityKeys.all });
+    },
+  });
+}
+
+// Bulk time block operations
+export function useBulkCreateTimeBlocks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (timeBlocks: CreateTimeBlockData[]) => {
+      const response = await fetch('/api/time-blocks/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timeBlocks }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to bulk create time blocks');
+      }
+      
+      const result = await response.json();
+      return result.timeBlocks;
+    },
+    onMutate: async (newTimeBlocks) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: availabilityKeys.all });
+
+      // Create optimistic time blocks
+      const optimisticTimeBlocks: TimeBlock[] = newTimeBlocks.map((block, index) => ({
+        id: `temp-bulk-${Date.now()}-${index}`,
+        date: block.date,
+        startTime: block.isFullDay ? null : block.startTime || null,
+        endTime: block.isFullDay ? null : block.endTime || null,
+        reason: block.reason,
+        isFullDay: block.isFullDay,
+        staffId: block.staffId,
+        staff: {
+          firstName: '',
+          lastName: '',
+        },
+      }));
+
+      // Update all time blocks queries
+      queryClient.setQueriesData<TimeBlock[]>(
+        { queryKey: availabilityKeys.timeBlocks() },
+        (old) => old ? [...old, ...optimisticTimeBlocks] : optimisticTimeBlocks
+      );
+
+      return { optimisticTimeBlocks };
+    },
+    onError: (err, newTimeBlocks, context) => {
+      // Remove optimistic time blocks on error
+      if (context?.optimisticTimeBlocks) {
+        const optimisticIds = new Set(context.optimisticTimeBlocks.map(block => block.id));
+        queryClient.setQueriesData<TimeBlock[]>(
+          { queryKey: availabilityKeys.timeBlocks() },
+          (old) => old?.filter(block => !optimisticIds.has(block.id)) || []
+        );
+      }
+    },
+    onSuccess: (createdTimeBlocks, variables, context) => {
+      // Replace optimistic blocks with real ones
+      if (context?.optimisticTimeBlocks) {
+        const optimisticIds = new Set(context.optimisticTimeBlocks.map(block => block.id));
+        queryClient.setQueriesData<TimeBlock[]>(
+          { queryKey: availabilityKeys.timeBlocks() },
+          (old) => {
+            if (!old) return createdTimeBlocks;
+            const withoutOptimistic = old.filter(block => !optimisticIds.has(block.id));
+            return [...withoutOptimistic, ...createdTimeBlocks];
+          }
+        );
+      }
+    },
+    onSettled: () => {
+      // Always invalidate related queries
+      queryClient.invalidateQueries({ queryKey: availabilityKeys.all });
+    },
+  });
+}
+
+// Bulk delete time blocks
+export function useBulkDeleteTimeBlocks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (timeBlockIds: string[]) => {
+      const response = await fetch('/api/time-blocks/bulk', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: timeBlockIds }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to bulk delete time blocks');
+      }
+      
+      return timeBlockIds;
+    },
+    onMutate: async (timeBlockIds) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: availabilityKeys.all });
+
+      // Store removed time blocks for rollback
+      const removedTimeBlocks: TimeBlock[] = [];
+
+      // Remove time blocks optimistically
+      queryClient.setQueriesData<TimeBlock[]>(
+        { queryKey: availabilityKeys.timeBlocks() },
+        (old) => {
+          if (!old) return old;
+          return old.filter(block => {
+            if (timeBlockIds.includes(block.id)) {
+              removedTimeBlocks.push(block);
+              return false;
+            }
+            return true;
+          });
+        }
+      );
+
+      return { removedTimeBlocks };
+    },
+    onError: (err, timeBlockIds, context) => {
+      // Add the time blocks back on error
+      if (context?.removedTimeBlocks) {
+        queryClient.setQueriesData<TimeBlock[]>(
+          { queryKey: availabilityKeys.timeBlocks() },
+          (old) => old ? [...old, ...context.removedTimeBlocks] : context.removedTimeBlocks
+        );
+      }
+    },
+    onSettled: () => {
+      // Always invalidate related queries
+      queryClient.invalidateQueries({ queryKey: availabilityKeys.all });
+    },
+  });
+}
+
+// Quick availability toggle mutation
+export function useToggleAvailability() {
+  const queryClient = useQueryClient();
+  const createTimeBlock = useCreateTimeBlock();
+  const deleteTimeBlock = useDeleteTimeBlock();
+
+  return useMutation({
+    mutationFn: async ({ date, staffId, isBlocking }: { date: string; staffId: string; isBlocking: boolean }) => {
+      if (isBlocking) {
+        // Create a full-day block
+        return createTimeBlock.mutateAsync({
+          date,
+          staffId,
+          reason: 'Müsait değil',
+          isFullDay: true,
+        });
+      } else {
+        // Find and delete full-day blocks for this date
+        const timeBlocks = queryClient.getQueryData<TimeBlock[]>(
+          availabilityKeys.timeBlocks({ staffId, date })
+        ) || [];
+        
+        const fullDayBlock = timeBlocks.find(block => 
+          block.date === date && block.staffId === staffId && block.isFullDay
+        );
+        
+        if (fullDayBlock) {
+          return deleteTimeBlock.mutateAsync(fullDayBlock.id);
+        }
+        
+        return Promise.resolve();
       }
     },
     onSettled: () => {
@@ -396,6 +601,23 @@ export function useAvailabilityUtils() {
       };
     };
 
+    // Enhanced utilities with optimistic state awareness
+    const isPendingOptimisticUpdate = (date: string, staffId?: string): boolean => {
+      // Check if there are any temporary/optimistic time blocks for this date
+      const blocksForDate = timeBlocks.filter(block => 
+        block.date === date && (staffId ? block.staffId === staffId : true)
+      );
+      return blocksForDate.some(block => block.id.startsWith('temp-'));
+    };
+
+    const getOptimisticTimeBlocks = (date: string, staffId?: string): TimeBlock[] => {
+      return timeBlocks.filter(block => 
+        block.date === date && 
+        (staffId ? block.staffId === staffId : true) &&
+        block.id.startsWith('temp-')
+      );
+    };
+
     return {
       timeBlocks,
       blockedDates,
@@ -405,6 +627,8 @@ export function useAvailabilityUtils() {
       isTimeSlotBlocked,
       getAvailableHours,
       getAvailabilityStats,
+      isPendingOptimisticUpdate,
+      getOptimisticTimeBlocks,
     };
   }, [timeBlocks, blockedDates]);
 }

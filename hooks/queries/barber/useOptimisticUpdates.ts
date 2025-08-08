@@ -1,0 +1,256 @@
+"use client";
+
+import { useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useBarberStore } from '@/lib/stores/barber-store';
+import { toast } from 'sonner';
+
+export interface OptimisticOperation {
+  id: string;
+  type: 'appointment' | 'availability' | 'bulk';
+  timestamp: number;
+  rollback: () => void;
+}
+
+export function useOptimisticUpdates() {
+  const queryClient = useQueryClient();
+  const barberStore = useBarberStore();
+  const pendingOperations = useRef<Map<string, OptimisticOperation>>(new Map());
+
+  // Create optimistic operation tracker
+  const createOperation = useCallback((type: OptimisticOperation['type'], rollback: () => void): string => {
+    const id = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const operation: OptimisticOperation = {
+      id,
+      type,
+      timestamp: Date.now(),
+      rollback,
+    };
+    
+    pendingOperations.current.set(id, operation);
+    return id;
+  }, []);
+
+  // Complete optimistic operation
+  const completeOperation = useCallback((operationId: string, success: boolean = true) => {
+    const operation = pendingOperations.current.get(operationId);
+    if (operation) {
+      if (!success) {
+        // Execute rollback if operation failed
+        try {
+          operation.rollback();
+          toast.error('Değişiklik geri alındı', {
+            description: 'İşlem başarısız oldu ve önceki duruma döndü.',
+          });
+        } catch (error) {
+          console.error('Rollback failed:', error);
+          toast.error('Rollback hatası', {
+            description: 'Değişiklik geri alınamadı. Sayfa yenilenecek.',
+          });
+          // Force refresh if rollback fails
+          window.location.reload();
+        }
+      } else {
+        toast.success('Değişiklik kaydedildi', {
+          description: 'İşleminiz başarıyla tamamlandı.',
+        });
+      }
+      
+      pendingOperations.current.delete(operationId);
+    }
+  }, []);
+
+  // Get pending operations count
+  const getPendingCount = useCallback(() => {
+    return pendingOperations.current.size;
+  }, []);
+
+  // Check if specific operation is pending
+  const isOperationPending = useCallback((operationId: string) => {
+    return pendingOperations.current.has(operationId);
+  }, []);
+
+  // Get operations by type
+  const getOperationsByType = useCallback((type: OptimisticOperation['type']) => {
+    return Array.from(pendingOperations.current.values()).filter(op => op.type === type);
+  }, []);
+
+  // Clear all pending operations (useful for cleanup)
+  const clearAllOperations = useCallback((executeRollbacks: boolean = false) => {
+    if (executeRollbacks) {
+      Array.from(pendingOperations.current.values()).forEach(operation => {
+        try {
+          operation.rollback();
+        } catch (error) {
+          console.error('Rollback failed during cleanup:', error);
+        }
+      });
+      toast.info('Tüm bekleyen değişiklikler geri alındı');
+    }
+    
+    pendingOperations.current.clear();
+  }, []);
+
+  // Appointment-specific optimistic updates
+  const optimisticAppointmentUpdate = useCallback(async (
+    appointmentId: string,
+    updates: any,
+    apiCall: () => Promise<any>
+  ) => {
+    const originalAppointments = [...barberStore.appointments];
+    
+    // Apply optimistic update
+    const optimisticAppointments = originalAppointments.map(apt =>
+      apt.id === appointmentId ? { ...apt, ...updates } : apt
+    );
+    barberStore.setAppointments(optimisticAppointments);
+
+    // Create rollback operation
+    const operationId = createOperation('appointment', () => {
+      barberStore.rollbackAppointmentChanges(originalAppointments);
+    });
+
+    try {
+      const result = await apiCall();
+      completeOperation(operationId, true);
+      return result;
+    } catch (error) {
+      completeOperation(operationId, false);
+      throw error;
+    }
+  }, [barberStore, createOperation, completeOperation]);
+
+  // Availability-specific optimistic updates
+  const optimisticAvailabilityUpdate = useCallback(async (
+    updates: any,
+    apiCall: () => Promise<any>
+  ) => {
+    const originalWeeklySchedule = { ...barberStore.weeklySchedule };
+    const originalCustomSlots = [...barberStore.customSlots];
+    
+    // Apply optimistic update
+    if (updates.weeklySchedule) {
+      barberStore.setWeeklySchedule(updates.weeklySchedule);
+    }
+    if (updates.customSlots) {
+      // Handle custom slots update logic here
+      updates.customSlots.forEach((slot: any) => {
+        if (slot.id) {
+          barberStore.updateCustomSlot(slot.id, slot);
+        } else {
+          barberStore.addCustomSlot(slot);
+        }
+      });
+    }
+
+    // Create rollback operation
+    const operationId = createOperation('availability', () => {
+      barberStore.rollbackAvailabilityChanges(originalWeeklySchedule, originalCustomSlots);
+    });
+
+    try {
+      const result = await apiCall();
+      completeOperation(operationId, true);
+      return result;
+    } catch (error) {
+      completeOperation(operationId, false);
+      throw error;
+    }
+  }, [barberStore, createOperation, completeOperation]);
+
+  // Bulk operations with optimistic updates
+  const optimisticBulkUpdate = useCallback(async (
+    appointments: any[],
+    updates: any,
+    apiCall: () => Promise<any>
+  ) => {
+    const originalAppointments = [...barberStore.appointments];
+    const appointmentIds = appointments.map(apt => apt.id);
+    
+    // Apply optimistic update
+    const optimisticAppointments = originalAppointments.map(apt =>
+      appointmentIds.includes(apt.id) ? { ...apt, ...updates } : apt
+    );
+    barberStore.setAppointments(optimisticAppointments);
+
+    // Create rollback operation
+    const operationId = createOperation('bulk', () => {
+      barberStore.rollbackAppointmentChanges(originalAppointments);
+    });
+
+    try {
+      const result = await apiCall();
+      completeOperation(operationId, true);
+      return result;
+    } catch (error) {
+      completeOperation(operationId, false);
+      throw error;
+    }
+  }, [barberStore, createOperation, completeOperation]);
+
+  // Network status aware optimistic updates
+  const safeOptimisticUpdate = useCallback(async (
+    updateFn: () => Promise<any>,
+    fallbackFn?: () => void
+  ) => {
+    if (!navigator.onLine) {
+      toast.warning('İnternet bağlantısı yok', {
+        description: 'Değişiklikler bağlantı kurulduğunda uygulanacak.',
+      });
+      
+      if (fallbackFn) {
+        fallbackFn();
+      }
+      return;
+    }
+
+    try {
+      return await updateFn();
+    } catch (error) {
+      if (!navigator.onLine) {
+        toast.error('Bağlantı kesildi', {
+          description: 'İnternet bağlantınızı kontrol edin.',
+        });
+      }
+      throw error;
+    }
+  }, []);
+
+  return {
+    // Operation management
+    createOperation,
+    completeOperation,
+    getPendingCount,
+    isOperationPending,
+    getOperationsByType,
+    clearAllOperations,
+    
+    // Optimistic update helpers
+    optimisticAppointmentUpdate,
+    optimisticAvailabilityUpdate,
+    optimisticBulkUpdate,
+    safeOptimisticUpdate,
+    
+    // State
+    pendingOperations: pendingOperations.current,
+  };
+}
+
+// Hook for optimistic UI feedback
+export function useOptimisticFeedback() {
+  const { getPendingCount } = useOptimisticUpdates();
+  
+  const showOptimisticFeedback = useCallback((message: string, type: 'success' | 'info' | 'warning' = 'info') => {
+    const pendingCount = getPendingCount();
+    const description = pendingCount > 0 
+      ? `${pendingCount} değişiklik işleniyor...`
+      : 'Değişiklik uygulandı';
+    
+    toast[type](message, { description });
+  }, [getPendingCount]);
+
+  return {
+    showOptimisticFeedback,
+    getPendingCount,
+  };
+}
