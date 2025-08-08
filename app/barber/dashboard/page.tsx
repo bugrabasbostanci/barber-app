@@ -1,11 +1,19 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Calendar, Users, Clock, Plus, ArrowRight } from "lucide-react";
-import { getDashboardStats, checkUserRole } from "@/lib/admin-actions";
+import { Plus } from "lucide-react";
+import { checkUserRole } from "@/lib/admin-actions";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
+import { DashboardCriticalStats } from "@/components/barber/dashboard-critical-stats";
+import { DashboardImportantStats } from "@/components/barber/dashboard-important-stats";
+import { DashboardSecondaryStats } from "@/components/barber/dashboard-secondary-stats";
+import { DashboardQuickActions } from "@/components/barber/dashboard-quick-actions";
+import { DashboardCriticalStatsSkeleton } from "@/components/skeletons/dashboard-critical-stats-skeleton";
+import { DashboardImportantStatsSkeleton } from "@/components/skeletons/dashboard-important-stats-skeleton";
+import { DashboardSecondaryStatsSkeleton } from "@/components/skeletons/dashboard-secondary-stats-skeleton";
+import { DashboardQuickActionsSkeleton } from "@/components/skeletons/dashboard-quick-actions-skeleton";
 
 // Force dynamic rendering since we use cookies for auth
 export const dynamic = "force-dynamic";
@@ -16,8 +24,6 @@ export default async function BarberDashboard() {
   if (!userRole || userRole.role !== "BARBER") {
     redirect("/auth/login");
   }
-
-  const stats = await getDashboardStats();
 
   // Get current date in Turkish format using utility
   const getCurrentDate = () => {
@@ -50,118 +56,25 @@ export default async function BarberDashboard() {
       </header>
 
       <div className="p-4">
-        {/* Today's Summary */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Bugün</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {stats.todayAppointments}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Bugünkü Randevu
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  {stats.todayCustomers}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Bugünkü Müşteri
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">
-                  {stats.totalCustomers}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Toplam Müşteri
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-orange-600 mb-2">
-                  {stats.totalUsers}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Toplam Kullanıcı
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Priority 1: Critical Stats - Loads first (Today's appointments) */}
+        <Suspense fallback={<DashboardCriticalStatsSkeleton />}>
+          <DashboardCriticalStats />
+        </Suspense>
 
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">Hızlı Erişim</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Calendar */}
-            <Link href="/barber/calendar">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <Calendar className="w-5 h-5 mr-2" />
-                        <h3 className="font-semibold">Takvim</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Günlük, haftalık görünüm
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+        {/* Priority 2: Important Stats - Loads second (Today's customers + Recent appointments) */}
+        <Suspense fallback={<DashboardImportantStatsSkeleton />}>
+          <DashboardImportantStats />
+        </Suspense>
 
-            {/* Appointments */}
-            <Link href="/barber/appointments">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <Users className="w-5 h-5 mr-2" />
-                        <h3 className="font-semibold">Randevular</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Randevu yönetimi
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+        {/* Priority 3: Secondary Stats - Loads in background (Total statistics) */}
+        <Suspense fallback={<DashboardSecondaryStatsSkeleton />}>
+          <DashboardSecondaryStats />
+        </Suspense>
 
-            {/* Schedule */}
-            <Link href="/barber/schedule">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center mb-2">
-                        <Clock className="w-5 h-5 mr-2" />
-                        <h3 className="font-semibold">Zaman Yönetimi</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Çalışma saatleri
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        </div>
+        {/* Quick Actions - Static content, loads immediately */}
+        <Suspense fallback={<DashboardQuickActionsSkeleton />}>
+          <DashboardQuickActions />
+        </Suspense>
       </div>
     </div>
   );
