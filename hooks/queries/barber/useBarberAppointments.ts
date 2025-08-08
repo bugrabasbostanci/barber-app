@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useMemo } from 'react';
+import { getCacheConfig, createBarberQueryKey, OPTIMISTIC_CONFIG, getRetryConfig } from './cache-config';
 
 // Types based on the barber API response
 export interface BarberAppointment {
@@ -45,15 +46,15 @@ export interface CreateManualAppointmentData {
 
 // Query keys for barber appointments
 export const barberAppointmentKeys = {
-  all: ['barber', 'appointments'] as const,
+  all: createBarberQueryKey(['appointments']),
   list: (filters?: { startDate?: string; endDate?: string }) => 
-    [...barberAppointmentKeys.all, 'list', filters] as const,
+    createBarberQueryKey(['appointments', 'list'], ...(filters ? [filters] : [])),
   dayView: (date: string) => 
-    [...barberAppointmentKeys.all, 'day', date] as const,
+    createBarberQueryKey(['appointments', 'day'], date),
   weekView: (startDate: string) => 
-    [...barberAppointmentKeys.all, 'week', startDate] as const,
+    createBarberQueryKey(['appointments', 'week'], startDate),
   monthView: (year: number, month: number) => 
-    [...barberAppointmentKeys.all, 'month', year, month] as const,
+    createBarberQueryKey(['appointments', 'month'], year, month),
 };
 
 // Barber appointments API functions
@@ -92,32 +93,35 @@ const barberAppointmentsApi = {
 // Get barber appointments with date range filtering
 export function useBarberAppointments(filters?: { startDate?: string; endDate?: string }) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('appointments');
 
   return useQuery({
     queryKey: barberAppointmentKeys.list(filters),
     queryFn: () => barberAppointmentsApi.getAppointments(filters),
     enabled: !!user, // Only run if user is authenticated
-    staleTime: 2 * 60 * 1000, // 2 minutes - barber needs fresh data
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    ...cacheConfig,
+    ...getRetryConfig('critical'),
   });
 }
 
 // Get appointments for a specific day
 export function useBarberDayAppointments(date: string) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('appointments');
 
   return useQuery({
     queryKey: barberAppointmentKeys.dayView(date),
     queryFn: () => barberAppointmentsApi.getAppointments({ startDate: date, endDate: date }),
     enabled: !!user && !!date,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    ...cacheConfig,
+    ...getRetryConfig('critical'),
   });
 }
 
 // Get appointments for a week range
 export function useBarberWeekAppointments(startDate: string) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('appointments');
 
   // Calculate end date (6 days after start)
   const endDate = useMemo(() => {
@@ -131,14 +135,15 @@ export function useBarberWeekAppointments(startDate: string) {
     queryKey: barberAppointmentKeys.weekView(startDate),
     queryFn: () => barberAppointmentsApi.getAppointments({ startDate, endDate }),
     enabled: !!user && !!startDate,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    ...cacheConfig,
+    ...getRetryConfig('critical'),
   });
 }
 
 // Get appointments for a month
 export function useBarberMonthAppointments(year: number, month: number) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('appointments');
 
   const { startDate, endDate } = useMemo(() => {
     if (!year || !month) return { startDate: '', endDate: '' };
@@ -156,8 +161,8 @@ export function useBarberMonthAppointments(year: number, month: number) {
     queryKey: barberAppointmentKeys.monthView(year, month),
     queryFn: () => barberAppointmentsApi.getAppointments({ startDate, endDate }),
     enabled: !!user && !!year && !!month,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    ...cacheConfig,
+    ...getRetryConfig('critical'),
   });
 }
 

@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useMemo } from 'react';
+import { getCacheConfig, createBarberQueryKey, OPTIMISTIC_CONFIG, getRetryConfig } from './cache-config';
 
 // Types for availability management
 export interface TimeBlock {
@@ -43,13 +44,13 @@ export interface UpdateTimeBlockData extends CreateTimeBlockData {
 
 // Query keys for availability
 export const availabilityKeys = {
-  all: ['barber', 'availability'] as const,
+  all: createBarberQueryKey(['availability']),
   timeBlocks: (filters?: { staffId?: string; date?: string }) => 
-    [...availabilityKeys.all, 'timeBlocks', filters] as const,
+    createBarberQueryKey(['availability', 'timeBlocks'], ...(filters ? [filters] : [])),
   blockedDates: (filters?: { staffId?: string; startDate?: string; endDate?: string }) => 
-    [...availabilityKeys.all, 'blockedDates', filters] as const,
+    createBarberQueryKey(['availability', 'blockedDates'], ...(filters ? [filters] : [])),
   staffAvailability: (staffId: string, date: string) => 
-    [...availabilityKeys.all, 'staff', staffId, date] as const,
+    createBarberQueryKey(['availability', 'staff'], staffId, date),
 };
 
 // Availability API functions
@@ -131,32 +132,35 @@ const availabilityApi = {
 // Get time blocks with filtering
 export function useTimeBlocks(filters?: { staffId?: string; date?: string }) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('availability');
 
   return useQuery({
     queryKey: availabilityKeys.timeBlocks(filters),
     queryFn: () => availabilityApi.getTimeBlocks(filters),
     enabled: !!user, // Only run if user is authenticated
-    staleTime: 10 * 60 * 1000, // 10 minutes - availability settings change less frequently
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    ...cacheConfig,
+    ...getRetryConfig('default'),
   });
 }
 
 // Get blocked dates with filtering
 export function useBlockedDates(filters?: { staffId?: string; startDate?: string; endDate?: string }) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('availability');
 
   return useQuery({
     queryKey: availabilityKeys.blockedDates(filters),
     queryFn: () => availabilityApi.getBlockedDates(filters),
     enabled: !!user,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
+    ...cacheConfig,
+    ...getRetryConfig('default'),
   });
 }
 
 // Get availability for a specific staff member on a specific date
 export function useStaffAvailability(staffId: string, date: string) {
   const { user } = useAuth();
+  const cacheConfig = getCacheConfig('availability');
 
   return useQuery({
     queryKey: availabilityKeys.staffAvailability(staffId, date),
@@ -168,8 +172,8 @@ export function useStaffAvailability(staffId: string, date: string) {
       blockedDates,
     })),
     enabled: !!user && !!staffId && !!date,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    ...cacheConfig,
+    ...getRetryConfig('default'),
   });
 }
 

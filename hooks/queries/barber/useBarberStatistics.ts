@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useMemo } from 'react';
+import { getCacheConfig, createBarberQueryKey, getRetryConfig } from './cache-config';
 
 // Types for statistics
 export interface DashboardStats {

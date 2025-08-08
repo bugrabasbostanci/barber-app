@@ -112,20 +112,28 @@ export const RETRY_CONFIG = {
   },
 } as const;
 
-// Background sync configuration for offline support
+// Background sync configuration for appointment updates
 export const BACKGROUND_SYNC = {
   // Sync priorities
   priorities: {
-    HIGH: ['appointments', 'availability'], // Critical for business operations
-    MEDIUM: ['settings', 'profile'], // Important but less time-sensitive
-    LOW: ['statistics'], // Nice to have, can be stale
+    HIGH: ['appointments'], // Critical for real-time appointment management
+    MEDIUM: ['availability', 'settings'], // Important but less time-sensitive
+    LOW: ['statistics', 'profile'], // Nice to have, can be stale
   },
   
   // Sync intervals when app is in background
   intervals: {
-    HIGH: 30 * 1000, // 30 seconds
+    HIGH: 30 * 1000, // 30 seconds - for appointment updates
     MEDIUM: 2 * 60 * 1000, // 2 minutes
     LOW: 5 * 60 * 1000, // 5 minutes
+  },
+  
+  // Background sync for appointment updates
+  appointmentSync: {
+    enabled: true,
+    interval: 30 * 1000, // Sync every 30 seconds
+    maxRetries: 3,
+    retryDelay: 5000, // 5 seconds between retries
   },
 } as const;
 
@@ -133,11 +141,11 @@ export const BACKGROUND_SYNC = {
 export const getCacheConfig = (type: 'appointments' | 'availability' | 'settings' | 'statistics') => {
   switch (type) {
     case 'appointments':
-      return CACHE_TIMES.REAL_TIME;
+      return CACHE_TIMES.REAL_TIME; // 2-minute cache for real-time appointment data
     case 'availability':
-      return CACHE_TIMES.MODERATE;
+      return CACHE_TIMES.SETTINGS; // 10-minute cache for availability settings
     case 'settings':
-      return CACHE_TIMES.SETTINGS;
+      return CACHE_TIMES.SETTINGS; // 10-minute cache for settings
     case 'statistics':
       return CACHE_TIMES.REAL_TIME; // Statistics need to be fresh for business insights
     default:

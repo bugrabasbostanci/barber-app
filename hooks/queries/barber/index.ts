@@ -5,6 +5,10 @@ export * from './useBarberAppointments';
 export * from './useBarberAvailability';
 export * from './useBarberSettings';
 export * from './useBarberStatistics';
+export * from './useBackgroundSync';
+
+// Re-export cache configuration utilities
+export * from './cache-config';
 
 // Re-export query keys for easy access
 export {
