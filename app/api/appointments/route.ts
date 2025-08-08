@@ -80,57 +80,113 @@ async function createAppointment(
 
     // Convert local date/time to UTC for storage
     const appointmentDateUTC = localDateToUTC(date);
+    const startTimeUTC = createUTCTime(startTime);
+    const endTimeUTC = createUTCTime(endTime);
 
-    // Check if time slot is still available
-    const existingAppointment = await prisma.appointment.findFirst({
-      where: {
-        staffId,
-        date: appointmentDateUTC,
-        startTime: createUTCTime(startTime),
-        status: {
-          notIn: ["CANCELLED"],
+    // Use atomic transaction to prevent race conditions
+    const appointment = await prisma.$transaction(async (tx) => {
+      // 1. Check if staff member exists and is available
+      const staff = await tx.user.findFirst({
+        where: {
+          id: staffId,
+          role: { in: ["BARBER", "EMPLOYEE"] },
+          isActive: true,
         },
-      },
-    });
+      });
 
-    if (existingAppointment) {
-      throw new ConflictError("This time slot is no longer available");
-    }
+      if (!staff) {
+        throw new NotFoundError("Selected staff member is not available");
+      }
 
-    // Create the appointment
-    const appointment = await prisma.appointment.create({
-      data: {
-        shopId: shop.id,
-        customerId: user.id, // Use authenticated user ID
-        staffId,
-        date: appointmentDateUTC,
-        startTime: createUTCTime(startTime),
-        endTime: createUTCTime(endTime),
-        status: "SCHEDULED",
-        notes: sanitizedNotes,
-        createdById: user.id, // Track who created the appointment
-      },
-      include: {
-        customer: {
-          select: {
-            firstName: true,
-            lastName: true,
-            phone: true,
+      // 2. Check for time slot conflicts with row-level locking
+      const conflictingAppointment = await tx.appointment.findFirst({
+        where: {
+          staffId,
+          date: appointmentDateUTC,
+          status: { notIn: ["CANCELLED"] },
+          OR: [
+            // Exact time match
+            { startTime: startTimeUTC },
+            // Overlapping appointments
+            {
+              AND: [
+                { startTime: { lt: endTimeUTC } },
+                { endTime: { gt: startTimeUTC } },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (conflictingAppointment) {
+        throw new ConflictError("Bu zaman dilimi artık müsait değil");
+      }
+
+      // 3. Check for employee unavailable times
+      const unavailableTime = await tx.employeeUnavailableTime.findFirst({
+        where: {
+          staffId,
+          date: appointmentDateUTC,
+          OR: [
+            // Full day block
+            {
+              AND: [
+                { startTime: null },
+                { endTime: null },
+              ],
+            },
+            // Time range block that overlaps
+            {
+              AND: [
+                { startTime: { not: null } },
+                { endTime: { not: null } },
+                { startTime: { lte: startTimeUTC } },
+                { endTime: { gt: startTimeUTC } },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (unavailableTime) {
+        throw new ConflictError("Seçilen berber bu zaman diliminde müsait değil");
+      }
+
+      // 4. Create the appointment atomically
+      return await tx.appointment.create({
+        data: {
+          shopId: shop.id,
+          customerId: user.id,
+          staffId,
+          date: appointmentDateUTC,
+          startTime: startTimeUTC,
+          endTime: endTimeUTC,
+          status: "SCHEDULED",
+          notes: sanitizedNotes,
+          createdById: user.id,
+        },
+        include: {
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true,
+              phone: true,
+            },
+          },
+          staff: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+          shop: {
+            select: {
+              name: true,
+              address: true,
+            },
           },
         },
-        staff: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
-        shop: {
-          select: {
-            name: true,
-            address: true,
-          },
-        },
-      },
+      });
     });
 
     // Convert back to local time for response
@@ -146,7 +202,20 @@ async function createAppointment(
 
     return ApiResponseBuilder.success(responseAppointment);
   } catch (error) {
-    // Re-throw the error to be handled by withErrorHandler
+    // Handle specific database constraint errors
+    if (error instanceof Error) {
+      // Prisma unique constraint violation
+      if (error.message.includes('P2002') || error.message.includes('unique constraint')) {
+        throw new ConflictError("Bu zaman dilimi artık müsait değil. Lütfen başka bir saat seçin.");
+      }
+      
+      // Transaction timeout or deadlock
+      if (error.message.includes('P2034') || error.message.includes('timeout') || error.message.includes('deadlock')) {
+        throw new ConflictError("Sistem yoğun, lütfen birkaç saniye sonra tekrar deneyin.");
+      }
+    }
+    
+    // Re-throw other errors to be handled by withErrorHandler
     throw error;
   }
 }
