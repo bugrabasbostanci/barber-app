@@ -26,6 +26,7 @@ import { BUSINESS_RULES } from "@/lib/constants";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { AppointmentFormSkeleton } from "@/components/skeletons/appointment-form-skeleton";
 import { toast } from "sonner";
 
 interface Staff {
@@ -74,6 +75,7 @@ export default function NewAppointment() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch staff members
   useEffect(() => {
@@ -88,6 +90,8 @@ export default function NewAppointment() {
         }
       } catch (error) {
         console.error("Error fetching staff:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -206,6 +210,10 @@ export default function NewAppointment() {
 
     return false;
   };
+
+  if (loading) {
+    return <AppointmentFormSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

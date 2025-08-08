@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
+import { AppointmentCalendarSkeleton } from "@/components/skeletons/appointment-calendar-skeleton";
 
 interface Appointment {
   id: string;
@@ -83,7 +84,8 @@ export default function BarberCalendar() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch data
@@ -260,7 +262,9 @@ export default function BarberCalendar() {
 
   const getCustomerName = (appointment: Appointment) => {
     if (appointment.customer) {
-      return `${appointment.customer.firstName || ""} ${appointment.customer.lastName || ""}`.trim();
+      return `${appointment.customer.firstName || ""} ${
+        appointment.customer.lastName || ""
+      }`.trim();
     }
     return appointment.manualCustomerName || "Bilinmeyen Müşteri";
   };
@@ -270,14 +274,7 @@ export default function BarberCalendar() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-foreground mx-auto mb-4"></div>
-          <p>Yükleniyor...</p>
-        </div>
-      </div>
-    );
+    return <AppointmentCalendarSkeleton />;
   }
 
   return (
@@ -439,7 +436,10 @@ export default function BarberCalendar() {
                                   <div
                                     key={`${staffMember.id}-${slot.start}`}
                                     className={`${colorClass} border-l-4 p-3 rounded cursor-pointer hover:opacity-80 transition-opacity`}
-                                    onClick={() => appointment && handleAppointmentClick(appointment)}
+                                    onClick={() =>
+                                      appointment &&
+                                      handleAppointmentClick(appointment)
+                                    }
                                   >
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="text-xs font-medium">
@@ -548,7 +548,9 @@ export default function BarberCalendar() {
                               {appointment ? (
                                 <div
                                   className={`bg-${colorClass}-100 dark:bg-${colorClass}-900/20 rounded-md p-2 h-full cursor-pointer hover:opacity-80 transition-opacity`}
-                                  onClick={() => handleAppointmentClick(appointment)}
+                                  onClick={() =>
+                                    handleAppointmentClick(appointment)
+                                  }
                                 >
                                   <div
                                     className={`text-xs font-medium text-${colorClass}-900 dark:text-${colorClass}-400`}
@@ -955,18 +957,22 @@ export default function BarberCalendar() {
           <DialogHeader>
             <DialogTitle>Randevu Detayları</DialogTitle>
           </DialogHeader>
-          
+
           {selectedAppointment && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground">Tarih</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    Tarih
+                  </h4>
                   <p className="font-semibold">
                     {formatTurkishDate(selectedAppointment.date)}
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground">Saat</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    Saat
+                  </h4>
                   <p className="font-semibold">
                     {formatAppointmentTime(selectedAppointment)}
                   </p>
@@ -974,7 +980,9 @@ export default function BarberCalendar() {
               </div>
 
               <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Müşteri</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Müşteri
+                </h4>
                 <p className="font-semibold text-lg">
                   {getCustomerName(selectedAppointment)}
                 </p>
@@ -982,7 +990,9 @@ export default function BarberCalendar() {
 
               {getCustomerPhone(selectedAppointment) && (
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground">Telefon</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    Telefon
+                  </h4>
                   <p className="font-semibold">
                     {getCustomerPhone(selectedAppointment)}
                   </p>
@@ -990,25 +1000,35 @@ export default function BarberCalendar() {
               )}
 
               <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Berber</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Berber
+                </h4>
                 <p className="font-semibold">
-                  {selectedAppointment.staff.firstName} {selectedAppointment.staff.lastName}
+                  {selectedAppointment.staff.firstName}{" "}
+                  {selectedAppointment.staff.lastName}
                 </p>
               </div>
 
               <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Durum</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Durum
+                </h4>
                 <p className="font-semibold">
-                  {selectedAppointment.status === 'CONFIRMED' ? 'Onaylanmış' : 
-                   selectedAppointment.status === 'CANCELLED' ? 'İptal Edilmiş' : 
-                   selectedAppointment.status === 'COMPLETED' ? 'Tamamlanmış' : 
-                   'Beklemede'}
+                  {selectedAppointment.status === "CONFIRMED"
+                    ? "Onaylanmış"
+                    : selectedAppointment.status === "CANCELLED"
+                    ? "İptal Edilmiş"
+                    : selectedAppointment.status === "COMPLETED"
+                    ? "Tamamlanmış"
+                    : "Beklemede"}
                 </p>
               </div>
 
               {selectedAppointment.notes && (
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground">Notlar</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground">
+                    Notlar
+                  </h4>
                   <p className="text-sm bg-muted p-3 rounded-md">
                     {selectedAppointment.notes}
                   </p>
@@ -1016,15 +1036,20 @@ export default function BarberCalendar() {
               )}
 
               <div>
-                <h4 className="font-medium text-sm text-muted-foreground">Oluşturulma Tarihi</h4>
+                <h4 className="font-medium text-sm text-muted-foreground">
+                  Oluşturulma Tarihi
+                </h4>
                 <p className="text-sm">
-                  {new Date(selectedAppointment.createdAt).toLocaleDateString('tr-TR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  {new Date(selectedAppointment.createdAt).toLocaleDateString(
+                    "tr-TR",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )}
                 </p>
               </div>
             </div>

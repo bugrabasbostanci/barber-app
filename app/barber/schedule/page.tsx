@@ -44,6 +44,7 @@ import { BUSINESS_RULES } from "@/lib/constants";
 import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { AvailabilitySettingsSkeleton } from "@/components/skeletons/availability-settings-skeleton";
 
 export default function BarberSchedule() {
   const router = useRouter();
@@ -339,6 +340,10 @@ export default function BarberSchedule() {
     // TODO: Integrate with API
     alert("Ayarlar kaydedildi!");
   };
+
+  if (loading) {
+    return <AvailabilitySettingsSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
