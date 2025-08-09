@@ -107,6 +107,30 @@ npm start
 - Row Level Security (RLS) politikaları
 - API route'ları için middleware koruması
 - CSRF koruma altyapısı (isteğe bağlı aktive edilebilir)
+- Rate limiting (Redis gerekli production'da)
+- CORS koruması
+
+## 🚨 Production Deployment Checklist
+
+**⚠️ Production'a çıkmadan önce mutlaka yapılması gerekenler:**
+
+### Kritik (Mutlaka Yapılmalı)
+- [ ] **CORS Origins Güncelle**: `lib/middleware/cors.ts` dosyasında production domain'lerini ekle
+  ```typescript
+  // Şu satırları gerçek domain'lerinle değiştir:
+  // 'https://berber-randevu.com',
+  // 'https://www.berber-randevu.com'
+  ```
+- [ ] **Rate Limiting**: Redis implementasyonu ekle (şu anda in-memory)
+- [ ] **RLS Policies**: Supabase dashboard'da RLS politikalarının aktif olduğunu doğrula
+- [ ] **Environment Variables**: Production ortam değişkenlerini ayarla
+  ```bash
+  NEXT_PUBLIC_APP_URL=https://your-domain.com
+  ```
+
+### Önemli
+- [ ] **CSP Headers**: `next.config.ts`'de Content Security Policy'yi production için sıkılaştır
+- [ ] **Database Backup**: Production veritabanı yedekleme stratejisi oluştur
 
 ## 📈 Durum
 

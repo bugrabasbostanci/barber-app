@@ -21,9 +21,11 @@ export interface CORSConfig {
 const productionConfig: CORSConfig = {
   origin: [
     process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    // Add production domains
-    // 'https://yourapp.com',
-    // 'https://www.yourapp.com'
+    // TODO: Replace with your actual production domains before deployment
+    // Examples:
+    // 'https://berber-randevu.com',
+    // 'https://www.berber-randevu.com',
+    // 'https://yourdomain.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
@@ -154,7 +156,7 @@ export function withStrictCORS(
   return withCORS(handler, {
     origin: process.env.NODE_ENV === 'development' 
       ? ['http://localhost:3000', 'https://localhost:3000']
-      : [process.env.NEXT_PUBLIC_APP_URL || 'https://yourapp.com'],
+      : [process.env.NEXT_PUBLIC_APP_URL || 'https://yourdomain.com'], // TODO: Replace with actual domain
     credentials: true,
   });
 }
