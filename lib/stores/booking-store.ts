@@ -159,8 +159,8 @@ export const useBookingStore = create<BookingState>()(
         try {
           // First try to get from profile store cache
           try {
-            const { useProfileStore } = await import('./profile-store');
-            const profileStore = useProfileStore.getState();
+            const { useProfileDataStore } = await import('./profile');
+            const profileStore = useProfileDataStore.getState();
             
             if (profileStore.profile && !profileStore.isDataStale()) {
               // Use cached profile data
