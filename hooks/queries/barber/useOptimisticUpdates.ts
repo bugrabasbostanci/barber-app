@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useBarberStore } from '@/lib/stores/barber-store';
+import { useBarberAppointmentsStore, useBarberAvailabilityStore } from '@/lib/stores/barber';
 import { toast } from 'sonner';
 
 export interface OptimisticOperation {
@@ -14,7 +14,8 @@ export interface OptimisticOperation {
 
 export function useOptimisticUpdates() {
   const queryClient = useQueryClient();
-  const barberStore = useBarberStore();
+  const appointmentsStore = useBarberAppointmentsStore();
+  const availabilityStore = useBarberAvailabilityStore();
   const pendingOperations = useRef<Map<string, OptimisticOperation>>(new Map());
 
   // Create optimistic operation tracker
@@ -97,17 +98,17 @@ export function useOptimisticUpdates() {
     updates: any,
     apiCall: () => Promise<any>
   ) => {
-    const originalAppointments = [...barberStore.appointments];
+    const originalAppointments = [...appointmentsStore.appointments];
     
     // Apply optimistic update
     const optimisticAppointments = originalAppointments.map(apt =>
       apt.id === appointmentId ? { ...apt, ...updates } : apt
     );
-    barberStore.setAppointments(optimisticAppointments);
+    appointmentsStore.setAppointments(optimisticAppointments);
 
     // Create rollback operation
     const operationId = createOperation('appointment', () => {
-      barberStore.rollbackAppointmentChanges(originalAppointments);
+      appointmentsStore.setAppointments(originalAppointments);
     });
 
     try {
@@ -118,34 +119,37 @@ export function useOptimisticUpdates() {
       completeOperation(operationId, false);
       throw error;
     }
-  }, [barberStore, createOperation, completeOperation]);
+  }, [appointmentsStore, createOperation, completeOperation]);
 
   // Availability-specific optimistic updates
   const optimisticAvailabilityUpdate = useCallback(async (
     updates: any,
     apiCall: () => Promise<any>
   ) => {
-    const originalWeeklySchedule = { ...barberStore.weeklySchedule };
-    const originalCustomSlots = [...barberStore.customSlots];
+    const originalWeeklySchedule = { ...availabilityStore.weeklySchedule };
+    const originalCustomSlots = [...availabilityStore.customSlots];
     
     // Apply optimistic update
     if (updates.weeklySchedule) {
-      barberStore.setWeeklySchedule(updates.weeklySchedule);
+      availabilityStore.setWeeklySchedule(updates.weeklySchedule);
     }
     if (updates.customSlots) {
       // Handle custom slots update logic here
       updates.customSlots.forEach((slot: any) => {
         if (slot.id) {
-          barberStore.updateCustomSlot(slot.id, slot);
+          availabilityStore.updateCustomSlot(slot.id, slot);
         } else {
-          barberStore.addCustomSlot(slot);
+          availabilityStore.addCustomSlot(slot);
         }
       });
     }
 
     // Create rollback operation
     const operationId = createOperation('availability', () => {
-      barberStore.rollbackAvailabilityChanges(originalWeeklySchedule, originalCustomSlots);
+      availabilityStore.setWeeklySchedule(originalWeeklySchedule);
+      // Reset custom slots by clearing and re-adding
+      availabilityStore.clearCache();
+      originalCustomSlots.forEach(slot => availabilityStore.addCustomSlot(slot));
     });
 
     try {
@@ -156,7 +160,7 @@ export function useOptimisticUpdates() {
       completeOperation(operationId, false);
       throw error;
     }
-  }, [barberStore, createOperation, completeOperation]);
+  }, [availabilityStore, createOperation, completeOperation]);
 
   // Bulk operations with optimistic updates
   const optimisticBulkUpdate = useCallback(async (
@@ -164,18 +168,18 @@ export function useOptimisticUpdates() {
     updates: any,
     apiCall: () => Promise<any>
   ) => {
-    const originalAppointments = [...barberStore.appointments];
+    const originalAppointments = [...appointmentsStore.appointments];
     const appointmentIds = appointments.map(apt => apt.id);
     
     // Apply optimistic update
     const optimisticAppointments = originalAppointments.map(apt =>
       appointmentIds.includes(apt.id) ? { ...apt, ...updates } : apt
     );
-    barberStore.setAppointments(optimisticAppointments);
+    appointmentsStore.setAppointments(optimisticAppointments);
 
     // Create rollback operation
     const operationId = createOperation('bulk', () => {
-      barberStore.rollbackAppointmentChanges(originalAppointments);
+      appointmentsStore.setAppointments(originalAppointments);
     });
 
     try {
@@ -186,7 +190,7 @@ export function useOptimisticUpdates() {
       completeOperation(operationId, false);
       throw error;
     }
-  }, [barberStore, createOperation, completeOperation]);
+  }, [appointmentsStore, createOperation, completeOperation]);
 
   // Network status aware optimistic updates
   const safeOptimisticUpdate = useCallback(async (
