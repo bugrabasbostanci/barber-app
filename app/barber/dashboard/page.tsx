@@ -21,8 +21,8 @@ export const dynamic = "force-dynamic";
 export default async function BarberDashboard() {
   // Check if user has barber role
   const userRole = await checkUserRole();
-  if (!userRole || userRole.role !== "BARBER") {
-    redirect("/auth/login");
+  if (!userRole || (userRole.role !== "BARBER" && userRole.role !== "ADMIN")) {
+    redirect("/");
   }
 
   // Get current date in Turkish format using utility

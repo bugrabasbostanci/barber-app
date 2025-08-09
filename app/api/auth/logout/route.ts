@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withStrictCORS } from "@/lib/middleware/cors";
 import { NextResponse } from "next/server";
 
 // POST - User logout
@@ -52,4 +53,4 @@ async function logoutHandler() {
   return response;
 }
 
-export const POST = withErrorHandler(logoutHandler);
+export const POST = withStrictCORS(withErrorHandler(logoutHandler));

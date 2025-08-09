@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { withCORS } from "@/lib/middleware/cors";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -58,9 +59,11 @@ async function getProfileHandler(
   });
 }
 
-export const GET = withErrorHandler(
-  withRateLimit(rateLimiters.api)(
-    withAuth(requireAuth())(getProfileHandler)
+export const GET = withCORS(
+  withErrorHandler(
+    withRateLimit(rateLimiters.api)(
+      withAuth(requireAuth())(getProfileHandler)
+    )
   )
 );
 
@@ -110,9 +113,11 @@ async function patchProfileHandler(
   });
 }
 
-export const PATCH = withErrorHandler(
-  withRateLimit(rateLimiters.api)(
-    withAuth(requireAuth())(patchProfileHandler)
+export const PATCH = withCORS(
+  withErrorHandler(
+    withRateLimit(rateLimiters.api)(
+      withAuth(requireAuth())(patchProfileHandler)
+    )
   )
 );
 
@@ -160,9 +165,11 @@ async function putProfileHandler(
   });
 }
 
-export const PUT = withErrorHandler(
-  withRateLimit(rateLimiters.api)(
-    withAuth(requireAuth())(putProfileHandler)
+export const PUT = withCORS(
+  withErrorHandler(
+    withRateLimit(rateLimiters.api)(
+      withAuth(requireAuth())(putProfileHandler)
+    )
   )
 );
 
@@ -205,8 +212,10 @@ async function deleteProfileHandler(
   });
 }
 
-export const DELETE = withErrorHandler(
-  withRateLimit(rateLimiters.api)(
-    withAuth(requireAuth())(deleteProfileHandler)
+export const DELETE = withCORS(
+  withErrorHandler(
+    withRateLimit(rateLimiters.api)(
+      withAuth(requireAuth())(deleteProfileHandler)
+    )
   )
 );

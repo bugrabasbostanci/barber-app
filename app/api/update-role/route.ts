@@ -1,21 +1,15 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
+import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { ApiResponseBuilder } from "@/lib/api/response";
-import { UnauthorizedError, ValidationError } from "@/lib/errors";
+import { ValidationError } from "@/lib/errors";
 
-
-async function updateRoleHandler(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    throw new UnauthorizedError();
-  }
+async function updateRoleHandler(
+  request: NextRequest,
+  context?: Record<string, unknown>
+) {
+  const user = context?.user as AuthenticatedUser;
 
   const { role } = await request.json();
 
@@ -26,18 +20,18 @@ async function updateRoleHandler(request: NextRequest) {
     }]);
   }
 
-    // Update user role in database
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { role },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-      },
-    });
+  // Update user role in database
+  const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: { role },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      role: true,
+    },
+  });
 
   return ApiResponseBuilder.success({
     message: `Role updated to ${role}`,
@@ -45,4 +39,18 @@ async function updateRoleHandler(request: NextRequest) {
   });
 }
 
-export const POST = withErrorHandler(updateRoleHandler);
+export const POST = withErrorHandler(
+  withAuth(requireAuth())(async (req: NextRequest, context?: Record<string, unknown>) => {
+    const user = context?.user as AuthenticatedUser;
+    
+    // Check if user is admin
+    if (user.role !== 'ADMIN') {
+      throw new ValidationError([{
+        code: 'insufficient_permissions',
+        message: 'Admin access required'
+      }]);
+    }
+
+    return updateRoleHandler(req, context);
+  })
+);

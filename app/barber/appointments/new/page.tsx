@@ -48,8 +48,8 @@ export default function NewAppointment() {
           return;
         }
         const data = await response.json();
-        if (!data.success || data.role !== "BARBER") {
-          router.push("/auth/login");
+        if (!data.success || (data.data.role !== "BARBER" && data.data.role !== "ADMIN")) {
+          router.push("/");
           return;
         }
       } catch (error) {

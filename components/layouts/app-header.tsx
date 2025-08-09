@@ -156,7 +156,7 @@ export function AppHeader({
                   </DropdownMenuItem>
                 )}
 
-                {/* Customer specific menu items */}
+                {/* Customer specific menu items - only show for CUSTOMER role */}
                 {isCustomer() && currentPage !== "appointments" && (
                   <DropdownMenuItem asChild>
                     <Link href="/my-appointments">

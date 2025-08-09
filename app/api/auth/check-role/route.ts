@@ -1,28 +1,20 @@
-import { NextResponse } from 'next/server'
-import { checkUserRole } from '@/lib/admin-actions'
+import { NextRequest } from 'next/server'
+import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
 
-export async function GET() {
-  try {
-    const userRole = await checkUserRole()
-    
-    if (!userRole) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+async function checkRoleHandler(
+  request: NextRequest,
+  context?: Record<string, unknown>
+) {
+  const user = context?.user as AuthenticatedUser;
 
-    return NextResponse.json({
-      success: true,
-      role: userRole.role,
-      isActive: userRole.isActive
-    })
-
-  } catch (error) {
-    console.error('Error in check-role API:', error)
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+  return ApiResponseBuilder.success({
+    role: user.role,
+    isActive: user.isActive
+  });
 }
+
+export const GET = withErrorHandler(
+  withAuth(requireAuth())(checkRoleHandler)
+);

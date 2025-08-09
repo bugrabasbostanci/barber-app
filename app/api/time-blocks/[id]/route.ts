@@ -1,70 +1,58 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
-
+import { NextRequest } from "next/server";
+import { getAuthenticatedUser } from "@/lib/middleware/api-auth";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { NotFoundError, UnauthorizedError, ForbiddenError } from "@/lib/errors";
 
 // DELETE - Remove time block
+async function deleteTimeBlockHandler(
+  request: NextRequest,
+  context?: { params?: { id: string } }
+) {
+  // Get authenticated user
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    throw new UnauthorizedError("Authentication required");
+  }
+
+  // Check if user has barber permissions
+  if (!["BARBER", "ADMIN"].includes(user.role)) {
+    throw new ForbiddenError("Only barbers and admins can delete time blocks");
+  }
+
+  const timeBlockId = context?.params?.id;
+  if (!timeBlockId) {
+    throw new NotFoundError("Time block ID is required");
+  }
+
+  // Find the time block
+  const timeBlock = await prisma.employeeUnavailableTime.findUnique({
+    where: { id: timeBlockId },
+  });
+
+  if (!timeBlock) {
+    throw new NotFoundError("Time block not found");
+  }
+
+  // Delete the time block
+  await prisma.employeeUnavailableTime.delete({
+    where: { id: timeBlockId },
+  });
+
+  return ApiResponseBuilder.success({
+    message: "Time block deleted successfully"
+  });
+}
+
+// Handle dynamic route properly
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check if user has BARBER or ADMIN role
-    const dbUser = await prisma.user.findUnique({
-      where: { id: user.id },
-    });
-
-    if (!dbUser || !["BARBER", "ADMIN"].includes(dbUser.role)) {
-      return NextResponse.json(
-        {
-          error: "Only barbers and admins can delete time blocks",
-        },
-        { status: 403 }
-      );
-    }
-
-    const { id: timeBlockId } = await params;
-
-    // Find the time block
-    const timeBlock = await prisma.employeeUnavailableTime.findUnique({
-      where: { id: timeBlockId },
-    });
-
-    if (!timeBlock) {
-      return NextResponse.json(
-        {
-          error: "Time block not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    // Delete the time block
-    await prisma.employeeUnavailableTime.delete({
-      where: { id: timeBlockId },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Time block deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting time block:", error);
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-      },
-      { status: 500 }
-    );
-  }
+  const resolvedParams = await params;
+  
+  return withErrorHandler(async () => {
+    return await deleteTimeBlockHandler(request, { params: resolvedParams });
+  })();
 }

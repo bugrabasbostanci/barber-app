@@ -68,15 +68,15 @@ export function AppointmentsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppointmentsState>(initialState);
   const { user } = useAuth();
 
-  // Auto-fetch on mount if user is available
+  // Auto-fetch on mount if user is available and is a customer
   useEffect(() => {
-    if (user && !state.hasInitialized) {
+    if (user && user.role === 'CUSTOMER' && !state.hasInitialized) {
       fetchAppointments();
     }
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAppointments = useCallback(async (force: boolean = false) => {
-    if (!user) return;
+    if (!user || user.role !== 'CUSTOMER') return;
 
     // Skip if recently fetched and not forced
     const now = Date.now();

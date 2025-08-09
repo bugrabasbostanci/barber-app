@@ -1,81 +1,64 @@
 import { prisma } from '@/lib/prisma';
-import { createClient } from "@/lib/supabase/server";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { withAuth, requireBarber } from "@/lib/middleware/api-auth";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { ApiResponseBuilder } from "@/lib/api/response";
 
 // GET - Search customers
-export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+async function searchCustomersHandler(
+  request: NextRequest
+) {
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get("q");
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Check user role (only barbers can search customers)
-    const userProfile = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { role: true },
-    });
-
-    if (!userProfile || userProfile.role !== "BARBER") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q");
-
-    if (!query || query.trim().length < 2) {
-      return NextResponse.json([]);
-    }
-
-    // Search customers by name or phone
-    const customers = await prisma.user.findMany({
-      where: {
-        role: "CUSTOMER",
-        isActive: true,
-        OR: [
-          {
-            firstName: {
-              contains: query,
-              mode: 'insensitive',
-            },
-          },
-          {
-            lastName: {
-              contains: query,
-              mode: 'insensitive',
-            },
-          },
-          {
-            phone: {
-              contains: query,
-            },
-          },
-        ],
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-      },
-      orderBy: [
-        { firstName: 'asc' },
-        { lastName: 'asc' },
-      ],
-      take: 10, // Limit results
-    });
-
-    return NextResponse.json(customers);
-  } catch (error) {
-    console.error("Error searching customers:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  if (!query || query.trim().length < 2) {
+    return ApiResponseBuilder.success([]);
   }
+
+  // Search customers by name or phone
+  const customers = await prisma.user.findMany({
+    where: {
+      role: "CUSTOMER",
+      isActive: true,
+      OR: [
+        {
+          firstName: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        {
+          lastName: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        {
+          phone: {
+            contains: query,
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+    },
+    orderBy: [
+      { firstName: 'asc' },
+      { lastName: 'asc' },
+    ],
+    take: 10, // Limit results
+  });
+
+  return ApiResponseBuilder.success(customers);
 }
+
+export const GET = withErrorHandler(
+  withRateLimit(rateLimiters.api)(
+    withAuth(requireBarber())(searchCustomersHandler)
+  )
+);

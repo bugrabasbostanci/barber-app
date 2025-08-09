@@ -1,48 +1,30 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withValidation } from "@/lib/middleware/validation";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { ValidationError } from "@/lib/errors";
+import { z } from "zod";
+
+const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(6, "New password must be at least 6 characters"),
+  confirmPassword: z.string().min(1, "Password confirmation is required"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "New passwords do not match",
+  path: ["confirmPassword"]
+});
 
 // POST - Update password for authenticated user
-async function updatePasswordHandler(request: NextRequest) {
-  const { currentPassword, newPassword, confirmPassword } = await request.json();
-
-  // Validate required fields
-  if (!currentPassword || !newPassword || !confirmPassword) {
-    throw new ValidationError([{
-      code: 'required_fields',
-      message: 'Mevcut şifre, yeni şifre ve şifre onayı gereklidir'
-    }]);
-  }
-
-  // Validate new passwords match
-  if (newPassword !== confirmPassword) {
-    throw new ValidationError([{
-      code: 'password_mismatch',
-      message: 'Yeni şifreler eşleşmiyor'
-    }]);
-  }
-
-  // Validate new password strength
-  if (newPassword.length < 6) {
-    throw new ValidationError([{
-      code: 'weak_password',
-      message: 'Yeni şifre en az 6 karakter olmalıdır'
-    }]);
-  }
+async function updatePasswordHandler(
+  request: NextRequest,
+  context: Record<string, unknown>
+) {
+  const user = context.user as AuthenticatedUser;
+  const { currentPassword, newPassword } = context.validatedBody as z.infer<typeof updatePasswordSchema>;
 
   const supabase = await createClient();
-
-  // Get current user
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-  if (userError || !user) {
-    throw new ValidationError([{
-      code: 'unauthorized',
-      message: 'Kimlik doğrulama gerekli'
-    }]);
-  }
 
   // Verify current password by attempting to sign in
   const { error: verifyError } = await supabase.auth.signInWithPassword({
@@ -69,9 +51,15 @@ async function updatePasswordHandler(request: NextRequest) {
     }]);
   }
 
-  return ApiResponseBuilder.success({
-    message: 'Şifreniz başarıyla güncellendi'
+  return ApiResponseBuilder.success({ 
+    message: 'Şifreniz başarıyla güncellendi' 
   });
 }
 
-export const POST = withErrorHandler(updatePasswordHandler);
+export const POST = withErrorHandler(
+  withAuth(requireAuth())(
+    withValidation({
+      body: updatePasswordSchema
+    })(updatePasswordHandler)
+  )
+);
