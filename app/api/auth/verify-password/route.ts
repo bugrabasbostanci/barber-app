@@ -1,55 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
+import { withValidation } from "@/lib/middleware/validation";
+import { ApiResponseBuilder } from "@/lib/api/response";
+import { ValidationError, UnauthorizedError } from "@/lib/errors";
+import { z } from "zod";
 
-export async function POST(request: NextRequest) {
-  try {
-    const { currentPassword } = await request.json();
+const verifyPasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+});
 
-    if (!currentPassword) {
-      return NextResponse.json(
-        { error: 'Mevcut şifre gerekli' },
-        { status: 400 }
-      );
-    }
+async function verifyPasswordHandler(
+  request: NextRequest,
+  context: Record<string, unknown>
+) {
+  const user = context.user as AuthenticatedUser;
+  const { currentPassword } = context.validatedBody as z.infer<typeof verifyPasswordSchema>;
 
-    const supabase = await createClient();
-
-    // Get the current user from the session
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    
-    if (userError || !user?.email) {
-      return NextResponse.json(
-        { error: 'Kullanıcı bulunamadı' },
-        { status: 401 }
-      );
-    }
-
-    // Create a new client instance for password verification
-    // This won't affect the current session
-    const verificationSupabase = await createClient();
-    
-    const { error: signInError } = await verificationSupabase.auth.signInWithPassword({
-      email: user.email,
-      password: currentPassword,
-    });
-
-    if (signInError) {
-      return NextResponse.json(
-        { error: 'Mevcut şifre yanlış' },
-        { status: 400 }
-      );
-    }
-
-    // Immediately sign out the verification session to prevent session conflicts
-    await verificationSupabase.auth.signOut();
-
-    return NextResponse.json({ success: true });
-
-  } catch (error) {
-    console.error('Password verification error:', error);
-    return NextResponse.json(
-      { error: 'Şifre doğrulama hatası' },
-      { status: 500 }
-    );
+  if (!user.email) {
+    throw new UnauthorizedError("User email not found");
   }
+
+  // Create a new client instance for password verification
+  // This won't affect the current session
+  const verificationSupabase = await createClient();
+  
+  const { error: signInError } = await verificationSupabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+
+  if (signInError) {
+    throw new ValidationError([{
+      code: 'invalid_password',
+      message: 'Mevcut şifre yanlış'
+    }]);
+  }
+
+  // Immediately sign out the verification session to prevent session conflicts
+  await verificationSupabase.auth.signOut();
+
+  return ApiResponseBuilder.success({ valid: true });
 }
+
+export const POST = withErrorHandler(
+  withRateLimit(rateLimiters.auth)(
+    withAuth(requireAuth())(
+      withValidation({
+        body: verifyPasswordSchema
+      })(verifyPasswordHandler)
+    )
+  )
+);

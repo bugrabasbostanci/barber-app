@@ -5,6 +5,7 @@ import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from
 import { withAuth, requireBarber } from "@/lib/middleware/api-auth";
 import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { NotFoundError, ConflictError } from "@/lib/errors";
 import { validateAppointmentCreation } from "@/lib/business-rules";
@@ -251,17 +252,21 @@ async function createManualAppointment(
 
 // Export protected endpoints with error handling, validation and rate limiting
 export const GET = withErrorHandler(
-  withAuth(requireBarber())(
-    withValidation({ 
-      query: getAppointmentsQuerySchema 
-    })(getAppointments)
+  withRateLimit(rateLimiters.api)(
+    withAuth(requireBarber())(
+      withValidation({ 
+        query: getAppointmentsQuerySchema 
+      })(getAppointments)
+    )
   )
 );
 
 export const POST = withErrorHandler(
-  withAuth(requireBarber())(
-    withValidation({ 
-      body: createManualAppointmentSchema 
-    })(createManualAppointment)
+  withRateLimit(rateLimiters.booking)(
+    withAuth(requireBarber())(
+      withValidation({ 
+        body: createManualAppointmentSchema 
+      })(createManualAppointment)
+    )
   )
 );

@@ -10,6 +10,7 @@ import {
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { NotFoundError, ConflictError, ForbiddenError } from "@/lib/errors";
 import { validateAppointmentCreation } from "@/lib/business-rules";
@@ -226,9 +227,11 @@ async function createAppointment(
 
 // Export protected endpoint with validation and error handling
 export const POST = withErrorHandler(
-  withAuth(requireCustomer())(
-    withValidation({ 
-      body: createAppointmentSchema 
-    })(createAppointment)
+  withRateLimit(rateLimiters.booking)(
+    withAuth(requireCustomer())(
+      withValidation({ 
+        body: createAppointmentSchema 
+      })(createAppointment)
+    )
   )
 );

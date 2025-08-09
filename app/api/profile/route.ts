@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { NextRequest } from "next/server";
 import { withAuth, requireAuth, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { ValidationError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
@@ -58,7 +59,9 @@ async function getProfileHandler(
 }
 
 export const GET = withErrorHandler(
-  withAuth(requireAuth())(getProfileHandler)
+  withRateLimit(rateLimiters.api)(
+    withAuth(requireAuth())(getProfileHandler)
+  )
 );
 
 // PATCH - Update user profile (partial update)
@@ -108,7 +111,9 @@ async function patchProfileHandler(
 }
 
 export const PATCH = withErrorHandler(
-  withAuth(requireAuth())(patchProfileHandler)
+  withRateLimit(rateLimiters.api)(
+    withAuth(requireAuth())(patchProfileHandler)
+  )
 );
 
 // PUT - Update user profile  
@@ -156,7 +161,9 @@ async function putProfileHandler(
 }
 
 export const PUT = withErrorHandler(
-  withAuth(requireAuth())(putProfileHandler)
+  withRateLimit(rateLimiters.api)(
+    withAuth(requireAuth())(putProfileHandler)
+  )
 );
 
 // DELETE - Delete user account
@@ -199,5 +206,7 @@ async function deleteProfileHandler(
 }
 
 export const DELETE = withErrorHandler(
-  withAuth(requireAuth())(deleteProfileHandler)
+  withRateLimit(rateLimiters.api)(
+    withAuth(requireAuth())(deleteProfileHandler)
+  )
 );

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
+import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { ValidationError } from "@/lib/errors";
 
@@ -51,4 +52,6 @@ async function resetPasswordHandler(request: NextRequest) {
   });
 }
 
-export const POST = withErrorHandler(resetPasswordHandler);
+export const POST = withErrorHandler(
+  withRateLimit(rateLimiters.auth)(resetPasswordHandler)
+);
