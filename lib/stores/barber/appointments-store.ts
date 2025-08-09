@@ -310,7 +310,7 @@ export const useBarberAppointmentsStore = create<AppointmentsState>()(
       },
       
       isDataStale: () => {
-        const { lastFetched } = get();
+        const { lastFetched, cacheValidDuration } = get();
         if (!lastFetched) return true;
         return Date.now() - lastFetched > cacheValidDuration;
       },

@@ -45,6 +45,7 @@ import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
 import { tr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { AvailabilitySettingsSkeleton } from "@/components/skeletons/availability-settings-skeleton";
+import { toast } from "sonner";
 
 export default function BarberSchedule() {
   const router = useRouter();
@@ -82,6 +83,10 @@ export default function BarberSchedule() {
   const [blockReason, setBlockReason] = useState("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [blockToDelete, setBlockToDelete] = useState<string | null>(null);
+  
+  // Validation modal states
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [validationMessage, setValidationMessage] = useState("");
 
   // Working hours state - using BUSINESS_RULES
   const [appointmentDuration, setAppointmentDuration] = useState(
@@ -202,12 +207,14 @@ export default function BarberSchedule() {
 
   const handleAddTimeBlock = async () => {
     if (!blockDate || !blockStaff || !blockReason) {
-      alert("Lütfen tüm gerekli alanları doldurun");
+      setValidationMessage("Lütfen tüm gerekli alanları doldurun");
+      setShowValidationDialog(true);
       return;
     }
 
     if (blockType === "time-range" && (!blockStartTime || !blockEndTime)) {
-      alert("Lütfen başlangıç ve bitiş saatini seçin");
+      setValidationMessage("Lütfen başlangıç ve bitiş saatini seçin");
+      setShowValidationDialog(true);
       return;
     }
 
@@ -231,7 +238,7 @@ export default function BarberSchedule() {
 
       if (response.ok && result.success) {
         // Add to local state
-        setBlockedTimes((prev) => [...prev, result.timeBlock]);
+        setBlockedTimes((prev) => [...prev, result.data]);
 
         // Reset form
         setBlockDate(undefined);
@@ -241,22 +248,19 @@ export default function BarberSchedule() {
         setBlockReason("");
         setBlockType("time-range");
 
-        alert("Zaman bloğu başarıyla oluşturuldu!");
+        toast.success("Zaman bloğu başarıyla oluşturuldu!");
       } else {
-        alert(result.error || "Zaman bloğu oluşturulurken bir hata oluştu.");
+        toast.error(result.error || "Zaman bloğu oluşturulurken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error creating time block:", error);
-      alert(
+      toast.error(
         "Zaman bloğu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin."
       );
     }
   };
 
   const handleDeleteTimeBlock = async (id: string) => {
-    if (!confirm("Bu zaman bloğunu silmek istediğinizden emin misiniz?")) {
-      return;
-    }
 
     try {
       const response = await fetch(`/api/time-blocks/${id}`, {
@@ -269,13 +273,13 @@ export default function BarberSchedule() {
         setBlockedTimes((prev) => prev.filter((block) => block.id !== id));
         setShowDeleteDialog(false);
         setBlockToDelete(null);
-        alert("Zaman bloğu başarıyla silindi!");
+        toast.success("Zaman bloğu başarıyla silindi!");
       } else {
-        alert(result.error || "Zaman bloğu silinirken bir hata oluştu.");
+        toast.error(result.error || "Zaman bloğu silinirken bir hata oluştu.");
       }
     } catch (error) {
       console.error("Error deleting time block:", error);
-      alert("Zaman bloğu silinirken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast.error("Zaman bloğu silinirken bir hata oluştu. Lütfen tekrar deneyin.");
     }
   };
 
@@ -338,7 +342,7 @@ export default function BarberSchedule() {
 
   const handleSave = async () => {
     // TODO: Integrate with API
-    alert("Ayarlar kaydedildi!");
+    toast.success("Ayarlar kaydedildi!");
   };
 
   if (loading) {
@@ -736,6 +740,28 @@ export default function BarberSchedule() {
           </Card>
         </div>
       </div>
+
+      {/* Validation Dialog */}
+      {showValidationDialog && (
+        <Dialog open={showValidationDialog} onOpenChange={setShowValidationDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Uyarı</DialogTitle>
+              <DialogDescription>
+                {validationMessage}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                onClick={() => setShowValidationDialog(false)}
+                className="bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+              >
+                Tamam
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Delete Confirmation Dialog */}
       {showDeleteDialog && (

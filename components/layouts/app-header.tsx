@@ -146,8 +146,8 @@ export function AppHeader({
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </DropdownMenuLabel>
 
-                {/* Show Profile link only if not on profile page */}
-                {currentPage !== "profile" && (
+                {/* Show Profile link only for CUSTOMER role and not on profile page */}
+                {isCustomer() && currentPage !== "profile" && (
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
                       <User className="w-4 h-4 mr-3 text-muted-foreground" />

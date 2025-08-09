@@ -67,12 +67,24 @@ export function validateBookingWindow(date: string): void {
   today.setHours(0, 0, 0, 0);
   
   const appointmentDate = new Date(date + 'T00:00:00');
-  const maxBookingDate = new Date(today);
-  maxBookingDate.setDate(today.getDate() + BUSINESS_RULES.BOOKING_WINDOW_DAYS);
   
   // Check if appointment is in the past
   if (appointmentDate < today) {
     throw new BadRequestError('Geçmiş tarih için randevu alınamaz.');
+  }
+  
+  // Calculate max booking date by counting only working days (skip Sundays)
+  const maxBookingDate = new Date(today);
+  let workingDaysAdded = 0;
+  
+  while (workingDaysAdded < BUSINESS_RULES.BOOKING_WINDOW_DAYS) {
+    maxBookingDate.setDate(maxBookingDate.getDate() + 1);
+    const dayOfWeek = maxBookingDate.getDay();
+    
+    // If it's not a closed day (Sunday), count it as a working day
+    if (!BUSINESS_RULES.CLOSED_DAYS.includes(dayOfWeek)) {
+      workingDaysAdded++;
+    }
   }
   
   // Check if appointment is beyond booking window
