@@ -295,14 +295,26 @@ function AppointmentsList({
     <>
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="text-center p-6 bg-blue-50 rounded-2xl">
-          <p className="text-2xl font-bold text-blue-600">{upcoming.length}</p>
-          <p className="text-sm text-muted-foreground">Yaklaşan</p>
-        </div>
-        <div className="text-center p-6 bg-green-50 rounded-2xl">
-          <p className="text-2xl font-bold text-green-600">{past.length}</p>
-          <p className="text-sm text-muted-foreground">Geçmiş</p>
-        </div>
+        <Card className="border-2 border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+              {upcoming.length}
+            </div>
+            <div className="text-sm text-muted-foreground font-medium">
+              Yaklaşan Randevu
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-2 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
+              {past.length}
+            </div>
+            <div className="text-sm text-muted-foreground font-medium">
+              Geçmiş Randevu
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Appointments Tabs */}

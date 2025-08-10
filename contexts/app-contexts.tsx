@@ -2,12 +2,9 @@
 
 import React, { ReactNode } from 'react';
 import { AuthProvider } from './auth-context';
-import { BookingProvider } from './booking-context';
 import { AppointmentsProvider } from './appointments-context';
 import { ProfileProvider } from './profile-context';
 import { BarberProfileProvider } from './barber-profile-context';
-import { BarberAppointmentsProvider } from './barber-appointments-context';
-import { BarberDashboardProvider } from './barber-dashboard-context';
 
 interface AppContextsProviderProps {
   children: ReactNode;
@@ -24,13 +21,7 @@ export function AppContextsProvider({ children }: AppContextsProviderProps) {
       <ProfileProvider>
         <BarberProfileProvider>
           <AppointmentsProvider>
-            <BarberAppointmentsProvider>
-              <BarberDashboardProvider>
-                <BookingProvider>
-                  {children}
-                </BookingProvider>
-              </BarberDashboardProvider>
-            </BarberAppointmentsProvider>
+            {children}
           </AppointmentsProvider>
         </BarberProfileProvider>
       </ProfileProvider>
@@ -40,18 +31,18 @@ export function AppContextsProvider({ children }: AppContextsProviderProps) {
 
 // Re-export all context hooks for convenience
 export { useAuth, useAuthUser, useAuthLoading, useUserRole, useIsAuthenticated, useIsCustomer, useIsBarber, useIsStaff, useCanBookAppointments, useCanAccessBarberPanel } from './auth-context';
-export { useBooking } from './booking-context';
+// Booking functionality now uses modern stores (lib/stores/booking/)
 export { useAppointments } from './appointments-context';
 export { useProfile } from './profile-context';
 export { useBarberProfile } from './barber-profile-context';
-export { useBarberAppointments } from './barber-appointments-context';
-export { useBarberDashboard } from './barber-dashboard-context';
+export { useBarberAppointments } from '@/features/barber-appointments';
+export { useBarberDashboard } from '@/features/barber-dashboard';
 
 // Re-export types for convenience
 export type { AuthUser } from '@/lib/types/auth';
-export type { BookingData, CustomerInfo, Staff, TimeSlot } from './booking-context';
+// Booking types now available from modern stores (lib/stores/booking/)
 export type { Appointment } from './appointments-context';
 export type { UserProfile, ProfileFormData } from './profile-context';
 export type { BarberProfile, BarberProfileFormData } from './barber-profile-context';
-export type { BarberAppointment, AppointmentFilters, AppointmentStats } from './barber-appointments-context';
-export type { DashboardView, CalendarView, TimeRange, DashboardFilters, DashboardStats, QuickAction, DashboardNotification } from './barber-dashboard-context';
+export type { BarberAppointment, AppointmentFilters, AppointmentStats } from '@/features/barber-appointments';
+export type { DashboardView, CalendarView, TimeRange, DashboardFilters, DashboardStats, QuickAction, DashboardNotification } from '@/features/barber-dashboard';
