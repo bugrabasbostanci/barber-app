@@ -16,7 +16,7 @@ import {
   changePasswordSchema,
   type ChangePasswordFormData,
 } from "@/lib/validations/auth";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/auth-context";
 
 function ChangePasswordForm() {
   const { user, loading: authLoading } = useAuth();

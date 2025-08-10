@@ -164,7 +164,7 @@ function MyAppointmentsContent() {
 
   // Get computed data from React Query hooks
   const upcoming = getUpcomingAppointments();
-  const past = getPastAppointments();
+  const past = getPastAppointments().slice(0, 3); // Son 3 geçmiş randevuyu göster
 
   // Show error if not authorized
   if (!isAuthorized) {
@@ -359,7 +359,14 @@ function AppointmentsList({
               </CardContent>
             </Card>
           ) : (
-            <div>{past.map(renderAppointmentCard)}</div>
+            <>
+              {past.length > 0 && (
+                <div className="text-sm text-muted-foreground mb-4 text-center">
+                  Son 3 geçmiş randevunuz gösteriliyor
+                </div>
+              )}
+              <div>{past.map(renderAppointmentCard)}</div>
+            </>
           )}
         </TabsContent>
       </Tabs>

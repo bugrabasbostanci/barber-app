@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from 'react';
-import { useAuth, useIsBarber } from '@/hooks/useAuth';
+import { useAuth, useIsBarber } from '@/contexts/auth-context';
 import { BarberDashboardService } from '../services/dashboardService';
 import {
   BarberDashboardState,

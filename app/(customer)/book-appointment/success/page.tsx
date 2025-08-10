@@ -4,16 +4,35 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Calendar, Clock, UserCheck, Phone, Home, CalendarCheck } from "lucide-react";
+import {
+  CheckCircle,
+  Calendar,
+  Clock,
+  UserCheck,
+  Phone,
+  Home,
+  CalendarCheck,
+} from "lucide-react";
 import { useBookingStore } from "@/lib/stores/booking-store";
 import { formatTurkishDate } from "@/lib/date-time";
+import type { QueryClient } from '@tanstack/react-query';
 
 export default function BookingSuccessPage() {
-  const { bookingData, customerInfo, getStaffName, resetBooking } = useBookingStore();
+  const { bookingData, customerInfo, getStaffName, resetBooking } =
+    useBookingStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Invalidate appointments cache after successful booking
+    // This ensures my-appointments page shows the new appointment
+    if (typeof window !== 'undefined') {
+      const queryClient = (window as { queryClient?: QueryClient }).queryClient;
+      if (queryClient) {
+        queryClient.invalidateQueries({ queryKey: ['appointments', 'my'] });
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -27,7 +46,7 @@ export default function BookingSuccessPage() {
 
   const getEndTime = () => {
     if (!bookingData.timeSlot) return "";
-    
+
     const [hours, minutes] = bookingData.timeSlot.split(":").map(Number);
     const endTime = new Date();
     endTime.setHours(hours, minutes + 45, 0, 0);
@@ -98,9 +117,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {formatTurkishDate(bookingData.date)}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Tarih
-                  </div>
+                  <div className="text-sm text-muted-foreground">Tarih</div>
                 </div>
               </div>
             </CardContent>
@@ -115,9 +132,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {getStaffName(bookingData.staffId)}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    Berber
-                  </div>
+                  <div className="text-sm text-muted-foreground">Berber</div>
                 </div>
               </div>
             </CardContent>
@@ -132,9 +147,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {bookingData.timeSlot} - {getEndTime()}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    45 dakika
-                  </div>
+                  <div className="text-sm text-muted-foreground">45 dakika</div>
                 </div>
               </div>
             </CardContent>
@@ -149,9 +162,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {customerInfo.phone}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    İletişim
-                  </div>
+                  <div className="text-sm text-muted-foreground">İletişim</div>
                 </div>
               </div>
             </CardContent>
@@ -161,12 +172,8 @@ export default function BookingSuccessPage() {
           {customerInfo.notes && (
             <Card className="cursor-default">
               <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground mb-2">
-                  Notlar
-                </div>
-                <div className="text-sm font-medium">
-                  {customerInfo.notes}
-                </div>
+                <div className="text-sm text-muted-foreground mb-2">Notlar</div>
+                <div className="text-sm font-medium">{customerInfo.notes}</div>
               </CardContent>
             </Card>
           )}
@@ -181,9 +188,18 @@ export default function BookingSuccessPage() {
                     Önemli Hatırlatmalar
                   </div>
                   <ul className="space-y-1 text-xs text-muted-foreground">
-                    <li>• Randevunuzu iptal etmek için en az 2 saat önceden haber veriniz</li>
-                    <li>• Profilinizden randevularınızı görüntüleyebilir ve yönetebilirsiniz</li>
-                    <li>• Randevu saatinizden 10 dakika önce salonda bulunmanızı rica ederiz</li>
+                    <li>
+                      • Randevunuzu iptal etmek için en az 2 saat önceden haber
+                      veriniz
+                    </li>
+                    <li>
+                      • Profilinizden randevularınızı görüntüleyebilir ve
+                      yönetebilirsiniz
+                    </li>
+                    <li>
+                      • Randevu saatinizden 10 dakika önce salonda bulunmanızı
+                      rica ederiz
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -201,8 +217,8 @@ export default function BookingSuccessPage() {
               Ana Sayfa
             </Button>
           </Link>
-          
-          <Link href="/profile" className="flex-1">
+
+          <Link href="/my-appointments" className="flex-1">
             <Button size="lg" className="w-full">
               <CalendarCheck className="w-4 h-4 mr-2" />
               Randevularım

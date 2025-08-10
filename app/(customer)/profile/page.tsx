@@ -21,7 +21,7 @@ import {
   AlertCircle,
   Key,
 } from "lucide-react";
-import { useProfile, type UserProfile, type ProfileFormData } from "@/contexts/app-contexts";
+import { useProfilePage, type UserProfile, type ProfileFormData } from "@/hooks/useProfilePage";
 import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton";
 
 // Type for user with extended properties
@@ -60,7 +60,7 @@ export default function ProfilePage() {
     getUserDisplayName,
     isFormValid,
     hasFormChanges,
-  } = useProfile();
+  } = useProfilePage();
 
   // Profile is automatically fetched by the context
 

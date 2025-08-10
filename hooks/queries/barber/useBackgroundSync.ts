@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/auth-context';
 import { BACKGROUND_SYNC, createBarberQueryKey } from './cache-config';
 
 // Custom hook for background synchronization of appointment data

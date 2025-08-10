@@ -8,6 +8,68 @@ const nextConfig: NextConfig = {
     // ppr: "incremental",
   },
 
+  // Bundle optimization
+  webpack: (config, { isServer }) => {
+    // Optimize bundle splitting
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        ...config.optimization.splitChunks,
+        cacheGroups: {
+          ...config.optimization.splitChunks?.cacheGroups,
+          
+          // Separate vendor chunks
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 20,
+          },
+          
+          // UI components chunk
+          ui: {
+            test: /[\\/]components[\\/]ui[\\/]/,
+            name: 'ui-components',
+            chunks: 'all',
+            priority: 15,
+          },
+          
+          // Form components chunk
+          forms: {
+            test: /[\\/]components[\\/]forms[\\/]/,
+            name: 'form-components',
+            chunks: 'async',
+            priority: 10,
+          },
+          
+          // Features chunk
+          features: {
+            test: /[\\/]features[\\/]/,
+            name: 'features',
+            chunks: 'async',
+            priority: 10,
+          },
+          
+          // Shared utilities chunk
+          shared: {
+            test: /[\\/]shared[\\/]/,
+            name: 'shared-utils',
+            chunks: 'all',
+            priority: 10,
+          },
+        },
+      }
+    }
+
+    // Optimize imports
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      // Tree shake unused lodash functions
+      'lodash': 'lodash-es',
+    }
+
+    return config
+  },
+
   async headers() {
     return [
       {

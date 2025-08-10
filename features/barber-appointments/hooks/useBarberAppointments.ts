@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useBarberAppointmentActions } from './useBarberAppointmentActions';
-import { useAuth, useIsBarber } from '@/hooks/useAuth';
+import { useAuth, useIsBarber } from '@/contexts/auth-context';
 
 /**
  * Main hook for barber appointments functionality

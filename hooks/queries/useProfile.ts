@@ -2,7 +2,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi, type UserProfile, type ProfileFormData } from '@/lib/api/profile';
-import { useAuth } from '@/hooks/useAuth';
+
+// Re-export types for convenience
+export type { UserProfile, ProfileFormData };
+import { useAuth } from '@/contexts/auth-context';
 
 // Query keys
 export const profileKeys = {

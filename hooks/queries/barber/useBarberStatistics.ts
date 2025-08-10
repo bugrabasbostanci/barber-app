@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/auth-context';
 import { useMemo } from 'react';
 import { getCacheConfig, createBarberQueryKey, getRetryConfig } from './cache-config';
 

@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { AppContextsProvider } from '@/contexts/app-contexts';
+import { AuthProvider } from '@/contexts/auth-context';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AppHeader } from '@/components/layouts/app-header';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -59,7 +59,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryProvider>
-        <AppContextsProvider>
+        <AuthProvider>
           <div className="min-h-screen bg-background text-foreground">
             {/* Only show AppHeader for non-auth and non-barber pages */}
             {!isAuthPage && !isBarberPage && (
@@ -71,7 +71,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
             )}
             <div>{children}</div>
           </div>
-        </AppContextsProvider>
+        </AuthProvider>
       </QueryProvider>
     </ThemeProvider>
   );

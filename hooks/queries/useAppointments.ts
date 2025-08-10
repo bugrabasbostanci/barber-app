@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { appointmentsApi, type Appointment } from '@/lib/api/appointments';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/auth-context';
 import { useMemo } from 'react';
 
 // Query keys
@@ -23,6 +23,15 @@ export function useMyAppointments() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
+}
+
+// Invalidate appointments cache (for external use)
+export function useInvalidateAppointments() {
+  const queryClient = useQueryClient();
+
+  return () => {
+    queryClient.invalidateQueries({ queryKey: appointmentKeys.myAppointments() });
+  };
 }
 
 // Cancel appointment mutation

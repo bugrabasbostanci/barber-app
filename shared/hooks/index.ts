@@ -21,5 +21,4 @@ export * from './useFormValidation';
 // Pagination hooks
 export * from './usePagination';
 
-// Enhanced auth hooks
-export * from './useAuth';
+// Enhanced auth hooks - removed useAuth (now in contexts/auth-context)

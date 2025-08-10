@@ -147,12 +147,25 @@ export const useBookingDataStore = create<BookingDataState>()(
           const result = await response.json();
 
           if (response.ok && result.success) {
-            // Invalidate appointments cache when new appointment is created
+            // Invalidate both Zustand and React Query caches
             try {
               const { useAppointmentsStore } = await import('../appointments-store');
               useAppointmentsStore.getState().invalidateCache();
             } catch {
               // Appointments store might not be available
+            }
+            
+            // Invalidate React Query appointments cache
+            try {
+              // Use global query client to invalidate cache
+              if (typeof window !== 'undefined') {
+                const queryClient = (window as { queryClient?: { invalidateQueries: (arg: { queryKey: string[] }) => void } }).queryClient;
+                if (queryClient) {
+                  queryClient.invalidateQueries({ queryKey: ['appointments', 'my'] });
+                }
+              }
+            } catch {
+              // Query client might not be available
             }
             
             return true;
