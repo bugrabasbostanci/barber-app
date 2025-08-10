@@ -163,11 +163,15 @@ async function createManualAppointment(
     const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
 
     // Check if time slot is still available
+    // Only consider active appointments (exclude CANCELLED and NO_SHOW)
     const existingAppointment = await prisma.appointment.findFirst({
       where: {
         staffId,
         date: localDateToUTC(date),
         startTime: createUTCTime(startTime),
+        status: {
+          notIn: ['CANCELLED', 'NO_SHOW'], // Allow booking on cancelled/no-show slots
+        },
       },
     });
 

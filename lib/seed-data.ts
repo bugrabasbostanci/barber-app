@@ -79,7 +79,7 @@ export async function getAvailableTimeSlots(
         staffId,
         date: dateUTC,
         status: {
-          notIn: [AppointmentStatus.CANCELLED],
+          notIn: [AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW],
         },
       },
       select: {

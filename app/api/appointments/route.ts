@@ -109,7 +109,7 @@ async function createAppointment(
         where: {
           staffId,
           date: appointmentDateUTC,
-          status: { notIn: ["CANCELLED"] },
+          status: { notIn: ["CANCELLED", "NO_SHOW"] },
           OR: [
             // Exact time match
             { startTime: startTimeUTC },
