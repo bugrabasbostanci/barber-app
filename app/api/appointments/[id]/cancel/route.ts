@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 import {
   utcToLocalDate,
   extractTimeString,
-  getHoursDifference,
+  canCancelAppointment,
 } from "@/lib/utils";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
@@ -42,11 +42,10 @@ async function cancelAppointmentHandler(
     }
 
     // Check if appointment can be cancelled (within business rules)
-    const now = new Date();
-    const appointmentDateTime = appointment.date; // Already in UTC
-    const hoursDiff = getHoursDifference(appointmentDateTime, now);
-
-    if (hoursDiff < BUSINESS_RULES.CANCELLATION_HOURS) {
+    const appointmentDate = utcToLocalDate(appointment.date);
+    const appointmentStartTime = extractTimeString(appointment.startTime);
+    
+    if (!canCancelAppointment(appointmentDate, appointmentStartTime, BUSINESS_RULES.CANCELLATION_HOURS)) {
       throw new ValidationError([{
         code: 'cancellation_deadline',
         message: `Appointments can only be cancelled at least ${BUSINESS_RULES.CANCELLATION_HOURS} hours in advance`
