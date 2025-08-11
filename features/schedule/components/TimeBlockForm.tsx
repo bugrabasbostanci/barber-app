@@ -19,9 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar, Plus, RotateCcw } from "lucide-react";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn, formatTurkishDate, dateToLocalString } from "@/lib/utils";
 import { ScheduleFormData, Staff, BlockType } from "../types";
 
 interface TimeBlockFormProps {
@@ -104,7 +102,7 @@ export function TimeBlockForm({
               >
                 <Calendar className="mr-2 h-4 w-4" />
                 {formData.blockDate ? (
-                  format(formData.blockDate, "d MMMM yyyy", { locale: tr })
+                  formatTurkishDate(dateToLocalString(formData.blockDate))
                 ) : (
                   "Tarih seçin"
                 )}
@@ -115,7 +113,6 @@ export function TimeBlockForm({
                 mode="single"
                 selected={formData.blockDate}
                 onSelect={handleDateSelect}
-                locale={tr}
                 disabled={(date) => date < new Date()}
                 initialFocus
               />

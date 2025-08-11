@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { useScheduleState } from './useScheduleState';
 import { useScheduleActions } from './useScheduleActions';
+import { dateToLocalString } from '@/lib/utils';
 import { TimeBlock } from '../types';
 
 export function useSchedule() {
@@ -109,7 +110,7 @@ export function useSchedule() {
     
     // Prepare time block data
     const timeBlock: Omit<TimeBlock, 'id'> = {
-      date: blockDate.toISOString().split('T')[0],
+      date: dateToLocalString(blockDate),
       staffId: effectiveStaffId,
       startTime: blockType === 'full-day' ? null : blockStartTime,
       endTime: blockType === 'full-day' ? null : blockEndTime,

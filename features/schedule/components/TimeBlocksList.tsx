@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Clock, Calendar, User, MessageSquare } from "lucide-react";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { formatTurkishDate } from "@/lib/utils";
 import { TimeBlock } from "../types";
 
 interface TimeBlocksListProps {
@@ -25,8 +24,7 @@ export function TimeBlocksList({
 }: TimeBlocksListProps) {
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return format(date, "d MMMM yyyy", { locale: tr });
+      return formatTurkishDate(dateString);
     } catch {
       return dateString;
     }

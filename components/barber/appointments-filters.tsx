@@ -16,9 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { dateToLocalString, formatTurkishDateShort } from "@/lib/utils";
-import { tr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { dateToLocalString, formatTurkishDateShort, cn } from "@/lib/utils";
 
 interface StaffMember {
   id: string;
@@ -125,7 +123,6 @@ export function AppointmentsFilters({
                   onSelectedDateChange(date);
                   setCalendarOpen(false);
                 }}
-                locale={tr}
                 initialFocus
               />
               {selectedDate && (

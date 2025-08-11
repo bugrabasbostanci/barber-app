@@ -23,9 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { BUSINESS_RULES } from "@/lib/constants";
-import { dateToLocalString, formatTurkishDate } from "@/lib/utils";
-import { tr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { dateToLocalString, formatTurkishDate, cn } from "@/lib/utils";
 import { AppointmentFormSkeleton } from "@/components/skeletons/appointment-form-skeleton";
 import { toast } from "sonner";
 
@@ -282,7 +280,6 @@ export default function NewAppointment() {
                             setCalendarOpen(false);
                           }}
                           disabled={isDateDisabled}
-                          locale={tr}
                           initialFocus
                         />
                       </PopoverContent>

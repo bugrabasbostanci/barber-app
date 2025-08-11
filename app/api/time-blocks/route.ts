@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from "next/server";
-import { localDateToUTC, createUTCTime, extractTimeString } from "@/lib/utils";
+import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/utils";
 import { withAuth, requireBarber } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { withValidation, commonSchemas } from "@/lib/middleware/validation";
@@ -42,7 +42,7 @@ async function getTimeBlocksHandler(
   // Format the response
   const formattedBlocks = timeBlocks.map((block) => ({
     id: block.id,
-    date: block.date.toISOString().split('T')[0], // YYYY-MM-DD format
+    date: utcToLocalDate(block.date), // YYYY-MM-DD format (timezone-safe)
     startTime: block.startTime
       ? extractTimeString(block.startTime)
       : null,
@@ -120,7 +120,7 @@ async function createTimeBlockHandler(
 
   const responseData = {
     id: timeBlock.id,
-    date: timeBlock.date.toISOString().split('T')[0], // YYYY-MM-DD format
+    date: utcToLocalDate(timeBlock.date), // YYYY-MM-DD format (timezone-safe)
     startTime: timeBlock.startTime
       ? extractTimeString(timeBlock.startTime)
       : null,
