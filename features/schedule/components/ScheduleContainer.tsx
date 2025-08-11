@@ -39,6 +39,7 @@ export function ScheduleContainer({ className = "" }: ScheduleContainerProps) {
     // Actions
     updateFormData,
     resetForm,
+    openDeleteDialog,
     closeDeleteDialog,
     hideValidation,
     setCalendarOpen,
@@ -113,10 +114,7 @@ export function ScheduleContainer({ className = "" }: ScheduleContainerProps) {
             <TimeBlocksList
               blockedTimes={blockedTimes}
               loading={loading}
-              onDeleteTimeBlock={(id) => {
-                // This will be handled by the delete dialog
-                handleDeleteTimeBlock();
-              }}
+              onDeleteTimeBlock={openDeleteDialog}
               getStaffName={getStaffName}
             />
           </div>
