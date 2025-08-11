@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-// import { localDateTimeToUTC, dateToLocalString } from "@/lib/date-time";
+// import { localDateTimeToUTC, dateToLocalString } from "@/lib/utils";
 
 export interface BarberAppointment {
   id: string;

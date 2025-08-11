@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { dateToLocalString } from "@/lib/date-time";
+import { dateToLocalString } from "@/lib/utils";
 import { toast } from "sonner";
 import { AppointmentListSkeleton } from "@/components/skeletons/appointment-list-skeleton";
 import { AppointmentsHeader } from "@/components/barber/appointments-header";

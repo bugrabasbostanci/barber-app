@@ -8,6 +8,7 @@ export * from './StatsCard';
 
 // Status badge component
 export * from './StatusBadge';
+export { AppointmentStatusBadge } from './StatusBadge';
 
 // Info card component
 export * from './InfoCard';

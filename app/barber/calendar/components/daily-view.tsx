@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
-import { TimeSlot } from "@/lib/utils/time-slots";
+import { dateToLocalString, formatTurkishDate } from "@/lib/utils";
+import { TimeSlot } from "@/lib/utils";
 
 interface Appointment {
   id: string;

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z, ZodSchema, ZodError } from 'zod';
-import { logger } from '@/lib/logger';
+import { logger } from '@/lib/utils';
 
 export interface ValidationError {
   field: string;

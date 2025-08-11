@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { UserProfile } from "./data-store";
-import { validatePhone, validateName, validateEmail } from "@/lib/utils/profile-validation";
+import {
+  validatePhone,
+  validateName,
+  validateEmail,
+} from "@/lib/utils/validation/profile";
 
 export interface ProfileFormData {
   firstName: string;
@@ -16,31 +20,31 @@ interface ProfileEditState {
   isSaving: boolean;
   isDeleting: boolean;
   editForm: ProfileFormData;
-  
+
   // Validation State
   phoneError: string;
   firstNameError: string;
   lastNameError: string;
   emailError: string;
-  
+
   // Actions
   setIsEditing: (editing: boolean) => void;
   setIsSaving: (saving: boolean) => void;
   setIsDeleting: (deleting: boolean) => void;
   updateEditForm: (field: keyof ProfileFormData, value: string) => void;
   resetEditForm: (profile?: UserProfile | null) => void;
-  
+
   // Validation Actions
   validateField: (field: keyof ProfileFormData) => void;
   validateAllFields: () => boolean;
   clearValidationErrors: () => void;
-  
+
   // Form Actions
   startEditing: (profile: UserProfile) => void;
   cancelEditing: () => void;
   saveProfile: () => Promise<boolean>;
   deleteProfile: () => Promise<boolean>;
-  
+
   // Computed
   hasErrors: () => boolean;
   isFormValid: () => boolean;
@@ -60,31 +64,31 @@ export const useProfileEditStore = create<ProfileEditState>()(
         phone: "",
         email: "",
       },
-      
+
       phoneError: "",
       firstNameError: "",
       lastNameError: "",
       emailError: "",
-      
+
       // Basic Actions
       setIsEditing: (editing) => set({ isEditing: editing }),
-      
+
       setIsSaving: (saving) => set({ isSaving: saving }),
-      
+
       setIsDeleting: (deleting) => set({ isDeleting: deleting }),
-      
+
       updateEditForm: (field, value) => {
         set((state) => ({
-          editForm: { ...state.editForm, [field]: value }
+          editForm: { ...state.editForm, [field]: value },
         }));
-        
+
         // Clear error for this field when user starts typing
         const errorField = `${field}Error` as keyof ProfileEditState;
         if (get()[errorField]) {
           set({ [errorField]: "" });
         }
       },
-      
+
       resetEditForm: (profile = null) => {
         set({
           editForm: {
@@ -99,30 +103,38 @@ export const useProfileEditStore = create<ProfileEditState>()(
           emailError: "",
         });
       },
-      
+
       // Validation Actions
       validateField: (field) => {
         const { editForm } = get();
         const value = editForm[field];
-        
+
         switch (field) {
           case "firstName":
             if (!validateName(value)) {
-              set({ firstNameError: "Geçersiz ad. En az 2 karakter olmalı ve sadece harf içermeli." });
+              set({
+                firstNameError:
+                  "Geçersiz ad. En az 2 karakter olmalı ve sadece harf içermeli.",
+              });
             } else {
               set({ firstNameError: "" });
             }
             break;
           case "lastName":
             if (!validateName(value)) {
-              set({ lastNameError: "Geçersiz soyad. En az 2 karakter olmalı ve sadece harf içermeli." });
+              set({
+                lastNameError:
+                  "Geçersiz soyad. En az 2 karakter olmalı ve sadece harf içermeli.",
+              });
             } else {
               set({ lastNameError: "" });
             }
             break;
           case "phone":
             if (!validatePhone(value)) {
-              set({ phoneError: "Geçersiz telefon numarası. 10 haneli olmalı." });
+              set({
+                phoneError: "Geçersiz telefon numarası. 10 haneli olmalı.",
+              });
             } else {
               set({ phoneError: "" });
             }
@@ -136,13 +148,18 @@ export const useProfileEditStore = create<ProfileEditState>()(
             break;
         }
       },
-      
+
       validateAllFields: () => {
-        const fields: (keyof ProfileFormData)[] = ["firstName", "lastName", "phone", "email"];
-        fields.forEach(field => get().validateField(field));
+        const fields: (keyof ProfileFormData)[] = [
+          "firstName",
+          "lastName",
+          "phone",
+          "email",
+        ];
+        fields.forEach((field) => get().validateField(field));
         return get().isFormValid();
       },
-      
+
       clearValidationErrors: () => {
         set({
           phoneError: "",
@@ -151,15 +168,15 @@ export const useProfileEditStore = create<ProfileEditState>()(
           emailError: "",
         });
       },
-      
+
       // Form Actions
       startEditing: (profile) => {
         get().resetEditForm(profile);
         set({ isEditing: true });
       },
-      
+
       cancelEditing: () => {
-        set({ 
+        set({
           isEditing: false,
           phoneError: "",
           firstNameError: "",
@@ -167,27 +184,27 @@ export const useProfileEditStore = create<ProfileEditState>()(
           emailError: "",
         });
       },
-      
+
       saveProfile: async () => {
         const { editForm, validateAllFields } = get();
-        
+
         if (!validateAllFields()) {
           return false;
         }
-        
+
         set({ isSaving: true });
-        
+
         try {
           const response = await fetch("/api/profile", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(editForm),
           });
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          
+
           const result = await response.json();
           if (result.success) {
             set({ isEditing: false });
@@ -202,19 +219,19 @@ export const useProfileEditStore = create<ProfileEditState>()(
           set({ isSaving: false });
         }
       },
-      
+
       deleteProfile: async () => {
         set({ isDeleting: true });
-        
+
         try {
           const response = await fetch("/api/profile", {
             method: "DELETE",
           });
-          
+
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          
+
           const result = await response.json();
           if (result.success) {
             return true;
@@ -228,28 +245,29 @@ export const useProfileEditStore = create<ProfileEditState>()(
           set({ isDeleting: false });
         }
       },
-      
+
       // Computed Functions
       hasErrors: () => {
         const { phoneError, firstNameError, lastNameError, emailError } = get();
         return !!(phoneError || firstNameError || lastNameError || emailError);
       },
-      
+
       isFormValid: () => {
         const { editForm, hasErrors } = get();
-        
+
         // Check if all required fields are filled
-        const hasAllFields = editForm.firstName.trim() && 
-                           editForm.lastName.trim() && 
-                           editForm.phone.trim() && 
-                           editForm.email.trim();
-        
+        const hasAllFields =
+          editForm.firstName.trim() &&
+          editForm.lastName.trim() &&
+          editForm.phone.trim() &&
+          editForm.email.trim();
+
         return hasAllFields && !hasErrors();
       },
-      
+
       hasChanges: (profile) => {
         if (!profile) return false;
-        
+
         const { editForm } = get();
         return (
           editForm.firstName !== (profile.firstName || "") ||

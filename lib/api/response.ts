@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { sanitizeValidationError } from '@/lib/utils/error-sanitizer';
+import { NextResponse } from "next/server";
+import { sanitizeValidationError } from "@/lib/utils/error/sanitizer";
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -19,19 +19,27 @@ export class ApiResponseBuilder {
     return NextResponse.json({
       success: true,
       data,
-      meta
+      meta,
     });
   }
-  
+
   static error(message: string, statusCode = 500, code?: string): NextResponse {
-    return NextResponse.json({
-      success: false,
-      error: message,
-      code
-    }, { status: statusCode });
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        code,
+      },
+      { status: statusCode }
+    );
   }
-  
-  static paginated<T>(data: T[], total: number, page: number, limit: number): NextResponse {
+
+  static paginated<T>(
+    data: T[],
+    total: number,
+    page: number,
+    limit: number
+  ): NextResponse {
     return NextResponse.json({
       success: true,
       data,
@@ -39,50 +47,65 @@ export class ApiResponseBuilder {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     });
   }
-  
+
   static validation(issues: unknown[]): NextResponse {
     const sanitized = sanitizeValidationError(issues);
-    return NextResponse.json({
-      success: false,
-      error: sanitized.message,
-      code: sanitized.code,
-      issues: sanitized.issues
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: sanitized.message,
+        code: sanitized.code,
+        issues: sanitized.issues,
+      },
+      { status: 400 }
+    );
   }
-  
-  static unauthorized(message = 'Unauthorized'): NextResponse {
-    return NextResponse.json({
-      success: false,
-      error: message,
-      code: 'UNAUTHORIZED'
-    }, { status: 401 });
+
+  static unauthorized(message = "Unauthorized"): NextResponse {
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 }
+    );
   }
-  
-  static forbidden(message = 'Forbidden'): NextResponse {
-    return NextResponse.json({
-      success: false,
-      error: message,
-      code: 'FORBIDDEN'
-    }, { status: 403 });
+
+  static forbidden(message = "Forbidden"): NextResponse {
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        code: "FORBIDDEN",
+      },
+      { status: 403 }
+    );
   }
-  
-  static notFound(message = 'Resource not found'): NextResponse {
-    return NextResponse.json({
-      success: false,
-      error: message,
-      code: 'NOT_FOUND'
-    }, { status: 404 });
+
+  static notFound(message = "Resource not found"): NextResponse {
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        code: "NOT_FOUND",
+      },
+      { status: 404 }
+    );
   }
-  
-  static conflict(message = 'Resource conflict'): NextResponse {
-    return NextResponse.json({
-      success: false,
-      error: message,
-      code: 'CONFLICT'
-    }, { status: 409 });
+
+  static conflict(message = "Resource conflict"): NextResponse {
+    return NextResponse.json(
+      {
+        success: false,
+        error: message,
+        code: "CONFLICT",
+      },
+      { status: 409 }
+    );
   }
 }

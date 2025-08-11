@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calendar, Clock, UserCheck, Phone } from "lucide-react";
-import { formatTurkishDate } from "@/lib/date-time";
+import { formatTurkishDate } from "@/lib/utils";
 import { type Staff } from "@/lib/stores/booking-store";
 
 interface BookingData {

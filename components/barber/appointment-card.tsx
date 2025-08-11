@@ -1,9 +1,9 @@
 import { Calendar, Clock, User, Phone, Trash2, UserCheck } from "lucide-react";
-import { formatTurkishDateShort } from "@/lib/date-time";
-import { 
-  InfoCard, 
+import { formatTurkishDateShort } from "@/lib/utils";
+import {
+  InfoCard,
+  InfoField,
   AppointmentStatusBadge,
-  InfoField 
 } from "@/shared/components";
 
 interface Appointment {
@@ -32,7 +32,10 @@ interface AppointmentCardProps {
   onDelete: (id: string) => void;
 }
 
-export function AppointmentCard({ appointment, onDelete }: AppointmentCardProps) {
+export function AppointmentCard({
+  appointment,
+  onDelete,
+}: AppointmentCardProps) {
   const customerName = appointment.customer
     ? `${appointment.customer.firstName || ""} ${
         appointment.customer.lastName || ""
@@ -47,35 +50,43 @@ export function AppointmentCard({ appointment, onDelete }: AppointmentCardProps)
 
   const fields: InfoField[] = [
     {
-      label: 'Müşteri',
+      label: "Müşteri",
       value: customerName,
-      icon: User
+      icon: User,
     },
-    ...(customerPhone ? [{
-      label: 'Telefon',
-      value: customerPhone,
-      icon: Phone
-    }] : []),
+    ...(customerPhone
+      ? [
+          {
+            label: "Telefon",
+            value: customerPhone,
+            icon: Phone,
+          },
+        ]
+      : []),
     {
-      label: 'Berber',
+      label: "Berber",
       value: staffName,
       icon: UserCheck,
-      className: 'text-blue-600 font-semibold'
+      className: "text-blue-600 font-semibold",
     },
     {
-      label: 'Tarih',
+      label: "Tarih",
       value: formatTurkishDateShort(appointment.date),
-      icon: Calendar
+      icon: Calendar,
     },
     {
-      label: 'Saat',
+      label: "Saat",
       value: `${appointment.startTime} - ${appointment.endTime}`,
-      icon: Clock
+      icon: Clock,
     },
-    ...(appointment.notes ? [{
-      label: 'Not',
-      value: appointment.notes
-    }] : [])
+    ...(appointment.notes
+      ? [
+          {
+            label: "Not",
+            value: appointment.notes,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -83,8 +94,16 @@ export function AppointmentCard({ appointment, onDelete }: AppointmentCardProps)
       fields={fields}
       actions={
         <div className="flex items-center gap-3">
-          <AppointmentStatusBadge 
-            status={appointment.status as 'PENDING' | 'CONFIRMED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW'}
+          <AppointmentStatusBadge
+            status={
+              appointment.status as
+                | "PENDING"
+                | "CONFIRMED"
+                | "SCHEDULED"
+                | "COMPLETED"
+                | "CANCELLED"
+                | "NO_SHOW"
+            }
             size="sm"
           />
           <button

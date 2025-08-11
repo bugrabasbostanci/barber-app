@@ -155,18 +155,7 @@ export const useBookingDataStore = create<BookingDataState>()(
               // Appointments store might not be available
             }
             
-            // Invalidate React Query appointments cache
-            try {
-              // Use global query client to invalidate cache
-              if (typeof window !== 'undefined') {
-                const queryClient = (window as { queryClient?: { invalidateQueries: (arg: { queryKey: string[] }) => void } }).queryClient;
-                if (queryClient) {
-                  queryClient.invalidateQueries({ queryKey: ['appointments', 'my'] });
-                }
-              }
-            } catch {
-              // Query client might not be available
-            }
+            // React Query will handle cache invalidation naturally when user navigates back
             
             return true;
           } else {

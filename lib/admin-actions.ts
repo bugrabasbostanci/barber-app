@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { createClient } from '@/lib/supabase/server'
-import { extractTimeString } from '@/lib/date-time'
+import { extractTimeString } from '@/lib/utils'
 
 export async function getDashboardStats() {
   try {

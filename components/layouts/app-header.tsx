@@ -126,9 +126,9 @@ export function AppHeader({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="w-10 h-10 cursor-pointer">
-                  {user.user_metadata?.avatar_url ? (
+                  {(user.user_metadata?.avatar_url || user.user_metadata?.picture) ? (
                     <AvatarImage
-                      src={user.user_metadata.avatar_url}
+                      src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
                       alt="Avatar"
                     />
                   ) : (

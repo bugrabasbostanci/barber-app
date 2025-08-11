@@ -7,7 +7,7 @@ import {
   AppointmentStatusBadge,
 } from "@/shared/components";
 import { Users, Clock } from "lucide-react";
-import { utcToLocalDate, formatTurkishDateShort } from "@/lib/date-time";
+import { utcToLocalDate, formatTurkishDateShort } from "@/lib/utils";
 
 interface ImportantData {
   todayCustomers: number;

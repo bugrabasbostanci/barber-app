@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react"
-import { formatTurkishDate, dateToLocalString } from "@/lib/date-time"
+import { formatTurkishDate, dateToLocalString } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 
 interface BlockedTime {

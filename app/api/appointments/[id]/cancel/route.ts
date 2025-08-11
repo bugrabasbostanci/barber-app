@@ -6,7 +6,7 @@ import {
   utcToLocalDate,
   extractTimeString,
   getHoursDifference,
-} from "@/lib/date-time";
+} from "@/lib/utils";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";

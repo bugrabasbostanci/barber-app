@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect } from 'react';
+import { useAuth } from '@/contexts/auth-context';
 import { useScheduleState } from './useScheduleState';
 import { useScheduleActions } from './useScheduleActions';
 import { TimeBlock } from '../types';
 
 export function useSchedule() {
+  const { user } = useAuth();
+  
   // Get state and actions
   const {
     // State
@@ -66,6 +69,13 @@ export function useSchedule() {
     fetchStaffMembers();
   }, [fetchBlockedTimes, fetchStaffMembers]);
 
+  // Auto-select current user as staff for BARBER role
+  useEffect(() => {
+    if (user?.role === 'BARBER' && user.id && !formData.blockStaff) {
+      updateFormData({ blockStaff: user.id });
+    }
+  }, [user, formData.blockStaff, updateFormData]);
+
   // Enhanced actions
   const handleCreateTimeBlock = async () => {
     const {
@@ -77,10 +87,13 @@ export function useSchedule() {
       blockReason
     } = formData;
 
+    // For BARBER role, if no staff selected, use current user ID for validation
+    const effectiveStaffId = blockStaff || (user?.role === 'BARBER' ? user.id : '');
+    
     // Validate
     const validation = validateTimeBlock(
       blockDate,
-      blockStaff,
+      effectiveStaffId,
       blockType,
       blockStartTime,
       blockEndTime,
@@ -93,11 +106,11 @@ export function useSchedule() {
     }
 
     if (!blockDate) return;
-
+    
     // Prepare time block data
     const timeBlock: Omit<TimeBlock, 'id'> = {
       date: blockDate.toISOString().split('T')[0],
-      staffId: blockStaff,
+      staffId: effectiveStaffId,
       startTime: blockType === 'full-day' ? null : blockStartTime,
       endTime: blockType === 'full-day' ? null : blockEndTime,
       reason: blockReason.trim(),

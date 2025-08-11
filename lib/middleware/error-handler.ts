@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AppError, ValidationError } from '@/lib/errors';
-import { logger } from '@/lib/logger';
-import { sanitizeError, sanitizeValidationError, shouldIncludeDetailedErrors } from '@/lib/utils/error-sanitizer';
+import { logger } from '@/lib/utils';
+import { sanitizeError, sanitizeValidationError, shouldIncludeDetailedErrors } from '@/lib/utils';
 
 // Type for handlers that support context (middleware chain)
 type ContextHandler = (req: NextRequest, context: Record<string, unknown>) => Promise<NextResponse>;

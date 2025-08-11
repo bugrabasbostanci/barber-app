@@ -6,7 +6,7 @@ import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";
 import { withCORS } from "@/lib/middleware/cors";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { ValidationError } from "@/lib/errors";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 
 // GET - Fetch user profile

@@ -41,7 +41,7 @@ export function useProfilePage() {
   const [lastNameError, setLastNameError] = useState('');
 
   const fetchProfile = useCallback(async (force = false) => {
-    if (!user || isLoading) return;
+    if (!user) return;
     
     setIsLoading(true);
     setError('');
@@ -66,7 +66,7 @@ export function useProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, isLoading]);
+  }, [user]);
 
   const updateEditForm = (field: keyof ProfileFormData, value: string) => {
     setEditForm(prev => ({ ...prev, [field]: value }));
@@ -97,7 +97,7 @@ export function useProfilePage() {
     
     try {
       const response = await fetch('/api/profile', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
       });

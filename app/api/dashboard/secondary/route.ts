@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSecondaryDashboardData } from '@/lib/dashboard-data';
+import { getSecondaryDashboardData } from '@/lib/utils';
 
 export async function GET() {
   try {

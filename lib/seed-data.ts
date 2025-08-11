@@ -1,4 +1,4 @@
-import { localDateToUTC, createUTCTime } from "@/lib/date-time";
+import { localDateToUTC, createUTCTime } from "@/lib/utils";
 import { BUSINESS_RULES } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 import { AppointmentStatus } from "@prisma/client";

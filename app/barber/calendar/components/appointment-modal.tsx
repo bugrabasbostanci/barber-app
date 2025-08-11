@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatTurkishDate } from "@/lib/date-time";
+import { formatTurkishDate } from "@/lib/utils";
 
 interface Appointment {
   id: string;

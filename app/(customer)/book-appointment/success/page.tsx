@@ -14,7 +14,7 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { useBookingStore } from "@/lib/stores/booking-store";
-import { formatTurkishDate } from "@/lib/date-time";
+import { formatTurkishDate } from "@/lib/utils";
 import type { QueryClient } from '@tanstack/react-query';
 
 export default function BookingSuccessPage() {

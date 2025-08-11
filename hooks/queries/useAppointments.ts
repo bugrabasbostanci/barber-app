@@ -20,8 +20,10 @@ export function useMyAppointments() {
     queryKey: appointmentKeys.myAppointments(),
     queryFn: appointmentsApi.getMyAppointments,
     enabled: !!user, // Only run if user is authenticated
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always consider data stale to ensure fresh data
     gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: true, // Refetch when user returns to tab/page
+    refetchOnMount: true, // Always refetch on component mount
   });
 }
 

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from "next/server";
-import { localDateToUTC, createUTCTime, extractTimeString } from "@/lib/date-time";
+import { localDateToUTC, createUTCTime, extractTimeString } from "@/lib/utils";
 import { withAuth, requireBarber } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { withValidation, commonSchemas } from "@/lib/middleware/validation";
@@ -66,8 +66,8 @@ export const GET = withErrorHandler(
 const createTimeBlockSchema = z.object({
   date: commonSchemas.date,
   staffId: commonSchemas.uuid,
-  startTime: z.string().optional(),
-  endTime: z.string().optional(),
+  startTime: z.string().nullable().optional(),
+  endTime: z.string().nullable().optional(),
   reason: z.string().min(1, "Reason is required").max(200, "Reason must be under 200 characters"),
   isFullDay: z.boolean().default(false),
 }).refine((data) => {
@@ -95,7 +95,7 @@ async function createTimeBlockHandler(
     select: { id: true, firstName: true, lastName: true, role: true },
   });
 
-  if (!staff || !["EMPLOYEE", "BARBER"].includes(staff.role)) {
+  if (!staff || !["EMPLOYEE", "BARBER", "ADMIN"].includes(staff.role)) {
     throw new NotFoundError("Invalid staff member");
   }
 

@@ -4,7 +4,7 @@
  */
 
 // Re-export all date utilities from existing lib/date-time.ts
-export * from '@/lib/date-time';
+export * from '@/lib/utils';
 
 // Additional date utilities
 export function addDays(date: Date, days: number): Date {
@@ -100,6 +100,6 @@ export function getRelativeTimeString(date: Date): string {
   if (diffHours < 24) return `${diffHours} saat önce`;
   if (diffDays < 7) return `${diffDays} gün önce`;
   
-  const { formatTurkishDateShort, utcToLocalDate } = require('@/lib/date-time');
+  const { formatTurkishDateShort, utcToLocalDate } = require('@/lib/utils');
   return formatTurkishDateShort(utcToLocalDate(date));
 }

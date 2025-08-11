@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Plus } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
-import { dateToLocalString, formatTurkishDate } from "@/lib/date-time";
+import { dateToLocalString, formatTurkishDate } from "@/lib/utils";
 import { DashboardCriticalStats } from "@/components/barber/dashboard-critical-stats";
 import { DashboardImportantStats } from "@/components/barber/dashboard-important-stats";
 import { DashboardSecondaryStats } from "@/components/barber/dashboard-secondary-stats";

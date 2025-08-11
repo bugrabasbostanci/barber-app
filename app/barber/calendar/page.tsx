@@ -9,7 +9,7 @@ import { AppointmentModal } from "./components/appointment-modal";
 import { DailyView } from "./components/daily-view";
 import { WeeklyView } from "./components/weekly-view";
 import { MonthlyView } from "./components/monthly-view";
-import { generateTimeSlots } from "@/lib/utils/time-slots";
+import { generateTimeSlots } from "@/lib/utils/dates/time-slots";
 import { useAuthCheck } from "@/lib/hooks/use-auth-check";
 
 interface Appointment {
@@ -48,7 +48,8 @@ export default function BarberCalendar() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -57,7 +58,10 @@ export default function BarberCalendar() {
         const appointmentsResponse = await fetch("/api/barber/appointments");
         if (appointmentsResponse.ok) {
           const appointmentsResult = await appointmentsResponse.json();
-          if (appointmentsResult.success && Array.isArray(appointmentsResult.data)) {
+          if (
+            appointmentsResult.success &&
+            Array.isArray(appointmentsResult.data)
+          ) {
             setAppointments(appointmentsResult.data);
           }
         }
@@ -80,7 +84,6 @@ export default function BarberCalendar() {
   }, []);
 
   const timeSlots = generateTimeSlots();
-
 
   const handleAppointmentClick = (appointment: Appointment) => {
     setSelectedAppointment(appointment);

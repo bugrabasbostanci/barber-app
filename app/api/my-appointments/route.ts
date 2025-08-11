@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from "next/server";
-import { extractTimeString, utcToLocalDate } from "@/lib/date-time";
+import { extractTimeString, utcToLocalDate } from "@/lib/utils";
 import { withAuth, requireCustomer, AuthenticatedUser } from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { withRateLimit, rateLimiters } from "@/lib/middleware/rate-limit";

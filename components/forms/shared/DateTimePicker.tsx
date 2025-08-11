@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { CalendarIcon, Clock } from 'lucide-react'
-import { formatTurkishDate, dateToLocalString } from '@/lib/date-time'
-import { generateTimeSlots } from '@/lib/utils/time-slots'
+import { formatTurkishDate, dateToLocalString } from '@/lib/utils'
+import { generateTimeSlots } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 interface DateTimePickerProps {

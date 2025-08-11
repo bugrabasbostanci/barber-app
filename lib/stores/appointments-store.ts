@@ -3,7 +3,7 @@ import { devtools } from "zustand/middleware";
 import {
   localDateTimeToUTC,
   canCancelAppointment as canCancel,
-} from "@/lib/date-time";
+} from "@/lib/utils";
 
 // Types based on Prisma schema
 export interface Appointment {

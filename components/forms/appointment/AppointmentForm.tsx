@@ -12,11 +12,11 @@ import { CustomerInfoForm } from '../shared/CustomerInfoForm'
 import { 
   appointmentFormSchema, 
   manualAppointmentFormSchema,
-  type AppointmentFormData,
+  type AppointmentForm as AppointmentFormData,
   type ManualAppointmentFormData,
   type AppointmentFormState,
   type ManualAppointmentFormState
-} from '@/lib/validation/formSchemas'
+} from '@/lib/validations'
 import { toast } from 'sonner'
 
 interface AppointmentFormProps {

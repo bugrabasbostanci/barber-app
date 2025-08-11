@@ -74,7 +74,7 @@ export function useScheduleActions(
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to create time block');
+        throw new Error(error.message || error.error || 'Failed to create time block');
       }
 
       toast.success('Zaman bloğu başarıyla oluşturuldu');

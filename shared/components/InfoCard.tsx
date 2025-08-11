@@ -153,8 +153,8 @@ export function InfoCard({
           {fields.map(renderField)}
         </div>
         
-        {!actions && actions !== null && (
-          <div className="flex justify-end pt-4">
+        {actions && !title && !subtitle && !HeaderIcon && (
+          <div className="flex justify-end pt-4 border-t mt-4">
             {actions}
           </div>
         )}

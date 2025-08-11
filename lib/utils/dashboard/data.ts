@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { extractTimeString } from "@/lib/date-time";
+import { extractTimeString } from "@/lib/utils";
 
 // Priority 1: Critical data - Today's appointment count (fastest query)
 export async function getCriticalDashboardData() {

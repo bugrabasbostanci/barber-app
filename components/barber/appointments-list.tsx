@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal, Edit, Trash2, Check, X, Phone } from "lucide-react"
-import { formatTurkishDateShort } from "@/lib/date-time"
+import { formatTurkishDateShort } from "@/lib/utils"
 
 interface Appointment {
   id: string

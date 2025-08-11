@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { AppointmentStatus } from '@prisma/client';
 import { NextRequest } from "next/server";
-import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/date-time";
+import { localDateToUTC, createUTCTime, extractTimeString, utcToLocalDate } from "@/lib/utils";
 import { withAuth, requireBarber } from "@/lib/middleware/api-auth";
 import { withValidation, commonSchemas, sanitizeString } from "@/lib/middleware/validation";
 import { withErrorHandler } from "@/lib/middleware/error-handler";

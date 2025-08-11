@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatTurkishDate, dateToLocalString } from "@/lib/date-time";
+import { formatTurkishDate, dateToLocalString } from "@/lib/utils";
 
 interface DateSelectionProps {
   selectedDate: string;

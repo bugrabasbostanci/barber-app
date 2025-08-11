@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRequireCustomer } from "@/hooks/useRequireAuth";
-import { formatTurkishDateShort } from "@/lib/date-time";
+import { formatTurkishDateShort } from "@/lib/utils";
 import { Calendar, Clock, UserCheck, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { useMyAppointments, useCancelAppointment, useAppointmentUtils } from "@/hooks/queries/useAppointments";
@@ -24,7 +24,7 @@ import { MyAppointmentsSkeleton } from "@/components/skeletons/my-appointments-s
 function MyAppointmentsContent() {
   const { isAuthorized } = useRequireCustomer();
 
-  // React Query hooks
+  // React Query hooks - now with automatic refresh on focus/mount
   const { isLoading: appointmentsLoading, error: queryError } = useMyAppointments();
   const cancelMutation = useCancelAppointment();
   const { getUpcomingAppointments, getPastAppointments, canCancelAppointment } = useAppointmentUtils();

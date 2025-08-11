@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { BarberProfile, BarberProfileFormData, BarberProfileEditState } from '../types'
-import { barberProfileFormSchema } from '@/lib/validation/formSchemas'
+import { barberProfileFormSchema } from '@/lib/validations'
 import { toast } from 'sonner'
 
 interface UseBarberProfileFormProps {
