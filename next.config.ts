@@ -109,10 +109,10 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // unsafe-eval and unsafe-inline needed for Next.js dev
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.clarity.ms https://scripts.clarity.ms", // unsafe-eval and unsafe-inline needed for Next.js dev, clarity.ms domains for Microsoft Clarity
               "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for Tailwind CSS
               "img-src 'self' data: https:",
-              "connect-src 'self' https://api.supabase.co wss://api.supabase.co https://nhbxragnkjqitmkvzkwn.supabase.co https://vercel.live https://vitals.vercel-insights.com",
+              "connect-src 'self' https://api.supabase.co wss://api.supabase.co https://nhbxragnkjqitmkvzkwn.supabase.co https://vercel.live https://vitals.vercel-insights.com https://www.clarity.ms https://h.clarity.ms",
               "font-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",

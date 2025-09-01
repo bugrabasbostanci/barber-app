@@ -5,7 +5,7 @@ import { ClientLayout } from "@/components/layouts/client-layout";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { clarity } from "react-microsoft-clarity";
+import { ClarityProvider } from "@/components/clarity-provider";
 
 const geist = Geist({
   variable: "--font-geist-sans",
@@ -26,16 +26,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
-    clarity.init(process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || "");
-  }
-
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body
         className={`${geist.className} antialiased`}
         suppressHydrationWarning={true}
       >
+        <ClarityProvider />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
