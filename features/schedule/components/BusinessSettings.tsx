@@ -30,7 +30,7 @@ export function BusinessSettings({
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">İş Ayarları</CardTitle>
+          <CardTitle className="text-lg">Business Settings</CardTitle>
           <Button
             onClick={onSave}
             disabled={saving}
@@ -38,7 +38,7 @@ export function BusinessSettings({
             className="gap-2"
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </CardHeader>
@@ -48,7 +48,7 @@ export function BusinessSettings({
           <Clock className="h-5 w-5 text-primary mt-1" />
           <div className="flex-1 space-y-2">
             <Label htmlFor="appointment-duration" className="text-sm font-medium">
-              Randevu Süresi (dakika)
+              Appointment Duration (minutes)
             </Label>
             <Input
               id="appointment-duration"
@@ -61,7 +61,7 @@ export function BusinessSettings({
               className="w-32"
             />
             <p className="text-xs text-muted-foreground">
-              Her randevunun süresi (15-180 dakika arası)
+              Duration for each appointment (15-180 minutes)
             </p>
           </div>
         </div>
@@ -71,7 +71,7 @@ export function BusinessSettings({
           <Calendar className="h-5 w-5 text-primary mt-1" />
           <div className="flex-1 space-y-2">
             <Label htmlFor="reservation-days" className="text-sm font-medium">
-              Rezervasyon Penceresi (gün)
+              Reservation Window (days)
             </Label>
             <Input
               id="reservation-days"
@@ -83,7 +83,7 @@ export function BusinessSettings({
               className="w-32"
             />
             <p className="text-xs text-muted-foreground">
-              Müşteriler kaç gün önceden randevu alabilir (1-30 gün arası)
+              How many days in advance customers can book (1-30 days)
             </p>
           </div>
         </div>
@@ -93,7 +93,7 @@ export function BusinessSettings({
           <AlertTriangle className="h-5 w-5 text-primary mt-1" />
           <div className="flex-1 space-y-2">
             <Label htmlFor="cancellation-hours" className="text-sm font-medium">
-              İptal Süresi (saat)
+              Cancellation Time (hours)
             </Label>
             <Input
               id="cancellation-hours"
@@ -105,29 +105,29 @@ export function BusinessSettings({
               className="w-32"
             />
             <p className="text-xs text-muted-foreground">
-              Randevudan kaç saat önceye kadar iptal edilebilir (1-48 saat arası)
+              How many hours before appointment can be cancelled (1-48 hours)
             </p>
           </div>
         </div>
 
         {/* Current Settings Summary */}
         <div className="p-4 bg-muted/50 rounded-lg">
-          <h4 className="text-sm font-medium mb-2">Mevcut Ayarlar</h4>
+          <h4 className="text-sm font-medium mb-2">Current Settings</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-muted-foreground">Randevu Süresi:</span>
+              <span className="text-muted-foreground">Appointment Duration:</span>
               <br />
-              <span className="font-medium">{businessSettings.appointmentDuration} dakika</span>
+              <span className="font-medium">{businessSettings.appointmentDuration} minutes</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Rezervasyon:</span>
+              <span className="text-muted-foreground">Reservation:</span>
               <br />
-              <span className="font-medium">{businessSettings.reservationDays} gün önceden</span>
+              <span className="font-medium">{businessSettings.reservationDays} days in advance</span>
             </div>
             <div>
-              <span className="text-muted-foreground">İptal Süresi:</span>
+              <span className="text-muted-foreground">Cancellation Time:</span>
               <br />
-              <span className="font-medium">{businessSettings.cancellationHours} saat öncesine kadar</span>
+              <span className="font-medium">Up to {businessSettings.cancellationHours} hours before</span>
             </div>
           </div>
         </div>

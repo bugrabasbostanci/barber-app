@@ -47,20 +47,20 @@ export interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariant
 }
 
 const statusLabels: Record<string, string> = {
-  pending: 'Bekliyor',
-  confirmed: 'Onaylandı', 
-  scheduled: 'Planlandı',
-  completed: 'Tamamlandı',
-  cancelled: 'İptal Edildi',
-  no_show: 'Gelmedi',
-  active: 'Aktif',
-  inactive: 'Pasif',
-  online: 'Çevrimiçi',
-  offline: 'Çevrimdışı',
-  warning: 'Uyarı',
-  error: 'Hata',
-  info: 'Bilgi',
-  success: 'Başarılı'
+  pending: 'Pending',
+  confirmed: 'Confirmed', 
+  scheduled: 'Scheduled',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  no_show: 'No Show',
+  active: 'Active',
+  inactive: 'Inactive',
+  online: 'Online',
+  offline: 'Offline',
+  warning: 'Warning',
+  error: 'Error',
+  info: 'Info',
+  success: 'Success'
 };
 
 export function StatusBadge({ status, size, className, children, ...props }: StatusBadgeProps) {

@@ -75,7 +75,7 @@ export function TimeBlockForm({
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Zaman Bloğu Ekle</CardTitle>
+          <CardTitle className="text-lg">Add Time Block</CardTitle>
           <Button
             variant="outline"
             size="sm"
@@ -83,14 +83,14 @@ export function TimeBlockForm({
             className="gap-2"
           >
             <RotateCcw className="h-4 w-4" />
-            Temizle
+            Clear
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Date Selection */}
         <div className="space-y-2">
-          <Label>Tarih</Label>
+          <Label>Date</Label>
           <Popover open={calendarOpen} onOpenChange={onSetCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -104,7 +104,7 @@ export function TimeBlockForm({
                 {formData.blockDate ? (
                   formatTurkishDate(dateToLocalString(formData.blockDate))
                 ) : (
-                  "Tarih seçin"
+                  "Select date"
                 )}
               </Button>
             </PopoverTrigger>
@@ -122,10 +122,10 @@ export function TimeBlockForm({
 
         {/* Staff Selection */}
         <div className="space-y-2">
-          <Label>Personel</Label>
+          <Label>Staff</Label>
           <Select value={formData.blockStaff} onValueChange={handleStaffChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Personel seçin" />
+              <SelectValue placeholder="Select staff" />
             </SelectTrigger>
             <SelectContent>
               {staffMembers.map((staff) => (
@@ -139,7 +139,7 @@ export function TimeBlockForm({
 
         {/* Block Type */}
         <div className="space-y-2">
-          <Label>Blok Türü</Label>
+          <Label>Block Type</Label>
           <Select 
             value={formData.blockType} 
             onValueChange={(value: BlockType) => handleBlockTypeChange(value)}
@@ -148,8 +148,8 @@ export function TimeBlockForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="time-range">Saat Aralığı</SelectItem>
-              <SelectItem value="full-day">Tüm Gün</SelectItem>
+              <SelectItem value="time-range">Time Range</SelectItem>
+              <SelectItem value="full-day">Full Day</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -158,7 +158,7 @@ export function TimeBlockForm({
         {formData.blockType === 'time-range' && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start-time">Başlangıç Saati</Label>
+              <Label htmlFor="start-time">Start Time</Label>
               <Input
                 id="start-time"
                 type="time"
@@ -167,7 +167,7 @@ export function TimeBlockForm({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end-time">Bitiş Saati</Label>
+              <Label htmlFor="end-time">End Time</Label>
               <Input
                 id="end-time"
                 type="time"
@@ -180,10 +180,10 @@ export function TimeBlockForm({
 
         {/* Reason */}
         <div className="space-y-2">
-          <Label htmlFor="reason">Sebep</Label>
+          <Label htmlFor="reason">Reason</Label>
           <Textarea
             id="reason"
-            placeholder="Zaman bloğu sebebini girin..."
+            placeholder="Enter reason for time block..."
             value={formData.blockReason}
             onChange={(e) => handleReasonChange(e.target.value)}
             rows={3}
@@ -197,7 +197,7 @@ export function TimeBlockForm({
           className="w-full gap-2"
         >
           <Plus className="h-4 w-4" />
-          {saving ? 'Ekleniyor...' : 'Zaman Bloğu Ekle'}
+          {saving ? 'Adding...' : 'Add Time Block'}
         </Button>
       </CardContent>
     </Card>

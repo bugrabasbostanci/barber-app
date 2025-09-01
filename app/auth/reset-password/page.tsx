@@ -82,14 +82,14 @@ function ChangePasswordForm() {
                 Back
               </Button>
             </Link>
-            <h1 className="font-semibold text-lg">Şifre Değiştir</h1>
+            <h1 className="font-semibold text-lg">Change Password</h1>
             <div className="w-16"></div>
           </div>
         </header>
         <div className="px-4 py-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Yükleniyor...</p>
+            <p className="mt-2 text-muted-foreground">Loading...</p>
           </div>
         </div>
       </div>
@@ -113,20 +113,20 @@ function ChangePasswordForm() {
                 Back
               </Button>
             </Link>
-            <h1 className="font-semibold text-lg">Şifre Değiştir</h1>
+            <h1 className="font-semibold text-lg">Change Password</h1>
             <div className="w-16"></div>
           </div>
         </header>
         <div className="px-4 py-8">
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">Kullanılamıyor</h2>
+            <h2 className="text-2xl font-bold mb-4">Not Available</h2>
             <p className="text-muted-foreground mb-8">
-              Şifre değiştirme sadece e-posta hesapları için kullanılabilir. Google
-              hesapları şifrelerini Google üzerinden yönetir.
+              Password change is only available for email accounts. Google
+              accounts manage their passwords through Google.
             </p>
             <Link href="/profile">
               <Button className="w-full h-12 text-base font-semibold">
-                Profile Dön
+                Back to Profile
               </Button>
             </Link>
           </div>
@@ -142,7 +142,7 @@ function ChangePasswordForm() {
         <header className="bg-background border-b px-4 py-4 sticky top-0 z-50">
           <div className="flex items-center justify-between">
             <div className="w-16"></div>
-            <h1 className="font-semibold text-lg">Şifre Değiştir</h1>
+            <h1 className="font-semibold text-lg">Change Password</h1>
             <div className="w-16"></div>
           </div>
         </header>
@@ -154,18 +154,18 @@ function ChangePasswordForm() {
               <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
             <h2 className="text-2xl font-bold mb-2">
-              Şifre Başarıyla Değiştirildi
+              Password Successfully Changed
             </h2>
             <p className="text-muted-foreground mb-8">
-              Şifreniz başarıyla güncellendi. Artık yeni şifrenizle
-              hesabınızı kullanmaya devam edebilirsiniz.
+              Your password has been successfully updated. You can now continue
+              using your account with your new password.
             </p>
           </div>
 
           {/* Sign In Button */}
           <Link href="/profile">
             <Button className="w-full h-12 text-base font-semibold">
-              Profile Dön
+              Back to Profile
             </Button>
           </Link>
         </div>
@@ -181,10 +181,10 @@ function ChangePasswordForm() {
           <Link href="/profile">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Geri
+              Back
             </Button>
           </Link>
-          <h1 className="font-semibold text-lg">Şifre Sıfırla</h1>
+          <h1 className="font-semibold text-lg">Reset Password</h1>
           <div className="w-16"></div>
         </div>
       </header>
@@ -192,9 +192,9 @@ function ChangePasswordForm() {
       <div className="px-4 py-8">
         {/* Logo/Brand */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-2">Şifrenizi Değiştirin</h2>
+          <h2 className="text-3xl font-bold mb-2">Change Your Password</h2>
           <p className="text-muted-foreground">
-            Mevcut şifrenizi girin ve yeni güvenli bir şifre oluşturun.
+            Enter your current password and create a new secure password.
           </p>
         </div>
 
@@ -213,14 +213,14 @@ function ChangePasswordForm() {
                   htmlFor="currentPassword"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  Mevcut Şifre
+                  Current Password
                 </Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="currentPassword"
                     type={showCurrentPassword ? "text" : "password"}
-                    placeholder="Mevcut şifrenizi girin"
+                    placeholder="Enter your current password"
                     {...register("currentPassword")}
                     className="pl-10 pr-10 h-12"
                   />
@@ -248,14 +248,14 @@ function ChangePasswordForm() {
                   htmlFor="newPassword"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  Yeni Şifre
+                  New Password
                 </Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="newPassword"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Yeni bir şifre oluşturun"
+                    placeholder="Create a new password"
                     {...register("newPassword")}
                     className="pl-10 pr-10 h-12"
                   />
@@ -283,14 +283,14 @@ function ChangePasswordForm() {
                   htmlFor="confirmNewPassword"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  Yeni Şifre Onayla
+                  Confirm New Password
                 </Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmNewPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Yeni şifrenizi onaylayın"
+                    placeholder="Confirm your new password"
                     {...register("confirmNewPassword")}
                     className="pl-10 pr-10 h-12"
                   />
@@ -316,13 +316,13 @@ function ChangePasswordForm() {
               {/* Password Requirements */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">
-                  Şifre içermeli:
+                  Password must contain:
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• En az 8 karakter</li>
-                  <li>• Bir büyük harf</li>
-                  <li>• Bir küçük harf</li>
-                  <li>• Bir sayı</li>
+                  <li>• At least 8 characters</li>
+                  <li>• One uppercase letter</li>
+                  <li>• One lowercase letter</li>
+                  <li>• One number</li>
                 </ul>
               </div>
 
@@ -331,21 +331,21 @@ function ChangePasswordForm() {
                 className="w-full h-12 text-base font-semibold"
                 disabled={loading || isSubmitting}
               >
-                {loading || isSubmitting ? "Güncelleniyor..." : "Şifre Güncelle"}
+                {loading || isSubmitting ? "Updating..." : "Update Password"}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        {/* Profile Dön */}
+        {/* Back to Profile */}
         <div className="text-center">
           <p className="text-muted-foreground">
-            Şifrenizi değiştirmek istemiyor musunuz?{" "}
+            Don&apos;t want to change your password?{" "}
             <Link
               href="/profile"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              Profile Dön
+              Back to Profile
             </Link>
           </p>
         </div>
@@ -367,20 +367,22 @@ export default function ChangePasswordPage() {
                   Back
                 </Button>
               </Link>
-              <h1 className="font-semibold text-lg">Şifre Değiştir</h1>
+              <h1 className="font-semibold text-lg">Change Password</h1>
               <div className="w-16"></div>
             </div>
           </header>
           <div className="px-4 py-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-2">Şifrenizi Değiştirin</h2>
+              <h2 className="text-3xl font-bold mb-2">Change Your Password</h2>
               <p className="text-muted-foreground">
                 Enter your current password and create a new secure password.
               </p>
             </div>
             <Card>
               <CardContent className="p-6">
-                <div className="text-center text-muted-foreground">Yükleniyor...</div>
+                <div className="text-center text-muted-foreground">
+                  Loading...
+                </div>
               </CardContent>
             </Card>
           </div>

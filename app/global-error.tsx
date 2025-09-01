@@ -31,12 +31,12 @@ export default function GlobalError({
                 <AlertTriangle className="w-8 h-8 text-red-600" />
               </div>
               <CardTitle className="text-xl font-semibold text-gray-900">
-                Bir şeyler ters gitti
+                Something went wrong
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center text-sm">
-                Uygulamada beklenmeyen bir hata oluştu. Bu durumu çözmek için çalışıyoruz.
+                An unexpected error occurred in the application. We are working to resolve this issue.
               </p>
               
               {process.env.NODE_ENV === 'development' && (
@@ -59,7 +59,7 @@ export default function GlobalError({
                   variant="default"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Tekrar Dene
+                  Try Again
                 </Button>
                 
                 <Button 
@@ -68,13 +68,13 @@ export default function GlobalError({
                   className="w-full"
                 >
                   <Home className="w-4 h-4 mr-2" />
-                  Ana Sayfaya Dön
+                  Return to Home
                 </Button>
               </div>
 
               <div className="text-center">
                 <p className="text-xs text-gray-400">
-                  Sorun devam ederse lütfen bizimle iletişime geçin.
+                  If the problem persists, please contact us.
                 </p>
               </div>
             </CardContent>

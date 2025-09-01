@@ -40,7 +40,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
         appointment.customer.lastName || ""
       }`.trim();
     }
-    return appointment.manualCustomerName || "Bilinmeyen Müşteri";
+    return appointment.manualCustomerName || "Unknown Customer";
   };
 
   const getCustomerPhone = (appointment: Appointment) => {
@@ -54,13 +54,13 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
   const getStatusText = (status: string) => {
     switch (status) {
       case "CONFIRMED":
-        return "Onaylanmış";
+        return "Confirmed";
       case "CANCELLED":
-        return "İptal Edilmiş";
+        return "Cancelled";
       case "COMPLETED":
-        return "Tamamlanmış";
+        return "Completed";
       default:
-        return "Beklemede";
+        return "Pending";
     }
   };
 
@@ -68,7 +68,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Randevu Detayları</DialogTitle>
+          <DialogTitle>Appointment Details</DialogTitle>
         </DialogHeader>
 
         {appointment && (
@@ -76,7 +76,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">
-                  Tarih
+                  Date
                 </h4>
                 <p className="font-semibold">
                   {formatTurkishDate(appointment.date)}
@@ -84,7 +84,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
               </div>
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">
-                  Saat
+                  Time
                 </h4>
                 <p className="font-semibold">
                   {formatAppointmentTime(appointment)}
@@ -94,7 +94,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
 
             <div>
               <h4 className="font-medium text-sm text-muted-foreground">
-                Müşteri
+                Customer
               </h4>
               <p className="font-semibold text-lg">
                 {getCustomerName(appointment)}
@@ -104,7 +104,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
             {getCustomerPhone(appointment) && (
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">
-                  Telefon
+                  Phone
                 </h4>
                 <p className="font-semibold">
                   {getCustomerPhone(appointment)}
@@ -114,7 +114,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
 
             <div>
               <h4 className="font-medium text-sm text-muted-foreground">
-                Berber
+                Barber
               </h4>
               <p className="font-semibold">
                 {appointment.staff.firstName} {appointment.staff.lastName}
@@ -123,7 +123,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
 
             <div>
               <h4 className="font-medium text-sm text-muted-foreground">
-                Durum
+                Status
               </h4>
               <p className="font-semibold">
                 {getStatusText(appointment.status)}
@@ -133,7 +133,7 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
             {appointment.notes && (
               <div>
                 <h4 className="font-medium text-sm text-muted-foreground">
-                  Notlar
+                  Notes
                 </h4>
                 <p className="text-sm bg-muted p-3 rounded-md">
                   {appointment.notes}
@@ -143,10 +143,10 @@ export function AppointmentModal({ isOpen, onClose, appointment }: AppointmentMo
 
             <div>
               <h4 className="font-medium text-sm text-muted-foreground">
-                Oluşturulma Tarihi
+                Creation Date
               </h4>
               <p className="text-sm">
-                {new Date(appointment.createdAt).toLocaleDateString("tr-TR", {
+                {new Date(appointment.createdAt).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",

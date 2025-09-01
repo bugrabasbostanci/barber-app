@@ -27,7 +27,7 @@ export function useScheduleActions(
       }
     } catch (error) {
       console.error('Error fetching blocked times:', error);
-      toast.error('Bloke saatler yüklenirken hata oluştu');
+      toast.error('Error loading blocked times');
       setBlockedTimes([]);
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ export function useScheduleActions(
       }
     } catch (error) {
       console.error('Error fetching staff:', error);
-      toast.error('Personel listesi yüklenirken hata oluştu');
+      toast.error('Error loading staff list');
       setStaffMembers([]);
     }
   }, [setStaffMembers]);
@@ -77,11 +77,11 @@ export function useScheduleActions(
         throw new Error(error.message || error.error || 'Failed to create time block');
       }
 
-      toast.success('Zaman bloğu başarıyla oluşturuldu');
+      toast.success('Time block created successfully');
       await fetchBlockedTimes(); // Refresh the list
     } catch (error) {
       console.error('Error creating time block:', error);
-      const message = error instanceof Error ? error.message : 'Zaman bloğu oluşturulurken hata oluştu';
+      const message = error instanceof Error ? error.message : 'Error creating time block';
       toast.error(message);
       throw error;
     } finally {
@@ -102,11 +102,11 @@ export function useScheduleActions(
         throw new Error(error.message || 'Failed to delete time block');
       }
 
-      toast.success('Zaman bloğu başarıyla silindi');
+      toast.success('Time block deleted successfully');
       await fetchBlockedTimes(); // Refresh the list
     } catch (error) {
       console.error('Error deleting time block:', error);
-      const message = error instanceof Error ? error.message : 'Zaman bloğu silinirken hata oluştu';
+      const message = error instanceof Error ? error.message : 'Error deleting time block';
       toast.error(message);
       throw error;
     } finally {
@@ -124,22 +124,22 @@ export function useScheduleActions(
     blockReason?: string
   ): ValidationResult => {
     if (!blockDate) {
-      return { isValid: false, message: 'Lütfen bir tarih seçin' };
+      return { isValid: false, message: 'Please select a date' };
     }
 
     if (!blockStaff) {
-      return { isValid: false, message: 'Lütfen bir personel seçin' };
+      return { isValid: false, message: 'Please select a staff member' };
     }
 
     if (blockType === 'time-range') {
       if (!blockStartTime || !blockEndTime) {
-        return { isValid: false, message: 'Lütfen başlangıç ve bitiş saatlerini seçin' };
+        return { isValid: false, message: 'Please select start and end times' };
       }
 
       // Validate time format
       const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(blockStartTime) || !timeRegex.test(blockEndTime)) {
-        return { isValid: false, message: 'Geçersiz saat formatı' };
+        return { isValid: false, message: 'Invalid time format' };
       }
 
       // Check if start time is before end time
@@ -150,12 +150,12 @@ export function useScheduleActions(
       const endMinutesTotal = endHours * 60 + endMinutes;
       
       if (startMinutesTotal >= endMinutesTotal) {
-        return { isValid: false, message: 'Başlangıç saati bitiş saatinden önce olmalı' };
+        return { isValid: false, message: 'Start time must be before end time' };
       }
     }
 
     if (!blockReason?.trim()) {
-      return { isValid: false, message: 'Lütfen bir sebep girin' };
+      return { isValid: false, message: 'Please enter a reason' };
     }
 
     return { isValid: true };
@@ -167,10 +167,10 @@ export function useScheduleActions(
     try {
       // TODO: Implement working hours API endpoint
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      toast.success('Çalışma saatleri başarıyla kaydedildi');
+      toast.success('Working hours saved successfully');
     } catch (error) {
       console.error('Error saving working hours:', error);
-      toast.error('Çalışma saatleri kaydedilirken hata oluştu');
+      toast.error('Error saving working hours');
       throw error;
     } finally {
       setSaving(false);
@@ -183,10 +183,10 @@ export function useScheduleActions(
     try {
       // TODO: Implement business settings API endpoint
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      toast.success('İş ayarları başarıyla kaydedildi');
+      toast.success('Business settings saved successfully');
     } catch (error) {
       console.error('Error saving business settings:', error);
-      toast.error('İş ayarları kaydedilirken hata oluştu');
+      toast.error('Error saving business settings');
       throw error;
     } finally {
       setSaving(false);

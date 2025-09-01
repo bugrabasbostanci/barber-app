@@ -18,11 +18,11 @@ export function BookingNavigation({
   isBooking,
   onPrevious,
   onNext,
-  onSubmit
+  onSubmit,
 }: BookingNavigationProps) {
   const isFirstStep = currentStep === 1;
   const isFinalStep = currentStep === totalSteps;
-  
+
   const handleNextClick = () => {
     if (isFinalStep) {
       onSubmit();
@@ -43,10 +43,10 @@ export function BookingNavigation({
             disabled={isBooking}
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
-            Geri
+            Back
           </Button>
         )}
-        
+
         <Button
           size="lg"
           onClick={handleNextClick}
@@ -58,15 +58,15 @@ export function BookingNavigation({
           {isBooking ? (
             <div className="flex items-center">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Randevu Alınıyor...
+              Booking Appointment...
             </div>
           ) : isFinalStep ? (
             <div className="flex items-center">
               <Check className="w-4 h-4 mr-2" />
-              Randevuyu Onayla
+              Confirm Appointment
             </div>
           ) : (
-            "İleri"
+            "Next"
           )}
         </Button>
       </div>

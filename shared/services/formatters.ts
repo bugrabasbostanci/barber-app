@@ -69,7 +69,7 @@ export class AppointmentFormatter {
   }
 
   static formatCustomer(appointment: AppointmentData): string {
-    if (!appointment.customerName) return 'Müşteri bilgisi yok';
+    if (!appointment.customerName) return 'No customer information';
     return formatName(appointment.customerName);
   }
 
@@ -81,17 +81,17 @@ export class AppointmentFormatter {
   }
 
   static formatStaff(appointment: AppointmentData): string {
-    if (!appointment.staffName) return 'Berber atanmamış';
+    if (!appointment.staffName) return 'No barber assigned';
     return formatName(appointment.staffName);
   }
 
   static formatStatus(appointment: AppointmentData): string {
     const statusMap: Record<string, string> = {
-      'PENDING': 'Bekliyor',
-      'CONFIRMED': 'Onaylandı',
-      'CANCELLED': 'İptal Edildi',
-      'COMPLETED': 'Tamamlandı',
-      'NO_SHOW': 'Gelmedi'
+      'PENDING': 'Pending',
+      'CONFIRMED': 'Confirmed',
+      'CANCELLED': 'Cancelled',
+      'COMPLETED': 'Completed',
+      'NO_SHOW': 'No Show'
     };
     return statusMap[appointment.status] || appointment.status;
   }
@@ -156,7 +156,7 @@ export class CustomerFormatter {
   }
 
   static formatLastAppointment(customer: CustomerData): string {
-    if (!customer.lastAppointment) return 'Hiç randevusu yok';
+    if (!customer.lastAppointment) return 'No appointments yet';
     return getRelativeTimeString(new Date(customer.lastAppointment));
   }
 
@@ -181,9 +181,9 @@ export class StaffFormatter {
 
   static formatRole(staff: StaffData): string {
     const roleMap: Record<string, string> = {
-      'BARBER': 'Berber',
-      'ADMIN': 'Yönetici',
-      'STAFF': 'Personel'
+      'BARBER': 'Barber',
+      'ADMIN': 'Administrator',
+      'STAFF': 'Staff'
     };
     return roleMap[staff.role] || staff.role;
   }
@@ -220,7 +220,7 @@ export class GenericFormatter {
     return value ? trueLabel : falseLabel;
   }
 
-  static formatArray(items: string[], separator: string = ', ', lastSeparator: string = ' ve '): string {
+  static formatArray(items: string[], separator: string = ', ', lastSeparator: string = ' and '): string {
     if (items.length === 0) return '';
     if (items.length === 1) return items[0];
     if (items.length === 2) return items.join(lastSeparator);
@@ -260,17 +260,17 @@ export class GenericFormatter {
 
   static formatDuration(minutes: number): string {
     if (minutes < 60) {
-      return `${minutes} dakika`;
+      return `${minutes} minutes`;
     }
     
     const hours = Math.floor(minutes / 60);
     const remainingMinutes = minutes % 60;
     
     if (remainingMinutes === 0) {
-      return `${hours} saat`;
+      return `${hours} hours`;
     }
     
-    return `${hours} saat ${remainingMinutes} dakika`;
+    return `${hours} hours ${remainingMinutes} minutes`;
   }
 
   static truncateText(text: string, maxLength: number, suffix: string = '...'): string {

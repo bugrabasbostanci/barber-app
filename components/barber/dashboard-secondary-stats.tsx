@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import { SecondaryStatsCard, SubsectionHeader } from "@/shared/components";
@@ -11,31 +11,30 @@ interface SecondaryData {
 
 export function DashboardSecondaryStats() {
   const [data, setData] = useState<SecondaryData | null>(null);
-  
+
   useEffect(() => {
-    fetch('/api/dashboard/secondary')
-      .then(res => res.json())
+    fetch("/api/dashboard/secondary")
+      .then((res) => res.json())
       .then(setData)
-      .catch(error => console.error('Error fetching secondary dashboard data:', error));
+      .catch((error) =>
+        console.error("Error fetching secondary dashboard data:", error)
+      );
   }, []);
 
   if (!data) {
     return (
       <div className="mb-4">
-        <SubsectionHeader 
-          title="Genel İstatistikler" 
-          className="mb-3" 
-        />
+        <SubsectionHeader title="General Statistics" className="mb-3" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <SecondaryStatsCard
-            title="Toplam Müşteri"
+            title="Total Customers"
             value="..."
             color="orange"
             icon={Users}
             loading={true}
           />
           <SecondaryStatsCard
-            title="Toplam Kullanıcı"
+            title="Total Users"
             value="..."
             color="indigo"
             icon={UserCheck}
@@ -48,19 +47,16 @@ export function DashboardSecondaryStats() {
 
   return (
     <div className="mb-4">
-      <SubsectionHeader 
-        title="Genel İstatistikler" 
-        className="mb-3" 
-      />
+      <SubsectionHeader title="General Statistics" className="mb-3" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SecondaryStatsCard
-          title="Toplam Müşteri"
+          title="Total Customers"
           value={data.totalCustomers}
           color="orange"
           icon={Users}
         />
         <SecondaryStatsCard
-          title="Toplam Kullanıcı"
+          title="Total Users"
           value={data.totalUsers}
           color="indigo"
           icon={UserCheck}

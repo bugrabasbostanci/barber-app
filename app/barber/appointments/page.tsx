@@ -149,13 +149,13 @@ export default function BarberAppointments() {
         setAppointments((prev) => prev.filter((apt) => apt.id !== appointmentToDelete));
         setShowDeleteDialog(false);
         setAppointmentToDelete(null);
-        toast.success("Randevu başarıyla silindi!");
+        toast.success("Appointment deleted successfully!");
       } else {
-        toast.error("Randevu silinirken bir hata oluştu.");
+        toast.error("An error occurred while deleting the appointment.");
       }
     } catch (error) {
       console.error("Error deleting appointment:", error);
-      toast.error("Randevu silinirken bir hata oluştu.");
+      toast.error("An error occurred while deleting the appointment.");
     }
   };
 

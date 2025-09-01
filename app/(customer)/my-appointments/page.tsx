@@ -63,13 +63,13 @@ function MyAppointmentsContent() {
     switch (status) {
       case "SCHEDULED":
       case "CONFIRMED":
-        return <Badge className="bg-green-100 text-green-800">Onaylandı</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Confirmed</Badge>;
       case "COMPLETED":
-        return <Badge className="bg-blue-100 text-blue-800">Tamamlandı</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">Completed</Badge>;
       case "CANCELLED":
-        return <Badge className="bg-red-100 text-red-800">İptal Edildi</Badge>;
+        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
       case "NO_SHOW":
-        return <Badge className="bg-gray-100 text-gray-800">Gelmedi</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">No Show</Badge>;
       default:
         return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
     }
@@ -121,7 +121,7 @@ function MyAppointmentsContent() {
                 cancelMutation.isPending
               }
             >
-              İptal Et
+              Cancel
             </Button>
           </div>
         ) : appointment.status === "COMPLETED" ? (
@@ -132,7 +132,7 @@ function MyAppointmentsContent() {
               className="flex-1 bg-transparent"
               asChild
             >
-              <Link href="/">Tekrar Randevu Al</Link>
+              <Link href="/">Book Again</Link>
             </Button>
           </div>
         ) : null}
@@ -164,7 +164,7 @@ function MyAppointmentsContent() {
 
   // Get computed data from React Query hooks
   const upcoming = getUpcomingAppointments();
-  const past = getPastAppointments().slice(0, 3); // Son 3 geçmiş randevuyu göster
+  const past = getPastAppointments().slice(0, 3); // Show last 3 past appointments
 
   // Show error if not authorized
   if (!isAuthorized) {
@@ -173,14 +173,13 @@ function MyAppointmentsContent() {
         <div className="max-w-4xl mx-auto py-6 px-4">
           <Alert variant="destructive" className="mt-4">
             <AlertDescription>
-              Bu sayfaya erişim yetkiniz bulunmuyor. Randevularınızı
-              görüntüleyebilmek için müşteri hesabı ile giriş yapmanız
-              gerekiyor.
+              You do not have permission to access this page. You need to
+              log in with a customer account to view your appointments.
             </AlertDescription>
           </Alert>
           <div className="mt-4 text-center">
             <Button asChild>
-              <Link href="/auth/login">Giriş Yap</Link>
+              <Link href="/auth/login">Sign In</Link>
             </Button>
           </div>
         </div>
@@ -215,11 +214,11 @@ function MyAppointmentsContent() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600" />
-              Randevuyu İptal Et
+              Cancel Appointment
             </DialogTitle>
             <DialogDescription>
-              Randevunuzu iptal etmek istediğinizden emin misiniz? Bu işlem geri
-              alınamaz.
+              Are you sure you want to cancel your appointment? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
 
@@ -256,7 +255,7 @@ function MyAppointmentsContent() {
               onClick={closeCancelModal}
               disabled={cancelMutation.isPending}
             >
-              Vazgeç
+              Cancel
             </Button>
             <Button
               variant="destructive"
@@ -266,10 +265,10 @@ function MyAppointmentsContent() {
               {cancelMutation.isPending ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  İptal Ediliyor...
+                  Cancelling...
                 </div>
               ) : (
-                "Randevuyu İptal Et"
+                "Cancel Appointment"
               )}
             </Button>
           </DialogFooter>
@@ -301,7 +300,7 @@ function AppointmentsList({
               {upcoming.length}
             </div>
             <div className="text-sm text-muted-foreground font-medium">
-              Yaklaşan Randevu
+              Upcoming Appointments
             </div>
           </CardContent>
         </Card>
@@ -311,7 +310,7 @@ function AppointmentsList({
               {past.length}
             </div>
             <div className="text-sm text-muted-foreground font-medium">
-              Geçmiş Randevu
+              Past Appointments
             </div>
           </CardContent>
         </Card>
@@ -320,8 +319,8 @@ function AppointmentsList({
       {/* Appointments Tabs */}
       <Tabs defaultValue="upcoming" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="upcoming">Yaklaşan</TabsTrigger>
-          <TabsTrigger value="past">Geçmiş</TabsTrigger>
+          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+          <TabsTrigger value="past">Past</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming" className="space-y-4">
@@ -330,12 +329,12 @@ function AppointmentsList({
               <CardContent className="p-8 text-center">
                 <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                 <h3 className="font-medium text-lg mb-2">
-                  Yaklaşan randevunuz bulunmuyor
+                  No upcoming appointments
                 </h3>
-                <p className="text-muted-foreground mb-6">Yeni bir randevu alın</p>
+                <p className="text-muted-foreground mb-6">Book a new appointment</p>
                 <Link href="/">
                   <Button size="lg" className="w-full">
-                    Randevu Al
+                    Book Appointment
                   </Button>
                 </Link>
               </CardContent>
@@ -351,10 +350,10 @@ function AppointmentsList({
               <CardContent className="p-8 text-center">
                 <Calendar className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                 <h3 className="font-medium text-lg mb-2">
-                  Geçmiş randevunuz bulunmuyor
+                  No past appointments
                 </h3>
                 <p className="text-muted-foreground">
-                  Randevu geçmişiniz burada görünecek
+                  Your appointment history will appear here
                 </p>
               </CardContent>
             </Card>
@@ -362,7 +361,7 @@ function AppointmentsList({
             <>
               {past.length > 0 && (
                 <div className="text-sm text-muted-foreground mb-4 text-center">
-                  Son 3 geçmiş randevunuz gösteriliyor
+                  Showing your last 3 past appointments
                 </div>
               )}
               <div>{past.map(renderAppointmentCard)}</div>

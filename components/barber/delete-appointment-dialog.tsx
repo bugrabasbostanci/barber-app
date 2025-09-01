@@ -25,10 +25,10 @@ export function DeleteAppointmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Randevuyu Sil</DialogTitle>
+          <DialogTitle>Delete Appointment</DialogTitle>
           <DialogDescription>
-            Bu randevuyu silmek istediğinizden emin misiniz? Bu işlem geri
-            alınamaz.
+            Are you sure you want to delete this appointment? This action
+            cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -37,14 +37,14 @@ export function DeleteAppointmentDialog({
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
           >
-            İptal
+            Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? "Siliniyor..." : "Sil"}
+            {isDeleting ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

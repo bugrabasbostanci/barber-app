@@ -66,7 +66,7 @@ export function handleApiError(error: unknown): ApiError {
   }
 
   return {
-    message: 'Bilinmeyen bir hata oluştu',
+    message: 'Unknown error occurred',
     status: 500
   };
 }
@@ -88,7 +88,7 @@ export function getErrorMessage(error: unknown): string {
     return error;
   }
 
-  return 'Bilinmeyen bir hata oluştu';
+  return 'Unknown error occurred';
 }
 
 export function buildQueryString(params: Record<string, any>): string {

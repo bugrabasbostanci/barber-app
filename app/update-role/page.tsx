@@ -12,7 +12,7 @@ export default function UpdateRolePage() {
 
   const handleUpdateRole = async () => {
     if (!selectedRole) {
-      alert('Lütfen bir rol seçin')
+      alert('Please select a role')
       return
     }
 
@@ -32,13 +32,13 @@ export default function UpdateRolePage() {
       setResult(result)
 
       if (result.success) {
-        alert(`Rol başarıyla ${selectedRole} olarak güncellendi!`)
-        // Sayfayı yenile ki yeni rol aktif olsun
+        alert(`Role successfully updated to ${selectedRole}!`)
+        // Refresh page so new role becomes active
         setTimeout(() => {
           window.location.href = '/'
         }, 1000)
       } else {
-        alert(result.error || 'Rol güncellenirken bir hata oluştu')
+        alert(result.error || 'An error occurred while updating role')
       }
     } catch (error) {
       console.error('Error:', error)
@@ -52,19 +52,19 @@ export default function UpdateRolePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Rol Güncelleme</CardTitle>
+          <CardTitle>Role Update</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Yeni Rol:</label>
+            <label className="block text-sm font-medium mb-2">New Role:</label>
             <Select value={selectedRole} onValueChange={setSelectedRole}>
               <SelectTrigger>
-                <SelectValue placeholder="Rol seçin" />
+                <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="CUSTOMER">Müşteri (CUSTOMER)</SelectItem>
-                <SelectItem value="EMPLOYEE">Çalışan (EMPLOYEE)</SelectItem>
-                <SelectItem value="BARBER">Berber (BARBER)</SelectItem>
+                <SelectItem value="CUSTOMER">Customer (CUSTOMER)</SelectItem>
+                <SelectItem value="EMPLOYEE">Employee (EMPLOYEE)</SelectItem>
+                <SelectItem value="BARBER">Barber (BARBER)</SelectItem>
                 <SelectItem value="ADMIN">Admin (ADMIN)</SelectItem>
               </SelectContent>
             </Select>
@@ -75,7 +75,7 @@ export default function UpdateRolePage() {
             disabled={loading || !selectedRole}
             className="w-full"
           >
-            {loading ? 'Güncelleniyor...' : 'Rolü Güncelle'}
+            {loading ? 'Updating...' : 'Update Role'}
           </Button>
 
           {result && (
@@ -89,8 +89,8 @@ export default function UpdateRolePage() {
           )}
 
           <div className="text-xs text-gray-500 mt-4">
-            <p><strong>Not:</strong> Bu sayfa sadece test amaçlıdır.</p>
-            <p>BARBER rolü seçerek berber paneline erişebilirsiniz.</p>
+            <p><strong>Note:</strong> This page is for testing purposes only.</p>
+            <p>Select BARBER role to access the barber panel.</p>
           </div>
         </CardContent>
       </Card>

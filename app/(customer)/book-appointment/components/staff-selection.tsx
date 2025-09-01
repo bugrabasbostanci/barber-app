@@ -33,7 +33,7 @@ export function StaffSelection({ selectedStaff, onStaffSelect }: StaffSelectionP
   }, []);
 
   const getStaffTitle = (role: string) => {
-    return role === "BARBER" ? "Berber" : "Personel";
+    return role === "BARBER" ? "Barber" : "Staff";
   };
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -47,9 +47,9 @@ export function StaffSelection({ selectedStaff, onStaffSelect }: StaffSelectionP
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Berber Seçin</h2>
+        <h2 className="text-xl font-semibold mb-2">Select Barber</h2>
         <p className="text-muted-foreground text-sm">
-          Randevunuzu almak istediğiniz berberi seçin
+          Choose the barber for your appointment
         </p>
       </div>
 

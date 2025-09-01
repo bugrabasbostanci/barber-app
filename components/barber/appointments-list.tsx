@@ -1,74 +1,74 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { 
+} from "@/components/ui/table";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Edit, Trash2, Check, X, Phone } from "lucide-react"
-import { formatTurkishDateShort } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit, Trash2, Check, X, Phone } from "lucide-react";
+import { formatTurkishDateShort } from "@/lib/utils";
 
 interface Appointment {
-  id: string
-  date: Date
-  startTime: string
-  endTime: string
-  status: string
-  notes?: string | null
-  manualCustomerName?: string | null
-  manualCustomerPhone?: string | null
+  id: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  status: string;
+  notes?: string | null;
+  manualCustomerName?: string | null;
+  manualCustomerPhone?: string | null;
   customer?: {
-    firstName: string | null
-    lastName: string | null
-    phone?: string | null
-  } | null
+    firstName: string | null;
+    lastName: string | null;
+    phone?: string | null;
+  } | null;
   staff: {
-    firstName: string | null
-    lastName: string | null
-  }
-  createdAt: Date
+    firstName: string | null;
+    lastName: string | null;
+  };
+  createdAt: Date;
 }
 
 interface AppointmentsListProps {
-  appointments: Appointment[]
+  appointments: Appointment[];
 }
 
 export function AppointmentsList({ appointments }: AppointmentsListProps) {
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'CONFIRMED':
-        return <Badge variant="default">Onaylandı</Badge>
-      case 'SCHEDULED':
-        return <Badge variant="secondary">Planlandı</Badge>
-      case 'COMPLETED':
-        return <Badge variant="outline">Tamamlandı</Badge>
-      case 'CANCELLED':
-        return <Badge variant="destructive">İptal</Badge>
-      case 'NO_SHOW':
-        return <Badge variant="destructive">Gelmedi</Badge>
+      case "CONFIRMED":
+        return <Badge variant="default">Onaylandı</Badge>;
+      case "SCHEDULED":
+        return <Badge variant="secondary">Planlandı</Badge>;
+      case "COMPLETED":
+        return <Badge variant="outline">Tamamlandı</Badge>;
+      case "CANCELLED":
+        return <Badge variant="destructive">İptal</Badge>;
+      case "NO_SHOW":
+        return <Badge variant="destructive">Gelmedi</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>
+        return <Badge variant="secondary">{status}</Badge>;
     }
-  }
+  };
 
-  const filteredAppointments = selectedStatus 
-    ? appointments.filter(apt => apt.status === selectedStatus)
-    : appointments
+  const filteredAppointments = selectedStatus
+    ? appointments.filter((apt) => apt.status === selectedStatus)
+    : appointments;
 
   return (
     <Card>
@@ -84,23 +84,23 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
               Tümü
             </Button>
             <Button
-              variant={selectedStatus === 'SCHEDULED' ? "default" : "outline"}
+              variant={selectedStatus === "SCHEDULED" ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedStatus('SCHEDULED')}
+              onClick={() => setSelectedStatus("SCHEDULED")}
             >
               Planlandı
             </Button>
             <Button
-              variant={selectedStatus === 'CONFIRMED' ? "default" : "outline"}
+              variant={selectedStatus === "CONFIRMED" ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedStatus('CONFIRMED')}
+              onClick={() => setSelectedStatus("CONFIRMED")}
             >
               Onaylandı
             </Button>
             <Button
-              variant={selectedStatus === 'COMPLETED' ? "default" : "outline"}
+              variant={selectedStatus === "COMPLETED" ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedStatus('COMPLETED')}
+              onClick={() => setSelectedStatus("COMPLETED")}
             >
               Tamamlandı
             </Button>
@@ -125,8 +125,11 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
             <TableBody>
               {filteredAppointments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                    Randevu bulunamadı.
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 text-gray-500"
+                  >
+                    No Appointment Found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -135,21 +138,30 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                     <TableCell>
                       <div className="font-medium">
                         {appointment.customer
-                          ? `${appointment.customer.firstName || ''} ${appointment.customer.lastName || ''}`.trim()
-                          : appointment.manualCustomerName || 'Bilinmeyen Müşteri'
-                        }
+                          ? `${appointment.customer.firstName || ""} ${
+                              appointment.customer.lastName || ""
+                            }`.trim()
+                          : appointment.manualCustomerName ||
+                            "Bilinmeyen Müşteri"}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(appointment.createdAt)} tarihinde oluşturuldu
+                        {new Intl.DateTimeFormat("tr-TR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }).format(appointment.createdAt)}{" "}
+                        tarihinde oluşturuldu
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {appointment.customer?.phone || appointment.manualCustomerPhone ? (
+                        {appointment.customer?.phone ||
+                        appointment.manualCustomerPhone ? (
                           <>
                             <Phone className="h-3 w-3 text-gray-400" />
                             <span className="text-sm">
-                              {appointment.customer?.phone || appointment.manualCustomerPhone}
+                              {appointment.customer?.phone ||
+                                appointment.manualCustomerPhone}
                             </span>
                           </>
                         ) : (
@@ -159,31 +171,33 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {`${appointment.staff.firstName || ''} ${appointment.staff.lastName || ''}`.trim() || 'Bilinmeyen Personel'}
+                        {`${appointment.staff.firstName || ""} ${
+                          appointment.staff.lastName || ""
+                        }`.trim() || "Bilinmeyen Personel"}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">
-                        {formatTurkishDateShort(appointment.date.toISOString().split('T')[0])}
+                        {formatTurkishDateShort(
+                          appointment.date.toISOString().split("T")[0]
+                        )}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {new Intl.DateTimeFormat('tr-TR', { weekday: 'long' }).format(appointment.date)}
+                        {new Intl.DateTimeFormat("tr-TR", {
+                          weekday: "long",
+                        }).format(appointment.date)}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">
-                        {appointment.startTime}
-                      </div>
+                      <div className="font-medium">{appointment.startTime}</div>
                       <div className="text-xs text-gray-500">
                         {appointment.endTime} kadar
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {getStatusBadge(appointment.status)}
-                    </TableCell>
+                    <TableCell>{getStatusBadge(appointment.status)}</TableCell>
                     <TableCell>
                       <div className="max-w-[200px] truncate text-sm">
-                        {appointment.notes || '-'}
+                        {appointment.notes || "-"}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -198,13 +212,13 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
                             <Edit className="h-4 w-4 mr-2" />
                             Düzenle
                           </DropdownMenuItem>
-                          {appointment.status === 'SCHEDULED' && (
+                          {appointment.status === "SCHEDULED" && (
                             <DropdownMenuItem>
                               <Check className="h-4 w-4 mr-2" />
                               Onayla
                             </DropdownMenuItem>
                           )}
-                          {appointment.status === 'CONFIRMED' && (
+                          {appointment.status === "CONFIRMED" && (
                             <DropdownMenuItem>
                               <Check className="h-4 w-4 mr-2" />
                               Tamamla
@@ -229,5 +243,5 @@ export function AppointmentsList({ appointments }: AppointmentsListProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

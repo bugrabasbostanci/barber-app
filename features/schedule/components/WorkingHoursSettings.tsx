@@ -17,13 +17,13 @@ interface WorkingHoursSettingsProps {
 }
 
 const dayLabels: Record<keyof WorkingHours, string> = {
-  monday: 'Pazartesi',
-  tuesday: 'Salı',
-  wednesday: 'Çarşamba',
-  thursday: 'Perşembe',
-  friday: 'Cuma',
-  saturday: 'Cumartesi',
-  sunday: 'Pazar',
+  monday: 'Monday',
+  tuesday: 'Tuesday',
+  wednesday: 'Wednesday',
+  thursday: 'Thursday',
+  friday: 'Friday',
+  saturday: 'Saturday',
+  sunday: 'Sunday',
 };
 
 export function WorkingHoursSettings({
@@ -45,7 +45,7 @@ export function WorkingHoursSettings({
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Çalışma Saatleri</CardTitle>
+          <CardTitle className="text-lg">Working Hours</CardTitle>
           <Button
             onClick={onSave}
             disabled={saving}
@@ -53,7 +53,7 @@ export function WorkingHoursSettings({
             className="gap-2"
           >
             <Save className="h-4 w-4" />
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </CardHeader>
@@ -75,7 +75,7 @@ export function WorkingHoursSettings({
                   onCheckedChange={(checked) => handleDayToggle(day, checked)}
                 />
                 <Label className="text-sm text-muted-foreground">
-                  {dayHours.isOpen ? 'Açık' : 'Kapalı'}
+                  {dayHours.isOpen ? 'Open' : 'Closed'}
                 </Label>
               </div>
               
@@ -83,7 +83,7 @@ export function WorkingHoursSettings({
                 <div className="flex items-center gap-2 ml-auto">
                   <div className="flex items-center gap-2">
                     <Label htmlFor={`${day}-start`} className="text-sm">
-                      Başlangıç:
+                      Start:
                     </Label>
                     <Input
                       id={`${day}-start`}
@@ -96,7 +96,7 @@ export function WorkingHoursSettings({
                   
                   <div className="flex items-center gap-2">
                     <Label htmlFor={`${day}-end`} className="text-sm">
-                      Bitiş:
+                      End:
                     </Label>
                     <Input
                       id={`${day}-end`}

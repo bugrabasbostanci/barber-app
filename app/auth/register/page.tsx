@@ -86,10 +86,10 @@ export default function RegisterPage() {
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Geri
+              Back
             </Button>
           </Link>
-          <h1 className="font-semibold text-lg">Kayıt Ol</h1>
+          <h1 className="font-semibold text-lg">Sign Up</h1>
           <div className="w-16"></div>
         </div>
       </header>
@@ -97,9 +97,9 @@ export default function RegisterPage() {
       <div className="px-4 py-8">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2">Hesap Oluştur</h2>
+          <h2 className="text-3xl font-bold mb-2">Create Account</h2>
           <p className="text-muted-foreground">
-            The Barber Shop&apos;a katılın ve ilk randevunuzu alın
+            Join The Barber Shop and book your first appointment
           </p>
         </div>
 
@@ -119,14 +119,14 @@ export default function RegisterPage() {
                     htmlFor="firstName"
                     className="text-sm font-medium text-muted-foreground"
                   >
-                    Ad
+                    First Name
                   </Label>
                   <div className="relative mt-1">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="firstName"
                       type="text"
-                      placeholder="Ahmet"
+                      placeholder="John"
                       {...register("firstName")}
                       className="pl-10 h-12"
                     />
@@ -143,14 +143,14 @@ export default function RegisterPage() {
                     htmlFor="lastName"
                     className="text-sm font-medium text-muted-foreground"
                   >
-                    Soyad
+                    Last Name
                   </Label>
                   <div className="relative mt-1">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="lastName"
                       type="text"
-                      placeholder="Yılmaz"
+                      placeholder="Doe"
                       {...register("lastName")}
                       className="pl-10 h-12"
                     />
@@ -168,14 +168,14 @@ export default function RegisterPage() {
                   htmlFor="email"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  E-posta Adresi
+                  Email Address
                 </Label>
                 <div className="relative mt-1">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="ornek@email.com"
+                    placeholder="example@email.com"
                     {...register("email")}
                     className="pl-10 h-12"
                   />
@@ -192,7 +192,7 @@ export default function RegisterPage() {
                   htmlFor="phone"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  Telefon Numarası
+                  Phone Number
                 </Label>
                 <div className="relative mt-1">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -216,14 +216,14 @@ export default function RegisterPage() {
                   htmlFor="password"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  Şifre
+                  Password
                 </Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Bir şifre oluşturun"
+                    placeholder="Create a password"
                     {...register("password")}
                     className="pl-10 pr-10 h-12"
                   />
@@ -251,14 +251,14 @@ export default function RegisterPage() {
                   htmlFor="confirmPassword"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  Şifre Onayla
+                  Confirm Password
                 </Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Şifrenizi onaylayın"
+                    placeholder="Confirm your password"
                     {...register("confirmPassword")}
                     className="pl-10 pr-10 h-12"
                   />
@@ -287,8 +287,8 @@ export default function RegisterPage() {
                 disabled={loading || isSubmitting}
               >
                 {loading || isSubmitting
-                  ? "Hesap oluşturuluyor..."
-                  : "Hesap Oluştur"}
+                  ? "Creating account..."
+                  : "Create Account"}
               </Button>
             </form>
           </CardContent>
@@ -300,7 +300,7 @@ export default function RegisterPage() {
             <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-background text-muted-foreground">veya</span>
+            <span className="px-4 bg-background text-muted-foreground">or</span>
           </div>
         </div>
 
@@ -331,19 +331,19 @@ export default function RegisterPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Google ile Devam Et
+            Continue with Google
           </Button>
         </div>
 
         {/* Sign In Link */}
         <div className="text-center">
           <p className="text-muted-foreground">
-            Zaten hesabınız var mı?{" "}
+            Already have an account?{" "}
             <Link
               href="/auth/login"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              Giriş yap
+              Sign in
             </Link>
           </p>
         </div>

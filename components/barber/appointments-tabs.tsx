@@ -43,13 +43,13 @@ export function AppointmentsTabs({ appointments, onDeleteAppointment }: Appointm
     <Tabs defaultValue="upcoming" className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-6 h-12 text-sm sm:text-base">
         <TabsTrigger value="upcoming">
-          Yaklaşan ({upcomingAppointments.length})
+          Upcoming ({upcomingAppointments.length})
         </TabsTrigger>
         <TabsTrigger value="completed">
-          Tamamlanan ({completedAppointments.length})
+          Completed ({completedAppointments.length})
         </TabsTrigger>
         <TabsTrigger value="cancelled">
-          İptal ({cancelledAppointments.length})
+          Cancelled ({cancelledAppointments.length})
         </TabsTrigger>
       </TabsList>
 

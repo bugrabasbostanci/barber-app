@@ -24,66 +24,66 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-// Berber hizmetleri
+// Barber services
 const services = [
   {
     id: 1,
-    name: "Saç Tıraşı",
-    description: "Profesyonel saç kesimi ve şekillendirme",
+    name: "Hair Cut",
+    description: "Professional hair cutting and styling",
     icon: Scissors,
   },
   {
     id: 2,
-    name: "Sakal Tıraşı",
-    description: "Profesyonel sakal kesimi ve düzenleme",
+    name: "Beard Trim",
+    description: "Professional beard cutting and grooming",
     icon: Award,
   },
   {
     id: 3,
-    name: "Çocuk Tıraşı",
-    description: "Çocuklar için özel tıraş hizmeti",
+    name: "Kids Cut",
+    description: "Special haircut service for children",
     icon: Star,
   },
   {
     id: 4,
-    name: "Ağda",
-    description: "Profesyonel ağda uygulaması",
+    name: "Waxing",
+    description: "Professional waxing service",
     icon: Zap,
   },
   {
     id: 5,
-    name: "Maske",
-    description: "Cilt bakım maskesi uygulaması",
+    name: "Face Mask",
+    description: "Skincare mask application",
     icon: Sparkles,
   },
   {
     id: 6,
-    name: "Yıkama/Fön",
-    description: "Saç yıkama ve fön çekme",
+    name: "Wash/Blow-dry",
+    description: "Hair washing and blow-drying",
     icon: Crown,
   },
   {
     id: 7,
-    name: "Saç Maskesi",
-    description: "Besleyici saç maskesi uygulaması",
+    name: "Hair Mask",
+    description: "Nourishing hair mask treatment",
     icon: Sparkles,
   },
   {
     id: 8,
-    name: "Kaş Düzenleme",
-    description: "İp/Ağda/Cımbız ile kaş düzenleme",
+    name: "Eyebrow Shaping",
+    description: "Threading/Wax/Tweezer eyebrow shaping",
     icon: Star,
   },
   {
     id: 9,
-    name: "Tek Renk Saç Boyası",
-    description: "Profesyonel saç boyama hizmeti",
+    name: "Single Color Hair Dye",
+    description: "Professional hair coloring service",
     icon: Crown,
   },
   {
     id: 10,
-    name: "Damat Tıraşı",
-    description: "Özel gün için premium tıraş paketi",
+    name: "Groom Package",
+    description: "Premium grooming package for special occasions",
     icon: Award,
   },
 ];
@@ -115,9 +115,9 @@ export default function Home() {
       <div className="px-4 py-8 pb-8">
         {/* Hero */}
         <div className="text-center mb-12">
-          <BrandTitle className="mb-4">Randevunuzu Alın</BrandTitle>
+          <BrandTitle className="mb-4">Book Your Appointment</BrandTitle>
           <TypographyP className="text-muted-foreground mb-8 mt-0">
-            Deneyimli berberlerimizden profesyonel hizmet alın
+            Get professional service from our experienced barbers
           </TypographyP>
 
           {/* CTA Button */}
@@ -128,7 +128,7 @@ export default function Home() {
               disabled
               className="w-full h-16 text-xl font-semibold rounded-2xl opacity-60"
             >
-              <div className="animate-pulse">Yükleniyor...</div>
+              <div className="animate-pulse">Loading...</div>
             </Button>
           ) : isCustomer() ? (
             // Customer: Active appointment button
@@ -138,7 +138,7 @@ export default function Home() {
               asChild
             >
               <Link href="/book-appointment">
-                Randevu Al
+                Book Appointment
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Link>
             </Button>
@@ -150,7 +150,7 @@ export default function Home() {
               asChild
             >
               <Link href="/auth/login?redirect=/book-appointment">
-                Randevu Al
+                Book Appointment
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Link>
             </Button>
@@ -163,11 +163,11 @@ export default function Home() {
                 variant="secondary"
                 className="w-full h-16 text-xl font-semibold rounded-2xl"
               >
-                Randevu Al
+                Book Appointment
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Button>
               <p className="text-sm text-muted-foreground">
-                Berber paneline menüden erişebilirsiniz
+                You can access the barber panel from the menu
               </p>
             </div>
           ) : (
@@ -178,7 +178,7 @@ export default function Home() {
               asChild
             >
               <Link href="/auth/login?redirect=/book-appointment">
-                Randevu Al
+                Book Appointment
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Link>
             </Button>
@@ -189,7 +189,7 @@ export default function Home() {
         <div className="mb-8">
           <SectionTitle className="mb-6 text-center flex items-center justify-center">
             <CheckCircle className="w-5 h-5 mr-2 text-emerald-600 dark:text-emerald-400" />
-            Hizmetlerimiz
+            Our Services
           </SectionTitle>
           <ServicesList />
         </div>
@@ -198,14 +198,14 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="text-center p-6 bg-muted rounded-2xl">
             <Clock className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <p className="font-semibold">45 Dakika</p>
-            <p className="text-sm text-muted-foreground">Tam hizmet</p>
+            <p className="font-semibold">45 Minutes</p>
+            <p className="text-sm text-muted-foreground">Full service</p>
           </div>
           <div className="text-center p-6 bg-muted rounded-2xl">
             <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <p className="font-semibold">Önceden Rezervasyon</p>
+            <p className="font-semibold">Advanced Booking</p>
             <p className="text-sm text-muted-foreground">
-              7 gün öncesine kadar
+              Up to 7 days in advance
             </p>
           </div>
         </div>
@@ -213,15 +213,15 @@ export default function Home() {
         {/* Hours */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <ServiceTitle className="mb-4">Çalışma Saatleri</ServiceTitle>
+            <ServiceTitle className="mb-4">Working Hours</ServiceTitle>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span>Pazartesi - Cumartesi</span>
+                <span>Monday - Saturday</span>
                 <span className="font-medium">09:30 - 21:30</span>
               </div>
               <div className="flex justify-between">
-                <span>Pazar</span>
-                <span className="text-destructive font-medium">Kapalı</span>
+                <span>Sunday</span>
+                <span className="text-destructive font-medium">Closed</span>
               </div>
             </div>
           </CardContent>
@@ -236,7 +236,7 @@ export default function Home() {
             disabled
             className="w-full h-16 text-xl font-semibold rounded-2xl opacity-60"
           >
-            <div className="animate-pulse">Yükleniyor...</div>
+            <div className="animate-pulse">Loading...</div>
           </Button>
         ) : isCustomer() ? (
           // Customer: Active appointment button
@@ -246,7 +246,7 @@ export default function Home() {
             asChild
           >
             <Link href="/book-appointment">
-              Randevunuzu Alın
+              Book Your Appointment
               <ArrowRight className="w-6 h-6 ml-2" />
             </Link>
           </Button>
@@ -258,7 +258,7 @@ export default function Home() {
             asChild
           >
             <Link href="/auth/login?redirect=/book-appointment">
-              Randevunuzu Alın
+              Book Your Appointment
               <ArrowRight className="w-6 h-6 ml-2" />
             </Link>
           </Button>
@@ -271,11 +271,11 @@ export default function Home() {
               variant="secondary"
               className="w-full h-16 text-xl font-semibold rounded-2xl"
             >
-              Randevunuzu Alın
+              Book Your Appointment
               <ArrowRight className="w-6 h-6 ml-2" />
             </Button>
             <p className="text-sm text-muted-foreground text-center">
-              Berber paneline menüden erişebilirsiniz
+              You can access the barber panel from the menu
             </p>
           </div>
         ) : (
@@ -286,7 +286,7 @@ export default function Home() {
             asChild
           >
             <Link href="/auth/login?redirect=/book-appointment">
-              Randevunuzu Alın
+              Book Your Appointment
               <ArrowRight className="w-6 h-6 ml-2" />
             </Link>
           </Button>

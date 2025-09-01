@@ -1,72 +1,82 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { AlertTriangle, RefreshCw, Home, Calendar, BarChart3 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useEffect } from "react";
+import {
+  AlertTriangle,
+  RefreshCw,
+  Home,
+  Calendar,
+  BarChart3,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function BarberDashboardError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Log barber dashboard errors
-    console.error('Barber Dashboard Error:', error)
-    
+    console.error("Barber Dashboard Error:", error);
+
     // Track barber dashboard errors for analytics
     // This helps identify common issues barbers face
-  }, [error])
+  }, [error]);
 
   // Common barber dashboard error scenarios
   const getErrorMessage = () => {
-    if (error.message.includes('appointment')) {
+    if (error.message.includes("appointment")) {
       return {
-        title: 'Randevu Verilerinde Sorun',
-        description: 'Randevu bilgileri yüklenirken bir hata oluştu. Panel verileriniz güncel olmayabilir.',
+        title: "Appointment Data Error",
+        description:
+          "An error occurred while loading appointment information. Your dashboard data may not be up to date.",
         suggestions: [
-          'Randevu verilerinin senkronize olmasını bekleyin',
-          'İnternet bağlantınızı kontrol edin',
-          'Sayfayı yenilemeyi deneyin'
-        ]
-      }
-    } else if (error.message.includes('statistics') || error.message.includes('dashboard')) {
+          "Wait for appointment data to synchronize",
+          "Check your internet connection",
+          "Try refreshing the page",
+        ],
+      };
+    } else if (
+      error.message.includes("statistics") ||
+      error.message.includes("dashboard")
+    ) {
       return {
-        title: 'Dashboard İstatistiklerinde Sorun',
-        description: 'İstatistik ve özet bilgiler yüklenirken bir hata oluştu.',
+        title: "Dashboard Statistics Error",
+        description: "An error occurred while loading statistics and summary information.",
         suggestions: [
-          'Veri senkronizasyonunun tamamlanmasını bekleyin',
-          'Tarayıcı önbelleğini temizlemeyi deneyin',
-          'Sayfayı yenilemeyi deneyin'
-        ]
-      }
-    } else if (error.message.includes('calendar')) {
+          "Wait for data synchronization to complete",
+          "Try clearing your browser cache",
+          "Try refreshing the page",
+        ],
+      };
+    } else if (error.message.includes("calendar")) {
       return {
-        title: 'Takvim Verilerinde Sorun',
-        description: 'Takvim ve program bilgileri yüklenirken bir hata oluştu.',
+        title: "Calendar Data Error",
+        description: "An error occurred while loading calendar and schedule information.",
         suggestions: [
-          'Takvim senkronizasyonunu kontrol edin',
-          'Program ayarlarınızı gözden geçirin',
-          'Sayfayı yenilemeyi deneyin'
-        ]
-      }
+          "Check calendar synchronization",
+          "Review your schedule settings",
+          "Try refreshing the page",
+        ],
+      };
     } else {
       return {
-        title: 'Dashboard Yükleme Sorunu',
-        description: 'Berber paneli yüklenirken beklenmeyen bir hata oluştu.',
+        title: "Dashboard Loading Error",
+        description: "An unexpected error occurred while loading the barber dashboard.",
         suggestions: [
-          'Sayfayı yenilemeyi deneyin',
-          'İnternet bağlantınızı kontrol edin',
-          'Tarayıcınızı yeniden başlatmayı deneyin'
-        ]
-      }
+          "Try refreshing the page",
+          "Check your internet connection",
+          "Try restarting your browser",
+        ],
+      };
     }
-  }
+  };
 
-  const errorInfo = getErrorMessage()
+  const errorInfo = getErrorMessage();
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -78,16 +88,14 @@ export default function BarberDashboardError({
           <CardTitle className="text-xl font-semibold text-gray-900">
             {errorInfo.title}
           </CardTitle>
-          <p className="text-gray-600 text-sm">
-            {errorInfo.description}
-          </p>
+          <p className="text-gray-600 text-sm">{errorInfo.description}</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Error suggestions */}
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -98,7 +106,7 @@ export default function BarberDashboardError({
           </Alert>
 
           {/* Development error details */}
-          {process.env.NODE_ENV === 'development' && (
+          {process.env.NODE_ENV === "development" && (
             <div className="bg-red-50 p-3 rounded-lg">
               <p className="text-xs text-red-800 font-mono break-all">
                 {error.message}
@@ -113,52 +121,48 @@ export default function BarberDashboardError({
 
           {/* Action buttons */}
           <div className="flex flex-col space-y-2">
-            <Button 
-              onClick={reset} 
-              className="w-full"
-              variant="default"
-            >
+            <Button onClick={reset} className="w-full" variant="default">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Paneli Yenile
+              Refresh Dashboard
             </Button>
-            
+
             <div className="grid grid-cols-3 gap-2">
-              <Button 
-                onClick={() => window.location.href = '/barber/dashboard'} 
+              <Button
+                onClick={() => (window.location.href = "/barber/dashboard")}
                 variant="outline"
                 size="sm"
               >
                 <BarChart3 className="w-4 h-4 mr-1" />
-                Panel
+                Dashboard
               </Button>
-              
-              <Button 
-                onClick={() => window.location.href = '/barber/appointments'} 
+
+              <Button
+                onClick={() => (window.location.href = "/barber/appointments")}
                 variant="outline"
                 size="sm"
               >
                 <Calendar className="w-4 h-4 mr-1" />
-                Randevular
+                Appointments
               </Button>
-              
-              <Button 
-                onClick={() => window.location.href = '/'} 
+
+              <Button
+                onClick={() => (window.location.href = "/")}
                 variant="outline"
                 size="sm"
               >
                 <Home className="w-4 h-4 mr-1" />
-                Ana Sayfa
+                Home Page
               </Button>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-xs text-gray-400">
-              Sorun devam ederse teknik destek ile iletişime geçebilirsiniz.
+              If the problem persists, please contact technical support.
             </p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Clock, Calendar, User, MessageSquare } from "lucide-react";
-import { formatTurkishDate } from "@/lib/utils";
+import { formatEnglishDate } from "@/lib/utils";
 import { TimeBlock } from "../types";
 
 interface TimeBlocksListProps {
@@ -20,36 +20,40 @@ export function TimeBlocksList({
   loading = false,
   onDeleteTimeBlock,
   getStaffName,
-  className = ""
+  className = "",
 }: TimeBlocksListProps) {
   const formatDate = (dateString: string) => {
     try {
-      return formatTurkishDate(dateString);
+      return formatEnglishDate(dateString);
     } catch {
       return dateString;
     }
   };
 
-  const formatTimeRange = (startTime?: string | null, endTime?: string | null, isFullDay?: boolean) => {
+  const formatTimeRange = (
+    startTime?: string | null,
+    endTime?: string | null,
+    isFullDay?: boolean
+  ) => {
     if (isFullDay) {
-      return "Tüm Gün";
+      return "Full Day";
     }
     if (startTime && endTime) {
       return `${startTime} - ${endTime}`;
     }
-    return "Zaman belirtilmemiş";
+    return "Time not specified";
   };
 
   if (loading) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle className="text-lg">Bloke Zamanlar</CardTitle>
+          <CardTitle className="text-lg">Blocked Times</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-            <span className="ml-2 text-muted-foreground">Yükleniyor...</span>
+            <span className="ml-2 text-muted-foreground">Loading...</span>
           </div>
         </CardContent>
       </Card>
@@ -60,18 +64,16 @@ export function TimeBlocksList({
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Bloke Zamanlar</CardTitle>
-          <Badge variant="secondary">
-            {blockedTimes.length} blok
-          </Badge>
+          <CardTitle className="text-lg">Blocked Times</CardTitle>
+          <Badge variant="secondary">{blockedTimes.length} blocks</Badge>
         </div>
       </CardHeader>
       <CardContent>
         {blockedTimes.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium">Bloke zaman yok</p>
-            <p className="text-sm">Henüz hiç zaman bloğu oluşturulmamış</p>
+            <p className="text-lg font-medium">No blocked times</p>
+            <p className="text-sm">No time blocks have been created yet</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -92,7 +94,11 @@ export function TimeBlocksList({
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {formatTimeRange(block.startTime, block.endTime, block.isFullDay)}
+                        {formatTimeRange(
+                          block.startTime,
+                          block.endTime,
+                          block.isFullDay
+                        )}
                       </span>
                     </div>
                   </div>
@@ -118,7 +124,7 @@ export function TimeBlocksList({
                   {/* Full Day Badge */}
                   {block.isFullDay && (
                     <Badge variant="outline" className="w-fit">
-                      Tüm Gün Blok
+                      Full Day Block
                     </Badge>
                   )}
                 </div>

@@ -31,7 +31,7 @@ export function AppointmentsStats({ appointments }: AppointmentsStatsProps) {
           <div className="text-2xl font-bold text-blue-600">
             {upcomingCount}
           </div>
-          <div className="text-sm text-muted-foreground">Yaklaşan</div>
+          <div className="text-sm text-muted-foreground">Upcoming</div>
         </CardContent>
       </Card>
       <Card>
@@ -39,7 +39,7 @@ export function AppointmentsStats({ appointments }: AppointmentsStatsProps) {
           <div className="text-2xl font-bold text-green-600">
             {completedCount}
           </div>
-          <div className="text-sm text-muted-foreground">Tamamlanan</div>
+          <div className="text-sm text-muted-foreground">Completed</div>
         </CardContent>
       </Card>
       <Card>
@@ -47,7 +47,7 @@ export function AppointmentsStats({ appointments }: AppointmentsStatsProps) {
           <div className="text-2xl font-bold text-red-600">
             {cancelledCount}
           </div>
-          <div className="text-sm text-muted-foreground">İptal</div>
+          <div className="text-sm text-muted-foreground">Cancelled</div>
         </CardContent>
       </Card>
       <Card>
@@ -55,7 +55,7 @@ export function AppointmentsStats({ appointments }: AppointmentsStatsProps) {
           <div className="text-2xl font-bold">
             {totalCount}
           </div>
-          <div className="text-sm text-muted-foreground">Toplam</div>
+          <div className="text-sm text-muted-foreground">Total</div>
         </CardContent>
       </Card>
     </div>

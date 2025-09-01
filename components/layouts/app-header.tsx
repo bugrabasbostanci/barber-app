@@ -27,7 +27,7 @@ interface AppHeaderProps {
 export function AppHeader({
   title,
   showBackButton = false,
-  backButtonText = "Geri",
+  backButtonText = "Back",
   backButtonHref = "/",
   extraActions,
   currentPage = "home",
@@ -151,7 +151,7 @@ export function AppHeader({
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
                       <User className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">Profil</span>
+                      <span className="text-sm font-medium">Profile</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -161,7 +161,7 @@ export function AppHeader({
                   <DropdownMenuItem asChild>
                     <Link href="/my-appointments">
                       <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">Randevularım</span>
+                      <span className="text-sm font-medium">My Appointments</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -172,7 +172,7 @@ export function AppHeader({
                   <DropdownMenuItem asChild>
                     <Link href="/">
                       <Calendar className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">Ana Sayfa</span>
+                      <span className="text-sm font-medium">Home</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -182,7 +182,7 @@ export function AppHeader({
                   <DropdownMenuItem asChild>
                     <Link href="/barber/dashboard">
                       <Settings className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm font-medium">Berber Paneli</span>
+                      <span className="text-sm font-medium">Barber Panel</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -196,7 +196,7 @@ export function AppHeader({
                   onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
-                  <span className="text-sm font-medium">Çıkış Yap</span>
+                  <span className="text-sm font-medium">Sign Out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -209,12 +209,12 @@ export function AppHeader({
                   size="sm"
                   className="text-xs md:text-sm h-10"
                 >
-                  Giriş
+                  Login
                 </Button>
               </Link>
               <Link href="/auth/register">
                 <Button size="sm" className="text-xs md:text-sm h-10">
-                  Kayıt Ol
+                  Register
                 </Button>
               </Link>
             </div>

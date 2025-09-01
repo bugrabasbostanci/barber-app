@@ -76,13 +76,13 @@ export default function ProfilePage() {
   const handleDeleteAccount = async () => {
     if (
       !confirm(
-        "Hesabınızı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm verileriniz kalıcı olarak silinecektir."
+        "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted."
       )
     ) {
       return;
     }
 
-    if (!confirm("Son onay: Hesabınızı gerçekten silmek istiyor musunuz?")) {
+    if (!confirm("Final confirmation: Do you really want to delete your account?")) {
       return;
     }
 
@@ -105,9 +105,9 @@ export default function ProfilePage() {
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
             <p className="text-red-600">{errorMessage}</p>
-            <Button onClick={() => fetchProfile(true)}>Tekrar Dene</Button>
+            <Button onClick={() => fetchProfile(true)}>Try Again</Button>
             <Button asChild variant="outline">
-              <Link href="/">Ana Sayfaya Dön</Link>
+              <Link href="/">Back to Home</Link>
             </Button>
           </div>
         </div>
@@ -120,9 +120,9 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-background">
         <div className="px-4 py-8">
           <div className="text-center space-y-4">
-            <p className="text-red-600">Profil yüklenemedi.</p>
+            <p className="text-red-600">Profile could not be loaded.</p>
             <Button asChild>
-              <Link href="/">Ana Sayfaya Dön</Link>
+              <Link href="/">Back to Home</Link>
             </Button>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function ProfilePage() {
               variant="outline"
               className="flex-1 h-12 text-base bg-transparent"
             >
-              İptal
+              Cancel
             </Button>
             <Button
               onClick={handleSave}
@@ -216,7 +216,7 @@ export default function ProfilePage() {
               disabled={isSaving || !isFormValid() || !hasFormChanges()}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>
@@ -226,13 +226,13 @@ export default function ProfilePage() {
       {user?.isEmailUser && (
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-lg">Güvenlik</CardTitle>
+            <CardTitle className="text-lg">Security</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Link href="/auth/reset-password">
               <Button variant="outline" className="w-full bg-transparent">
                 <Key className="w-4 h-4 mr-2" />
-                Şifre Değiştir
+                Change Password
               </Button>
             </Link>
           </CardContent>
@@ -250,7 +250,7 @@ export default function ProfilePage() {
               disabled={isDeleting}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              {isDeleting ? "Siliniyor..." : "Hesabı Sil"}
+              {isDeleting ? "Deleting..." : "Delete Account"}
             </Button>
           </div>
         </CardContent>
@@ -275,12 +275,11 @@ function ProfileHeader({
       <h2 className="text-2xl font-bold">{getUserDisplayName()}</h2>
       {profile?.createdAt && (
         <p className="text-muted-foreground">
-          {new Date(profile.createdAt).toLocaleDateString("tr-TR", {
+          Member since {new Date(profile.createdAt).toLocaleDateString("en-US", {
             day: "numeric",
             month: "long",
             year: "numeric",
-          })}{" "}
-          tarihinden beri üye
+          })}
         </p>
       )}
     </div>
@@ -314,7 +313,7 @@ function PersonalInformationCard({
   return (
     <Card className="mb-6">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg">Kişisel Bilgiler</CardTitle>
+        <CardTitle className="text-lg">Personal Information</CardTitle>
         <Button
           variant="ghost"
           size="sm"
@@ -324,12 +323,12 @@ function PersonalInformationCard({
           {isEditing ? (
             <>
               <X className="w-4 h-4" />
-              <span className="text-sm">İptal</span>
+              <span className="text-sm">Cancel</span>
             </>
           ) : (
             <>
               <Edit className="w-4 h-4" />
-              <span className="text-sm">Düzenle</span>
+              <span className="text-sm">Edit</span>
             </>
           )}
         </Button>
@@ -343,7 +342,7 @@ function PersonalInformationCard({
                 <Input
                   value={editForm.firstName}
                   onChange={(e) => updateEditForm("firstName", e.target.value)}
-                  placeholder="Adınız"
+                  placeholder="Your first name"
                   className={`mt-1 ${
                     firstNameError
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500"
@@ -360,7 +359,7 @@ function PersonalInformationCard({
             ) : (
               <div className="flex items-center mt-2">
                 <User className="w-4 h-4 mr-3 text-muted-foreground" />
-                <span>{profile.firstName || "Belirtilmemiş"}</span>
+                <span>{profile.firstName || "Not specified"}</span>
               </div>
             )}
           </div>
@@ -372,7 +371,7 @@ function PersonalInformationCard({
                 <Input
                   value={editForm.lastName}
                   onChange={(e) => updateEditForm("lastName", e.target.value)}
-                  placeholder="Soyadınız"
+                  placeholder="Your last name"
                   className={`mt-1 ${
                     lastNameError
                       ? "border-red-500 focus:border-red-500 focus:ring-red-500"
@@ -389,7 +388,7 @@ function PersonalInformationCard({
             ) : (
               <div className="flex items-center mt-2">
                 <User className="w-4 h-4 mr-3 text-muted-foreground" />
-                <span>{profile.lastName || "Belirtilmemiş"}</span>
+                <span>{profile.lastName || "Not specified"}</span>
               </div>
             )}
           </div>
@@ -397,7 +396,7 @@ function PersonalInformationCard({
 
         <div>
           <Label className="text-sm font-medium text-muted-foreground">
-            Telefon Numarası
+            Phone Number
           </Label>
           {isEditing ? (
             <>
@@ -421,14 +420,14 @@ function PersonalInformationCard({
           ) : (
             <div className="flex items-center mt-2">
               <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
-              <span>{profile.phone || "Belirtilmemiş"}</span>
+              <span>{profile.phone || "Not specified"}</span>
             </div>
           )}
         </div>
 
         <div>
           <Label className="text-sm font-medium text-muted-foreground">
-            E-posta Adresi
+            Email Address
           </Label>
           {isEditing && user?.isEmailUser ? (
             <Input
@@ -445,7 +444,7 @@ function PersonalInformationCard({
           )}
           {user?.isGoogleUser && (
             <p className="text-xs text-muted-foreground mt-1">
-              Google hesabınızdan gelen e-posta (değiştirilemez)
+              Email from your Google account (cannot be changed)
             </p>
           )}
         </div>

@@ -34,13 +34,13 @@ export default function BarberCalendarError({
       error.message.includes("availability")
     ) {
       return {
-        title: "Program Bilgileri Yüklenemedi",
+        title: "Schedule Information Failed to Load",
         description:
-          "Çalışma programınız ve müsaitlik bilgileri yüklenirken bir hata oluştu.",
+          "An error occurred while loading your work schedule and availability information.",
         suggestions: [
-          "Program ayarlarınızı kontrol edin",
-          "Müsaitlik verilerinin senkronize olmasını bekleyin",
-          "Sayfayı yenilemeyi deneyin",
+          "Check your schedule settings",
+          "Wait for availability data to synchronize",
+          "Try refreshing the page",
         ],
       };
     } else if (
@@ -48,13 +48,13 @@ export default function BarberCalendarError({
       error.message.includes("slot")
     ) {
       return {
-        title: "Zaman Dilimi Sorunu",
+        title: "Time Slot Error",
         description:
-          "Zaman dilimları ve saatlik programlar yüklenirken bir hata oluştu.",
+          "An error occurred while loading time slots and hourly schedules.",
         suggestions: [
-          "Sistem saatinizi kontrol edin",
-          "Zaman dilimi ayarlarınızı gözden geçirin",
-          "Takvim verilerini yenilemeyi deneyin",
+          "Check your system time",
+          "Review your timezone settings",
+          "Try refreshing calendar data",
         ],
       };
     } else if (
@@ -62,13 +62,13 @@ export default function BarberCalendarError({
       error.message.includes("appointment")
     ) {
       return {
-        title: "Takvim Etkinlikleri Sorunu",
+        title: "Calendar Events Error",
         description:
-          "Randevular ve etkinlikler takvimde görüntülenirken bir hata oluştu.",
+          "An error occurred while displaying appointments and events in the calendar.",
         suggestions: [
-          "Randevu verilerinin yüklenmesini bekleyin",
-          "Takvim görünümünü değiştirip tekrar deneyin",
-          "Sayfayı yenilemeyi deneyin",
+          "Wait for appointment data to load",
+          "Change calendar view and try again",
+          "Try refreshing the page",
         ],
       };
     } else if (
@@ -76,22 +76,22 @@ export default function BarberCalendarError({
       error.message.includes("update")
     ) {
       return {
-        title: "Takvim Senkronizasyon Sorunu",
-        description: "Takvim verileri senkronize edilirken bir hata oluştu.",
+        title: "Calendar Synchronization Error",
+        description: "An error occurred while synchronizing calendar data.",
         suggestions: [
-          "İnternet bağlantınızı kontrol edin",
-          "Veri senkronizasyonunun tamamlanmasını bekleyin",
-          "Takvimi manuel olarak yenilemeyi deneyin",
+          "Check your internet connection",
+          "Wait for data synchronization to complete",
+          "Try manually refreshing the calendar",
         ],
       };
     } else {
       return {
-        title: "Takvim Yükleme Sorunu",
-        description: "Takvim sistemi yüklenirken beklenmeyen bir hata oluştu.",
+        title: "Calendar Loading Error",
+        description: "An unexpected error occurred while loading the calendar system.",
         suggestions: [
-          "Sayfayı yenilemeyi deneyin",
-          "Tarayıcı önbelleğini temizleyin",
-          "Farklı takvim görünümünü deneyebilirsiniz",
+          "Try refreshing the page",
+          "Clear your browser cache",
+          "Try a different calendar view",
         ],
       };
     }
@@ -116,7 +116,7 @@ export default function BarberCalendarError({
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -144,7 +144,7 @@ export default function BarberCalendarError({
           <div className="flex flex-col space-y-2">
             <Button onClick={reset} className="w-full" variant="default">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Takvimi Yenile
+              Refresh Calendar
             </Button>
 
             <div className="grid grid-cols-3 gap-2">
@@ -154,7 +154,7 @@ export default function BarberCalendarError({
                 size="sm"
               >
                 <BarChart3 className="w-4 h-4 mr-1" />
-                Panel
+                Dashboard
               </Button>
 
               <Button
@@ -163,7 +163,7 @@ export default function BarberCalendarError({
                 size="sm"
               >
                 <Clock className="w-4 h-4 mr-1" />
-                Program
+                Schedule
               </Button>
 
               <Button
@@ -172,15 +172,15 @@ export default function BarberCalendarError({
                 size="sm"
               >
                 <Calendar className="w-4 h-4 mr-1" />
-                Randevular
+                Appointments
               </Button>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-xs text-gray-400">
-              Takvim sorunları devam ederse randevuları listeden takip
-              edebilirsiniz.
+              If calendar issues persist, you can track appointments from the
+              appointments list.
             </p>
           </div>
         </CardContent>

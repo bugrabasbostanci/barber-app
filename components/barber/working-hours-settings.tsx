@@ -68,13 +68,13 @@ export function WorkingHoursSettings() {
   const [isSaving, setIsSaving] = useState(false);
 
   const dayNames = {
-    monday: "Pazartesi",
-    tuesday: "Salı",
-    wednesday: "Çarşamba",
-    thursday: "Perşembe",
-    friday: "Cuma",
-    saturday: "Cumartesi",
-    sunday: "Pazar",
+    monday: "Monday",
+    tuesday: "Tuesday",
+    wednesday: "Wednesday",
+    thursday: "Thursday",
+    friday: "Friday",
+    saturday: "Saturday",
+    sunday: "Sunday",
   };
 
   const updateDaySchedule = (
@@ -97,9 +97,9 @@ export function WorkingHoursSettings() {
     try {
       // Mock API call - in real app, save to database
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      alert("Çalışma saatleri güncellendi!");
+      alert("Working hours updated!");
     } catch {
-      alert("Ayarlar kaydedilirken bir hata oluştu.");
+      alert("An error occurred while saving settings.");
     } finally {
       setIsSaving(false);
     }
@@ -152,21 +152,21 @@ export function WorkingHoursSettings() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-gray-600">Randevu Süresi:</span>
+              <span className="text-gray-600">Appointment Duration:</span>
               <span className="ml-2 font-medium">
-                {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
+                {BUSINESS_RULES.APPOINTMENT_DURATION} minutes
               </span>
             </div>
             <div>
-              <span className="text-gray-600">Rezervasyon Süresi:</span>
+              <span className="text-gray-600">Booking Window:</span>
               <span className="ml-2 font-medium">
-                {BUSINESS_RULES.BOOKING_WINDOW_DAYS} gün önceden
+                {BUSINESS_RULES.BOOKING_WINDOW_DAYS} days ahead
               </span>
             </div>
             <div>
-              <span className="text-gray-600">İptal Sınırı:</span>
+              <span className="text-gray-600">Cancellation Limit:</span>
               <span className="ml-2 font-medium">
-                {BUSINESS_RULES.CANCELLATION_HOURS} saat önce
+                {BUSINESS_RULES.CANCELLATION_HOURS} hours before
               </span>
             </div>
           </div>
@@ -203,14 +203,14 @@ export function WorkingHoursSettings() {
                           variant="outline"
                           className="text-green-600 border-green-600"
                         >
-                          Açık
+                          Open
                         </Badge>
                       ) : (
                         <Badge
                           variant="outline"
                           className="text-red-600 border-red-600"
                         >
-                          Kapalı
+                          Closed
                         </Badge>
                       )}
                     </div>
@@ -222,7 +222,7 @@ export function WorkingHoursSettings() {
                   <div className="sm:ml-28 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`${day}-start`} className="text-sm whitespace-nowrap w-16">
-                        Başlangıç:
+                        Start:
                       </Label>
                       <Input
                         id={`${day}-start`}
@@ -240,7 +240,7 @@ export function WorkingHoursSettings() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`${day}-end`} className="text-sm whitespace-nowrap w-16">
-                        Bitiş:
+                        End:
                       </Label>
                       <Input
                         id={`${day}-end`}
@@ -268,11 +268,11 @@ export function WorkingHoursSettings() {
       <div className="flex justify-end gap-4">
         <Button variant="outline" onClick={resetToDefault}>
           <RefreshCw className="h-4 w-4 mr-2" />
-          Varsayılana Dön
+          Reset to Default
         </Button>
         <Button onClick={handleSave} disabled={isSaving}>
           <Save className="h-4 w-4 mr-2" />
-          {isSaving ? "Kaydediliyor..." : "Kaydet"}
+          {isSaving ? "Saving..." : "Save"}
         </Button>
       </div>
     </div>

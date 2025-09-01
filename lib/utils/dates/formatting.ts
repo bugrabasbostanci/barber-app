@@ -160,6 +160,37 @@ export function canCancelAppointment(
 }
 
 /**
+ * English date format - Modern Intl.DateTimeFormat
+ * @param dateStr - Date string in "2025-07-31" format
+ */
+export function formatEnglishDate(dateStr: string): string {
+  // Create date in local timezone (prevents timezone offset issues)
+  const date = new Date(dateStr + 'T00:00:00');
+  
+  // Modern web standard with English formatting
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',   // "Wednesday"
+    year: 'numeric',   // "2025"  
+    month: 'long',     // "July"
+    day: 'numeric'     // "30"
+  }).format(date);
+}
+
+/**
+ * English date format (short version)
+ * @param dateStr - Date string in "2025-07-31" format
+ */
+export function formatEnglishDateShort(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00');
+  
+  return new Intl.DateTimeFormat('en-US', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).format(date);
+}
+
+/**
  * Türkçe tarih formatı (kısa versiyon)
  * @param dateStr - "2025-07-31" formatında tarih
  */

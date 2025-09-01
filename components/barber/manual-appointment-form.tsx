@@ -121,12 +121,12 @@ export function ManualAppointmentForm() {
 
     // Validation
     if (!selectedDate || !selectedTime || !selectedStaff) {
-      alert("Lütfen tarih, saat ve personel seçiniz.");
+      alert("Please select date, time, and staff.");
       return;
     }
 
     if (!formData.customerName.trim() || !formData.customerPhone.trim()) {
-      alert("Lütfen müşteri adı ve telefon numarasını giriniz.");
+      alert("Please enter customer name and phone number.");
       return;
     }
 
@@ -152,14 +152,14 @@ export function ManualAppointmentForm() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        alert("Randevu başarıyla oluşturuldu!");
+        alert("Appointment successfully created!");
         router.push("/barber/appointments");
       } else {
-        alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
+        alert(result.error || "An error occurred while creating the appointment.");
       }
     } catch (error) {
       console.error('Error creating appointment:', error);
-      alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+      alert("An error occurred while creating the appointment. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -184,13 +184,13 @@ export function ManualAppointmentForm() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5" />
-                Randevu Detayları
+                Appointment Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Date Selection */}
               <div className="space-y-2">
-                <Label>Tarih</Label>
+                <Label>Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -204,7 +204,7 @@ export function ManualAppointmentForm() {
                       {selectedDate ? (
                         formatTurkishDate(dateToLocalString(selectedDate))
                       ) : (
-                        <span>Tarih seçin</span>
+                        <span>Select date</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -222,10 +222,10 @@ export function ManualAppointmentForm() {
 
               {/* Staff Selection */}
               <div className="space-y-2">
-                <Label>Berber/Personel</Label>
+                <Label>Barber/Staff</Label>
                 <Select value={selectedStaff} onValueChange={setSelectedStaff}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Personel seçin" />
+                    <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent>
                     {staff.length > 0 ? (
@@ -236,7 +236,7 @@ export function ManualAppointmentForm() {
                       ))
                     ) : (
                       <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        Personel yükleniyor...
+                        Loading staff...
                       </div>
                     )}
                   </SelectContent>
@@ -251,7 +251,7 @@ export function ManualAppointmentForm() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Saat Seçimi
+                  Time Selection
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -273,7 +273,7 @@ export function ManualAppointmentForm() {
                 </div>
                 {timeSlots.length === 0 && (
                   <p className="text-center text-muted-foreground py-4">
-                    Uygun saat bulunmuyor
+                    No available time slots
                   </p>
                 )}
               </CardContent>
@@ -287,12 +287,12 @@ export function ManualAppointmentForm() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Müşteri Bilgileri
+                Customer Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="customerName">Müşteri Adı *</Label>
+                <Label htmlFor="customerName">Customer Name *</Label>
                 <Input
                   id="customerName"
                   value={formData.customerName}
@@ -302,13 +302,13 @@ export function ManualAppointmentForm() {
                       customerName: e.target.value,
                     }))
                   }
-                  placeholder="Müşteri adını girin"
+                  placeholder="Enter customer name"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="customerPhone">Telefon Numarası *</Label>
+                <Label htmlFor="customerPhone">Phone Number *</Label>
                 <Input
                   id="customerPhone"
                   type="tel"
@@ -325,14 +325,14 @@ export function ManualAppointmentForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notlar (İsteğe bağlı)</Label>
+                <Label htmlFor="notes">Notes (Optional)</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, notes: e.target.value }))
                   }
-                  placeholder="Randevu ile ilgili notlar..."
+                  placeholder="Notes about the appointment..."
                   rows={3}
                 />
               </div>
@@ -343,17 +343,17 @@ export function ManualAppointmentForm() {
           {selectedDate && selectedTime && selectedStaff && formData.customerName && (
             <Card>
               <CardHeader>
-                <CardTitle>Randevu Özeti</CardTitle>
+                <CardTitle>Appointment Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tarih:</span>
+                  <span className="text-muted-foreground">Date:</span>
                   <span className="font-medium">
                     {formatTurkishDate(dateToLocalString(selectedDate))}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Saat:</span>
+                  <span className="text-muted-foreground">Time:</span>
                   <span className="font-medium">
                     {selectedTime} -{" "}
                     {(() => {
@@ -364,20 +364,20 @@ export function ManualAppointmentForm() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Berber:</span>
+                  <span className="text-muted-foreground">Barber:</span>
                   <span className="font-medium">
                     {staff.find((s) => s.id === selectedStaff)?.firstName}{" "}
                     {staff.find((s) => s.id === selectedStaff)?.lastName}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Müşteri:</span>
+                  <span className="text-muted-foreground">Customer:</span>
                   <span className="font-medium">{formData.customerName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Süre:</span>
+                  <span className="text-muted-foreground">Duration:</span>
                   <span className="font-medium">
-                    {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
+                    {BUSINESS_RULES.APPOINTMENT_DURATION} minutes
                   </span>
                 </div>
               </CardContent>
@@ -389,11 +389,11 @@ export function ManualAppointmentForm() {
       {/* Submit Button */}
       <div className="flex justify-end gap-4">
         <Button type="button" variant="outline" onClick={() => router.back()}>
-          İptal
+          Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? "Oluşturuluyor..." : "Randevu Oluştur"}
+          {isSubmitting ? "Creating..." : "Create Appointment"}
         </Button>
       </div>
     </form>

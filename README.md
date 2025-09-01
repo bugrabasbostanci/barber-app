@@ -1,70 +1,77 @@
-# Berber Randevu Sistemi 💈
+# Barber Appointment System 💈
 
-Türk berberleri için tasarlanmış modern randevu yönetim sistemi. Müşteriler online randevu alabilir, berberler tüm randevularını kolayca yönetebilir.
+Modern appointment management system designed for barbers. Customers can book appointments online, and barbers can easily manage all their appointments.
 
-## 🚀 Özellikler
+## 🚀 Features
 
-### Müşteri Paneli
-- **Online Randevu Alma**: Uygun saatleri görüntüle ve randevu al
-- **Randevu Yönetimi**: Randevularını görüntüle ve iptal et
-- **Profil Yönetimi**: Kişisel bilgileri güncelle
+### Customer Panel
 
-### Berber Paneli
-- **Randevu Takvimi**: Tüm randevuları tek ekranda görüntüle
-- **Manuel Randevu**: Telefonla gelen randevuları sisteme ekle
-- **Zaman Blokları**: Müsait olmadığın saatleri blokla
-- **Müşteri Yönetimi**: Müşteri bilgilerini görüntüle
+- **Online Booking**: View available time slots and book appointments
+- **Appointment Management**: View and cancel appointments
+- **Profile Management**: Update personal information
 
-## 🛠️ Teknoloji Stack
+### Barber Panel
+
+- **Appointment Calendar**: View all appointments on a single screen
+- **Manual Appointments**: Add phone bookings to the system
+- **Time Blocks**: Block unavailable time slots
+- **Customer Management**: View customer information
+
+## 🛠️ Technology Stack
 
 - **Framework**: Next.js 15.4.4 (App Router)
-- **Dil**: TypeScript
-- **Veritabanı**: PostgreSQL + Prisma ORM
-- **Kimlik Doğrulama**: Supabase Auth
+- **Language**: TypeScript
+- **Database**: PostgreSQL + Prisma ORM
+- **Authentication**: Supabase Auth
 - **Styling**: Tailwind CSS + shadcn/ui
-- **Doğrulama**: Zod
+- **Validation**: Zod
 
-## 📋 İş Kuralları
+## 📋 Business Rules
 
-- **Çalışma Saatleri**: 09:30 - 21:30 (Pazartesi-Cumartesi)
-- **Randevu Süresi**: 45 dakika
-- **Kapalı Günler**: Pazar günleri
-- **Rezervasyon**: 7 gün önceden randevu alınabilir
-- **İptal**: Randevudan 2 saat öncesine kadar iptal edilebilir
+- **Working Hours**: 09:30 - 21:30 (Monday-Saturday)
+- **Appointment Duration**: 45 minutes
+- **Closed Days**: Sundays
+- **Booking Window**: Appointments can be booked 7 days in advance
+- **Cancellation**: Appointments can be canceled up to 2 hours before
 
-## 🚦 Kurulum
+## 🚦 Installation
 
-1. **Proje klonlama**:
+1. **Clone the project**:
+
 ```bash
 git clone [repository-url]
 cd barber-app
 ```
 
-2. **Bağımlılıkları yükleme**:
+2. **Install dependencies**:
+
 ```bash
 npm install
 ```
 
-3. **Ortam değişkenlerini ayarlama**:
+3. **Set up environment variables**:
+
 ```bash
 cp .env.example .env
-# .env dosyasını düzenle
+# Edit the .env file
 ```
 
-4. **Veritabanını başlatma**:
+4. **Initialize the database**:
+
 ```bash
 npx prisma migrate dev
 npx prisma generate
 ```
 
-5. **Development server'ı çalıştırma**:
+5. **Start the development server**:
+
 ```bash
 npm run dev
 ```
 
-Tarayıcıda [http://localhost:3000](http://localhost:3000) adresini aç.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📁 Proje Yapısı
+## 📁 Project Structure
 
 ```
 ├── app/                    # Next.js App Router
@@ -88,10 +95,10 @@ Tarayıcıda [http://localhost:3000](http://localhost:3000) adresini aç.
 # Development server
 npm run dev
 
-# Lint kontrol
+# Lint check
 npm run lint
 
-# TypeScript kontrol
+# TypeScript check
 npx tsc --noEmit
 
 # Production build
@@ -101,51 +108,53 @@ npm run build
 npm start
 ```
 
-## 🔐 Güvenlik
+## 🔐 Security
 
-- Supabase Auth ile güvenli kimlik doğrulama
-- Row Level Security (RLS) politikaları
-- API route'ları için middleware koruması
-- CSRF koruma altyapısı (isteğe bağlı aktive edilebilir)
-- Rate limiting (Redis gerekli production'da)
-- CORS koruması
+- Secure authentication with Supabase Auth
+- Row Level Security (RLS) policies
+- Middleware protection for API routes
+- CSRF protection infrastructure (can be activated optionally)
+- Rate limiting (Redis required in production)
+- CORS protection
 
 ## 🚨 Production Deployment Checklist
 
-**⚠️ Production'a çıkmadan önce mutlaka yapılması gerekenler:**
+**⚠️ Essential tasks before production deployment:**
 
-### Kritik (Mutlaka Yapılmalı)
-- [ ] **CORS Origins Güncelle**: `lib/middleware/cors.ts` dosyasında production domain'lerini ekle
+### Critical (Must Do)
+
+- [ ] **Update CORS Origins**: Add production domains in `lib/middleware/cors.ts`
   ```typescript
-  // Şu satırları gerçek domain'lerinle değiştir:
-  // 'https://berber-randevu.com',
-  // 'https://www.berber-randevu.com'
+  // Replace these lines with your actual domains:
+  // 'https://barber-appointments.com',
+  // 'https://www.barber-appointments.com'
   ```
-- [ ] **Rate Limiting**: Redis implementasyonu ekle (şu anda in-memory)
-- [ ] **RLS Policies**: Supabase dashboard'da RLS politikalarının aktif olduğunu doğrula
-- [ ] **Environment Variables**: Production ortam değişkenlerini ayarla
+- [ ] **Rate Limiting**: Add Redis implementation (currently in-memory)
+- [ ] **RLS Policies**: Verify RLS policies are active in Supabase dashboard
+- [ ] **Environment Variables**: Set up production environment variables
   ```bash
   NEXT_PUBLIC_APP_URL=https://your-domain.com
   ```
 
-### Önemli
-- [ ] **CSP Headers**: `next.config.ts`'de Content Security Policy'yi production için sıkılaştır
-- [ ] **Database Backup**: Production veritabanı yedekleme stratejisi oluştur
+### Important
 
-## 📈 Durum
+- [ ] **CSP Headers**: Tighten Content Security Policy in `next.config.ts` for production
+- [ ] **Database Backup**: Create production database backup strategy
 
-**Durum**: MVP Geliştirme Aşaması
-**Dal**: `barber-ux-improvement`
+## 📈 Status
 
-## 🤝 Katkıda Bulunma
+**Status**: MVP Development Phase
+**Branch**: `barber-ux-improvement`
 
-Bu proje aktif geliştirme aşamasındadır. Katkıda bulunmak için:
+## 🤝 Contributing
 
-1. Fork yapın
-2. Feature branch oluşturun
-3. Değişikliklerinizi commit edin
-4. Pull request gönderin
+This project is in active development. To contribute:
 
-## 📄 Lisans
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Submit a pull request
 
-Bu proje özel lisans altındadır.
+## 📄 License
+
+This project is under private license.

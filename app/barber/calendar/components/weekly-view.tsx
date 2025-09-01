@@ -64,15 +64,15 @@ export function WeeklyView({
             className="bg-transparent px-3 sm:px-6 py-2 sm:py-3"
           >
             <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
-            <span className="ml-1 sm:ml-2 text-xs sm:text-base">Önceki</span>
+            <span className="ml-1 sm:ml-2 text-xs sm:text-base">Previous</span>
           </Button>
           <h2 className="text-lg sm:text-2xl font-bold text-center">
-            {getWeekDates(currentWeek)[0].toLocaleDateString("tr-TR", {
+            {getWeekDates(currentWeek)[0].toLocaleDateString("en-US", {
               day: "2-digit",
               month: "short",
             })}{" "}
             -{" "}
-            {getWeekDates(currentWeek)[6].toLocaleDateString("tr-TR", {
+            {getWeekDates(currentWeek)[6].toLocaleDateString("en-US", {
               day: "2-digit",
               month: "short",
               year: "numeric",
@@ -84,7 +84,7 @@ export function WeeklyView({
             onClick={() => navigateWeek("next")}
             className="bg-transparent px-3 sm:px-6 py-2 sm:py-3"
           >
-            <span className="mr-1 sm:mr-2 text-xs sm:text-base">Sonraki</span>
+            <span className="mr-1 sm:mr-2 text-xs sm:text-base">Next</span>
             <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
           </Button>
         </div>
@@ -101,17 +101,17 @@ export function WeeklyView({
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="font-semibold text-lg">
-                        {date.toLocaleDateString("tr-TR", { weekday: "long" })}
+                        {date.toLocaleDateString("en-US", { weekday: "long" })}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {date.toLocaleDateString("tr-TR", {
+                        {date.toLocaleDateString("en-US", {
                           day: "2-digit",
                           month: "long",
                         })}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium">{dayAppointments.length} randevu</div>
+                      <div className="text-sm font-medium">{dayAppointments.length} appointments</div>
                     </div>
                   </div>
 
@@ -121,7 +121,7 @@ export function WeeklyView({
                         const staffName = `${apt.staff.firstName || ""} ${apt.staff.lastName || ""}`.trim();
                         const customerName = apt.customer
                           ? `${apt.customer.firstName || ""} ${apt.customer.lastName || ""}`.trim()
-                          : apt.manualCustomerName || "Müşteri";
+                          : apt.manualCustomerName || "Customer";
                         const staffIndex = staff.findIndex((s) => 
                           `${s.firstName} ${s.lastName}`.trim() === staffName
                         );
@@ -137,13 +137,13 @@ export function WeeklyView({
                       })}
                       {dayAppointments.length > 3 && (
                         <div className="text-xs text-muted-foreground text-center">
-                          +{dayAppointments.length - 3} daha fazla
+                          +{dayAppointments.length - 3} more
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="text-sm text-muted-foreground text-center py-2">
-                      Randevu yok
+                      No appointments
                     </div>
                   )}
                 </div>
@@ -154,11 +154,11 @@ export function WeeklyView({
 
         {/* Desktop Week Grid */}
         <div className="hidden lg:grid lg:grid-cols-8 gap-2">
-          <div className="font-medium text-muted-foreground p-2">Saat</div>
+          <div className="font-medium text-muted-foreground p-2">Time</div>
           {getWeekDates(currentWeek).map((date, index) => (
             <div key={index} className="text-center p-2 font-medium">
               <div className="text-sm">
-                {date.toLocaleDateString("tr-TR", { weekday: "short" })}
+                {date.toLocaleDateString("en-US", { weekday: "short" })}
               </div>
               <div className="text-lg">{date.getDate()}</div>
             </div>
@@ -186,7 +186,7 @@ export function WeeklyView({
                       const colorClass = staffIndex === 0 ? "blue" : "green";
                       const customerName = appointment.customer
                         ? `${appointment.customer.firstName || ""} ${appointment.customer.lastName || ""}`.trim()
-                        : appointment.manualCustomerName || "Müşteri";
+                        : appointment.manualCustomerName || "Customer";
 
                       return (
                         <div className={`bg-${colorClass}-100 dark:bg-${colorClass}-900/20 rounded-md p-1 h-full`}>

@@ -59,10 +59,10 @@ export function useProfilePage() {
           email: data.data.email || ''
         });
       } else {
-        setError(data.error || 'Profil yüklenirken hata oluştu');
+        setError(data.error || 'Error loading profile');
       }
     } catch (err) {
-      setError('Profil yüklenirken hata oluştu');
+      setError('Error loading profile');
     } finally {
       setIsLoading(false);
     }
@@ -107,13 +107,13 @@ export function useProfilePage() {
       if (data.success) {
         setProfile(data.data);
         setIsEditing(false);
-        setSuccessMessage('Profil başarıyla güncellendi');
+        setSuccessMessage('Profile updated successfully');
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
-        setError(data.error || 'Profil güncellenirken hata oluştu');
+        setError(data.error || 'Error updating profile');
       }
     } catch (err) {
-      setError('Profil güncellenirken hata oluştu');
+      setError('Error updating profile');
     } finally {
       setIsSaving(false);
     }
@@ -136,7 +136,7 @@ export function useProfilePage() {
     if (profile?.firstName && profile?.lastName) {
       return `${profile.firstName} ${profile.lastName}`;
     }
-    return profile?.email?.split('@')[0] || 'Kullanıcı';
+    return profile?.email?.split('@')[0] || 'User';
   };
 
   const isFormValid = () => {

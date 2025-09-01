@@ -29,19 +29,19 @@ export function ClientLayout({ children }: ClientLayoutProps) {
         };
       case '/profile':
         return {
-          title: 'Profil',
+          title: 'Profile',
           showBackButton: true,
           currentPage: 'profile'
         };
       case '/my-appointments':
         return {
-          title: 'Randevularım',
+          title: 'My Appointments',
           showBackButton: true,
           currentPage: 'appointments'
         };
       case '/book-appointment':
         return {
-          title: 'Randevu Al',
+          title: 'Book Appointment',
           showBackButton: true,
           currentPage: 'book-appointment'
         };

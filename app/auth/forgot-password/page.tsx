@@ -80,10 +80,10 @@ export default function ForgotPasswordPage() {
             <Link href="/auth/login">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                Girişe Dön
+                Back to Login
               </Button>
             </Link>
-            <h1 className="font-semibold text-lg">Şifremi Unuttum</h1>
+            <h1 className="font-semibold text-lg">Forgot Password</h1>
             <div className="w-16"></div>
           </div>
         </header>
@@ -94,14 +94,14 @@ export default function ForgotPasswordPage() {
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">E-postanızı Kontrol Edin</h2>
+            <h2 className="text-2xl font-bold mb-2">Check Your Email</h2>
             <p className="text-muted-foreground mb-2">
-              Şifre sıfırlama bağlantısını gönderdiğimiz adres:
+              We&apos;ve sent a password reset link to:
             </p>
             <p className="font-medium text-gray-900 mb-6">{email}</p>
             <p className="text-sm text-muted-foreground">
-              E-postayı görmüyorsanız, spam klasörünüzü kontrol edin veya
-              farklı bir e-posta adresiyle tekrar deneyin.
+              If you don&apos;t see the email, check your spam folder or try
+              again with a different email address.
             </p>
           </div>
 
@@ -115,12 +115,12 @@ export default function ForgotPasswordPage() {
               variant="outline"
               className="w-full h-12 bg-transparent"
             >
-              Farklı E-posta Dene
+              Try Different Email
             </Button>
 
             <Link href="/auth/login">
               <Button className="w-full h-12 text-base font-semibold">
-                Girişe Dön
+                Back to Login
               </Button>
             </Link>
           </div>
@@ -128,14 +128,14 @@ export default function ForgotPasswordPage() {
           {/* Resend Link */}
           <div className="text-center mt-8">
             <p className="text-muted-foreground text-sm mb-2">
-              E-postayı almadınız mı?
+              Didn&apos;t receive the email?
             </p>
             <button
               onClick={handleResend}
               disabled={loading}
               className="text-blue-600 hover:text-blue-700 font-medium text-sm disabled:opacity-50"
             >
-              {loading ? "Tekrar gönderiliyor..." : "Sıfırlama bağlantısını tekrar gönder"}
+              {loading ? "Resending..." : "Resend reset link"}
             </button>
           </div>
         </div>
@@ -151,10 +151,10 @@ export default function ForgotPasswordPage() {
           <Link href="/auth/login">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Geri
+              Back
             </Button>
           </Link>
-          <h1 className="font-semibold text-lg">Şifre Sıfırla</h1>
+          <h1 className="font-semibold text-lg">Reset Password</h1>
           <div className="w-16"></div>
         </div>
       </header>
@@ -162,10 +162,10 @@ export default function ForgotPasswordPage() {
       <div className="px-4 py-8">
         {/* Logo/Brand */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-2">Şifremi Unuttunuz mu?</h2>
+          <h2 className="text-3xl font-bold mb-2">Forgot Your Password?</h2>
           <p className="text-muted-foreground">
-            E-posta adresinizi girin, size şifrenizi sıfırlamak için
-            bir bağlantı gönderelim.
+            Enter your email address and we&apos;ll send you a link to reset
+            your password.
           </p>
         </div>
 
@@ -184,14 +184,14 @@ export default function ForgotPasswordPage() {
                   htmlFor="email"
                   className="text-sm font-medium text-muted-foreground"
                 >
-                  E-posta Adresi
+                  Email Address
                 </Label>
                 <div className="relative mt-1">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="ornek@email.com"
+                    placeholder="example@email.com"
                     {...register("email")}
                     className="pl-10 h-12"
                   />
@@ -208,7 +208,7 @@ export default function ForgotPasswordPage() {
                 className="w-full h-12 text-base font-semibold"
                 disabled={loading || isSubmitting}
               >
-                {loading || isSubmitting ? "Gönderiliyor..." : "Sıfırlama Bağlantısı Gönder"}
+                {loading || isSubmitting ? "Sending..." : "Send Reset Link"}
               </Button>
             </form>
           </CardContent>
@@ -217,12 +217,12 @@ export default function ForgotPasswordPage() {
         {/* Girişe Dön */}
         <div className="text-center">
           <p className="text-muted-foreground">
-            Şifrenizi hatırladınız mı?{" "}
+            Remembered your password?{" "}
             <Link
               href="/auth/login"
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
-              Giriş yap
+              Sign in
             </Link>
           </p>
         </div>

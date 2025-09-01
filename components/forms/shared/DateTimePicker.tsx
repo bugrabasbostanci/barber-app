@@ -34,8 +34,8 @@ export const DateTimePicker = ({
   onDateChange,
   onTimeChange,
   error,
-  dateLabel = 'Tarih Seçin',
-  timeLabel = 'Saat Seçin',
+  dateLabel = 'Select Date',
+  timeLabel = 'Select Time',
   required = true,
   disabled = false,
   disabledDates,
@@ -127,7 +127,7 @@ export const DateTimePicker = ({
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDate ? formatTurkishDate(dateToLocalString(selectedDate)) : 'Tarih seçiniz'}
+              {selectedDate ? formatTurkishDate(dateToLocalString(selectedDate)) : 'Select date'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -165,14 +165,14 @@ export const DateTimePicker = ({
                 )}
               >
                 <Clock className="mr-2 h-4 w-4" />
-                {selectedTime || (availableTimeSlots.length === 0 ? 'Müsait saat yok' : 'Saat seçiniz')}
+                {selectedTime || (availableTimeSlots.length === 0 ? 'No available times' : 'Select time')}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0" align="start">
               <div className="p-4">
                 {availableTimeSlots.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    Bu tarih için müsait saat bulunmamaktadır.
+                    No available times for this date.
                   </p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
@@ -202,9 +202,9 @@ export const DateTimePicker = ({
       {/* Appointment Duration Info */}
       {selectedDate && selectedTime && (
         <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-md">
-          <p className="font-medium">Seçilen Randevu:</p>
+          <p className="font-medium">Selected Appointment:</p>
           <p>{formatTurkishDate(dateToLocalString(selectedDate))} - {selectedTime}</p>
-          <p className="text-xs mt-1">Randevu süresi: 45 dakika</p>
+          <p className="text-xs mt-1">Appointment duration: 45 minutes</p>
         </div>
       )}
     </div>

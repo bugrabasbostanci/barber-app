@@ -26,35 +26,35 @@ export default function MyAppointmentsError({
     
     if (message.includes('cancel') || message.includes('iptal')) {
       return {
-        title: 'Randevu İptali Hatası',
-        description: 'Randevunuz iptal edilirken bir hata oluştu.',
+        title: 'Appointment Cancellation Error',
+        description: 'An error occurred while cancelling your appointment.',
         icon: <Calendar className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Randevu iptal süresinin dolmadığından emin olun (2 saat öncesine kadar)',
-          'İnternet bağlantınızı kontrol edin',
-          'Sayfayı yenileyin ve tekrar deneyin'
+          'Make sure the appointment cancellation deadline has not passed (up to 2 hours before)',
+          'Check your internet connection',
+          'Refresh the page and try again'
         ]
       }
-    } else if (message.includes('load') || message.includes('fetch') || message.includes('yükle')) {
+    } else if (message.includes('load') || message.includes('fetch') || message.includes('loading')) {
       return {
-        title: 'Randevular Yüklenemiyor',
-        description: 'Randevularınız yüklenirken bir hata oluştu.',
+        title: 'Cannot Load Appointments',
+        description: 'An error occurred while loading your appointments.',
         icon: <AlertTriangle className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'İnternet bağlantınızını kontrol edin',
-          'Sayfayı yenileyin',
-          'Birkaç dakika bekleyip tekrar deneyin'
+          'Check your internet connection',
+          'Refresh the page',
+          'Wait a few minutes and try again'
         ]
       }
     } else {
       return {
-        title: 'Randevu Yönetiminde Sorun',
-        description: 'Randevularınızı görüntülerken beklenmeyen bir hata oluştu.',
+        title: 'Appointment Management Problem',
+        description: 'An unexpected error occurred while viewing your appointments.',
         icon: <AlertTriangle className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Sayfayı yenileyin',
-          'Oturumunuzu kapatıp tekrar açın',
-          'Tarayıcınızın önbelleğini temizleyin'
+          'Refresh the page',
+          'Log out and log back in',
+          'Clear your browser cache'
         ]
       }
     }
@@ -82,11 +82,11 @@ export default function MyAppointmentsError({
             <Calendar className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-2">
-                <p className="font-medium text-sm">Randevu kuralları:</p>
+                <p className="font-medium text-sm">Appointment rules:</p>
                 <div className="text-xs space-y-1">
-                  <div>• Randevular randevu saatinden 2 saat öncesine kadar iptal edilebilir</div>
-                  <div>• İptal edilen randevular &ldquo;Geçmiş&rdquo; sekmesinde görünür</div>
-                  <div>• Yeni randevu almak için &ldquo;Randevu Al&rdquo; butonunu kullanın</div>
+                  <div>• Appointments can be cancelled up to 2 hours before the appointment time</div>
+                  <div>• Cancelled appointments appear in the &ldquo;Past&rdquo; tab</div>
+                  <div>• Use the &ldquo;Book Appointment&rdquo; button to make new appointments</div>
                 </div>
               </div>
             </AlertDescription>
@@ -96,7 +96,7 @@ export default function MyAppointmentsError({
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -128,7 +128,7 @@ export default function MyAppointmentsError({
               variant="default"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Randevuları Yeniden Yükle
+              Reload Appointments
             </Button>
             
             <div className="grid grid-cols-2 gap-2">
@@ -138,7 +138,7 @@ export default function MyAppointmentsError({
                 size="sm"
               >
                 <Home className="w-4 h-4 mr-1" />
-                Ana Sayfa
+                Home
               </Button>
               
               <Button 
@@ -147,14 +147,14 @@ export default function MyAppointmentsError({
                 size="sm"
               >
                 <Plus className="w-4 h-4 mr-1" />
-                Yeni Randevu
+                New Appointment
               </Button>
             </div>
           </div>
 
           <div className="bg-green-50 p-3 rounded-lg">
             <p className="text-xs text-green-800 text-center">
-              <strong>Hatırlatma:</strong> Randevunuza 15 dakika erken gelmenizi rica ederiz
+              <strong>Reminder:</strong> Please arrive 15 minutes early for your appointment
             </p>
           </div>
         </CardContent>

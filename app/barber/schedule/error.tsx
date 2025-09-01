@@ -28,13 +28,13 @@ export default function BarberScheduleError({
       error.message.includes("hours")
     ) {
       return {
-        title: "Çalışma Saatleri Sorunu",
+        title: "Working Hours Issue",
         description:
-          "Çalışma saatleriniz ayarlanırken veya yüklenirken bir hata oluştu.",
+          "An error occurred while setting or loading your working hours.",
         suggestions: [
-          "Çalışma saatlerinin doğru formatta olduğunu kontrol edin",
-          "Başlangıç saatinin bitiş saatinden önce olduğundan emin olun",
-          "Sayfayı yenilemeyi deneyin",
+          "Check that working hours are in the correct format",
+          "Make sure start time is before end time",
+          "Try refreshing the page",
         ],
       };
     } else if (
@@ -42,13 +42,13 @@ export default function BarberScheduleError({
       error.message.includes("block")
     ) {
       return {
-        title: "Müsaitlik Ayarları Sorunu",
+        title: "Availability Settings Issue",
         description:
-          "Müsait olmadığınız zamanlar ayarlanırken bir hata oluştu.",
+          "An error occurred while setting your unavailable times.",
         suggestions: [
-          "Blok edilen zaman aralıklarını kontrol edin",
-          "Çakışan zaman dilimlerini gözden geçirin",
-          "Ayarları tekrar kaydetmeyi deneyin",
+          "Check blocked time ranges",
+          "Review overlapping time slots",
+          "Try saving settings again",
         ],
       };
     } else if (
@@ -56,12 +56,12 @@ export default function BarberScheduleError({
       error.message.includes("update")
     ) {
       return {
-        title: "Program Kaydetme Sorunu",
-        description: "Program değişiklikleri kaydedilirken bir hata oluştu.",
+        title: "Schedule Saving Issue",
+        description: "An error occurred while saving schedule changes.",
         suggestions: [
-          "Tüm gerekli alanların dolu olduğunu kontrol edin",
-          "İnternet bağlantınızı kontrol edin",
-          "Değişiklikleri tekrar kaydetmeyi deneyin",
+          "Check that all required fields are filled",
+          "Check your internet connection",
+          "Try saving changes again",
         ],
       };
     } else if (
@@ -69,23 +69,23 @@ export default function BarberScheduleError({
       error.message.includes("invalid")
     ) {
       return {
-        title: "Program Doğrulama Sorunu",
-        description: "Girilen program bilgileri doğrulanırken bir hata oluştu.",
+        title: "Schedule Validation Issue",
+        description: "An error occurred while validating the entered schedule information.",
         suggestions: [
-          "Saat formatlarının doğru olduğunu kontrol edin (ÖR: 09:00)",
-          "Bitiş saatinin başlangıç saatinden sonra olduğundan emin olun",
-          "Hafta içi/hafta sonu ayarlarını kontrol edin",
+          "Check that time formats are correct (e.g., 09:00)",
+          "Make sure end time is after start time",
+          "Check weekday/weekend settings",
         ],
       };
     } else {
       return {
-        title: "Program Ayarları Sorunu",
+        title: "Schedule Settings Issue",
         description:
-          "Çalışma programınız yüklenirken beklenmeyen bir hata oluştu.",
+          "An unexpected error occurred while loading your work schedule.",
         suggestions: [
-          "Sayfayı yenilemeyi deneyin",
-          "Tarayıcı önbelleğini temizleyin",
-          "Varsayılan program ayarlarını kontrol edin",
+          "Try refreshing the page",
+          "Clear browser cache",
+          "Check default schedule settings",
         ],
       };
     }
@@ -110,7 +110,7 @@ export default function BarberScheduleError({
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -138,7 +138,7 @@ export default function BarberScheduleError({
           <div className="flex flex-col space-y-2">
             <Button onClick={reset} className="w-full" variant="default">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Program Ayarlarını Yenile
+              Refresh Schedule Settings
             </Button>
 
             <div className="grid grid-cols-3 gap-2">
@@ -148,7 +148,7 @@ export default function BarberScheduleError({
                 size="sm"
               >
                 <Home className="w-4 h-4 mr-1" />
-                Panel
+                Dashboard
               </Button>
 
               <Button
@@ -157,7 +157,7 @@ export default function BarberScheduleError({
                 size="sm"
               >
                 <Calendar className="w-4 h-4 mr-1" />
-                Takvim
+                Calendar
               </Button>
 
               <Button
@@ -166,14 +166,14 @@ export default function BarberScheduleError({
                 size="sm"
               >
                 <Clock className="w-4 h-4 mr-1" />
-                Randevular
+                Appointments
               </Button>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-xs text-gray-400">
-              Program ayarları varsayılan değerlere döndürülebilir.
+              Schedule settings can be reset to default values.
             </p>
           </div>
         </CardContent>

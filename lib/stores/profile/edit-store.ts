@@ -114,7 +114,7 @@ export const useProfileEditStore = create<ProfileEditState>()(
             if (!validateName(value)) {
               set({
                 firstNameError:
-                  "Geçersiz ad. En az 2 karakter olmalı ve sadece harf içermeli.",
+                  "Invalid first name. Must be at least 2 characters and contain only letters.",
               });
             } else {
               set({ firstNameError: "" });
@@ -124,7 +124,7 @@ export const useProfileEditStore = create<ProfileEditState>()(
             if (!validateName(value)) {
               set({
                 lastNameError:
-                  "Geçersiz soyad. En az 2 karakter olmalı ve sadece harf içermeli.",
+                  "Invalid last name. Must be at least 2 characters and contain only letters.",
               });
             } else {
               set({ lastNameError: "" });
@@ -133,7 +133,7 @@ export const useProfileEditStore = create<ProfileEditState>()(
           case "phone":
             if (!validatePhone(value)) {
               set({
-                phoneError: "Geçersiz telefon numarası. 10 haneli olmalı.",
+                phoneError: "Invalid phone number. Must be 10 digits.",
               });
             } else {
               set({ phoneError: "" });
@@ -141,7 +141,7 @@ export const useProfileEditStore = create<ProfileEditState>()(
             break;
           case "email":
             if (!validateEmail(value)) {
-              set({ emailError: "Geçersiz e-posta adresi." });
+              set({ emailError: "Invalid email address." });
             } else {
               set({ emailError: "" });
             }

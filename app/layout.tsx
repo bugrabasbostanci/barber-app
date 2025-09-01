@@ -17,7 +17,7 @@ const geist = Geist({
 export const metadata: Metadata = {
   title: "The Barber Shop | Men's Club",
   description:
-    "Berber salonları için profesyonel online randevu yönetim sistemi. Kolay randevu alın, randevularınızı yönetin.",
+    "Professional online appointment management system for barber shops. Book appointments easily and manage your bookings.",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" suppressHydrationWarning={true}>
+    <html lang="en" suppressHydrationWarning={true}>
       <body
         className={`${geist.className} antialiased`}
         suppressHydrationWarning={true}

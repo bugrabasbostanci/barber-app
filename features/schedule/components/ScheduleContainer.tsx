@@ -61,13 +61,13 @@ export function ScheduleContainer({ className = "" }: ScheduleContainerProps) {
             <Link href="/barber/dashboard">
               <Button variant="outline" size="sm" className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Geri Dön
+                Back
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Çizelge Yönetimi</h1>
+              <h1 className="text-2xl font-bold">Schedule Management</h1>
               <p className="text-muted-foreground">
-                Çalışma saatlerini, iş ayarlarını ve zaman bloklarını yönetin
+                Manage working hours, business settings, and time blocks
               </p>
             </div>
           </div>
@@ -125,21 +125,21 @@ export function ScheduleContainer({ className = "" }: ScheduleContainerProps) {
       <Dialog open={showDeleteDialog} onOpenChange={closeDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Zaman Bloğunu Sil</DialogTitle>
+            <DialogTitle>Delete Time Block</DialogTitle>
             <DialogDescription>
-              Bu zaman bloğunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              Are you sure you want to delete this time block? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={closeDeleteDialog}>
-              İptal
+              Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteTimeBlock}
               disabled={saving}
             >
-              {saving ? 'Siliniyor...' : 'Sil'}
+              {saving ? 'Deleting...' : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -149,13 +149,13 @@ export function ScheduleContainer({ className = "" }: ScheduleContainerProps) {
       <Dialog open={showValidationDialog} onOpenChange={hideValidation}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Doğrulama Hatası</DialogTitle>
+            <DialogTitle>Validation Error</DialogTitle>
             <DialogDescription>
               {validationMessage}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={hideValidation}>Tamam</Button>
+            <Button onClick={hideValidation}>OK</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

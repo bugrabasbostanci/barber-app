@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Plus } from "lucide-react";
 import { checkUserRole } from "@/lib/admin-actions";
-import { dateToLocalString, formatTurkishDate } from "@/lib/utils";
+import { dateToLocalString, formatEnglishDate } from "@/lib/utils";
 import { DashboardCriticalStats } from "@/components/barber/dashboard-critical-stats";
 import { DashboardImportantStats } from "@/components/barber/dashboard-important-stats";
 import { DashboardSecondaryStats } from "@/components/barber/dashboard-secondary-stats";
@@ -29,7 +29,7 @@ export default async function BarberDashboard() {
   const getCurrentDate = () => {
     const today = new Date();
     const todayString = dateToLocalString(today);
-    return formatTurkishDate(todayString);
+    return formatEnglishDate(todayString);
   };
 
   return (
@@ -39,7 +39,7 @@ export default async function BarberDashboard() {
         <div className="flex items-center justify-between">
           <Link href="/" className="hover:opacity-80 transition-opacity">
             <div>
-              <h1 className="text-2xl font-bold cursor-pointer">Berber Paneli</h1>
+              <h1 className="text-2xl font-bold cursor-pointer">Barber Panel</h1>
               <p className="text-muted-foreground mt-1">{getCurrentDate()}</p>
             </div>
           </Link>
@@ -48,7 +48,7 @@ export default async function BarberDashboard() {
             <Link href="/barber/appointments/new">
               <Button className="bg-black hover:bg-primary/90 dark:bg-white dark:text-black dark:hover:bg-gray-200">
                 <Plus className="w-4 h-4 mr-2" />
-                Yeni Randevu
+                New Appointment
               </Button>
             </Link>
           </div>

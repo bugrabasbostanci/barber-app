@@ -64,7 +64,7 @@ export function useFormValidation<T extends Record<string, any>>(
         });
         return errors;
       }
-      return { general: 'Doğrulama hatası oluştu' };
+      return { general: 'Validation error occurred' };
     }
   }, [schema]);
 
@@ -83,7 +83,7 @@ export function useFormValidation<T extends Record<string, any>>(
         );
         return fieldError?.message;
       }
-      return 'Doğrulama hatası';
+      return 'Validation error';
     }
   }, [schema, state.values]);
 

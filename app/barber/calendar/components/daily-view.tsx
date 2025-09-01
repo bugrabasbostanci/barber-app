@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { dateToLocalString, formatTurkishDate } from "@/lib/utils";
+import { dateToLocalString, formatEnglishDate } from "@/lib/utils";
 import { TimeSlot } from "@/lib/utils";
 
 interface Appointment {
@@ -73,10 +73,10 @@ export function DailyView({
             className="bg-transparent px-3 sm:px-6 py-2 sm:py-3"
           >
             <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
-            <span className="ml-1 sm:ml-2 text-xs sm:text-base">Önceki</span>
+            <span className="ml-1 sm:ml-2 text-xs sm:text-base">Previous</span>
           </Button>
           <h2 className="text-lg sm:text-2xl font-bold text-center">
-            {formatTurkishDate(dateToLocalString(selectedDate))}
+            {formatEnglishDate(dateToLocalString(selectedDate))}
           </h2>
           <Button
             variant="outline"
@@ -84,7 +84,7 @@ export function DailyView({
             onClick={() => navigateDate("next")}
             className="bg-transparent px-3 sm:px-6 py-2 sm:py-3"
           >
-            <span className="mr-1 sm:mr-2 text-xs sm:text-base">Sonraki</span>
+            <span className="mr-1 sm:mr-2 text-xs sm:text-base">Next</span>
             <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
           </Button>
         </div>
@@ -116,7 +116,7 @@ export function DailyView({
                     {appointmentsForSlot.map(({ staff: staffMember, appointment }, index) => {
                       const customerName = appointment?.customer
                         ? `${appointment.customer.firstName || ""} ${appointment.customer.lastName || ""}`.trim()
-                        : appointment?.manualCustomerName || "Bilinmeyen Müşteri";
+                        : appointment?.manualCustomerName || "Unknown Customer";
                       const customerPhone = appointment?.customer?.phone || appointment?.manualCustomerPhone || "";
                       const colorClass = index === 0
                         ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400"
@@ -154,7 +154,7 @@ export function DailyView({
             ) && (
               <div className="text-center py-8">
                 <Calendar className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-                <p className="text-muted-foreground">Bu gün için randevu bulunmuyor</p>
+                <p className="text-muted-foreground">No appointments found for today</p>
               </div>
             )}
           </div>
@@ -164,7 +164,7 @@ export function DailyView({
         <div className="hidden lg:grid lg:grid-cols-3 gap-6">
           <div className="space-y-3">
             <div className="h-12 flex items-center justify-center font-medium text-muted-foreground border-b">
-              Saat
+              Time
             </div>
             {timeSlots.map((slot) => (
               <div
@@ -203,7 +203,7 @@ export function DailyView({
                           onClick={() => onAppointmentClick(appointment)}
                         >
                           <div className={`text-xs font-medium text-${colorClass}-900 dark:text-${colorClass}-400`}>
-                            {customerName || "Müşteri"}
+                            {customerName || "Customer"}
                           </div>
                           {appointment.notes && (
                             <div className={`text-xs text-${colorClass}-700 dark:text-${colorClass}-400`}>

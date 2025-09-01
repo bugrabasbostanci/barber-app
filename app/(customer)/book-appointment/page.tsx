@@ -56,7 +56,7 @@ export default function BookAppointmentPage() {
     const success = await submitBooking();
     if (success) {
       // Use Next.js router for soft redirect to preserve state
-      router.push('/book-appointment/success');
+      router.push("/book-appointment/success");
     }
   };
 
@@ -106,7 +106,7 @@ export default function BookAppointmentPage() {
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
-          ← Ana Sayfa
+          ← Home Page
         </Link>
       </div>
 

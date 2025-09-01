@@ -43,7 +43,7 @@ export function BookingConfirmation({ bookingData, customerInfo }: BookingConfir
 
   const getBarberName = () => {
     const staff = staffMembers.find((s) => s.id === bookingData.staffId);
-    return staff ? `${staff.firstName} ${staff.lastName}` : "Berber bilgisi yükleniyor...";
+    return staff ? `${staff.firstName} ${staff.lastName}` : "Loading barber information...";
   };
 
   const getEndTime = () => {
@@ -58,20 +58,20 @@ export function BookingConfirmation({ bookingData, customerInfo }: BookingConfir
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Randevu Özeti</h2>
+        <h2 className="text-xl font-semibold mb-2">Appointment Summary</h2>
         <p className="text-muted-foreground text-sm">
-          Bilgileri kontrol edin ve onaylayın
+          Review and confirm your information
         </p>
       </div>
 
       <div className="space-y-4">
-        {/* Berber Bilgisi */}
+        {/* Barber Information */}
         <Card>
           <CardContent className="flex items-center p-4">
             <UserCheck className="w-8 h-8 text-primary mr-4" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-1">
-                Berber
+                Barber
               </div>
               <div className="font-semibold text-base">
                 {getBarberName()}
@@ -80,13 +80,13 @@ export function BookingConfirmation({ bookingData, customerInfo }: BookingConfir
           </CardContent>
         </Card>
 
-        {/* Tarih Bilgisi */}
+        {/* Date Information */}
         <Card>
           <CardContent className="flex items-center p-4">
             <Calendar className="w-8 h-8 text-primary mr-4" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-1">
-                Tarih
+                Date
               </div>
               <div className="font-semibold text-base">
                 {bookingData.date ? formatTurkishDate(bookingData.date) : ""}
@@ -95,28 +95,28 @@ export function BookingConfirmation({ bookingData, customerInfo }: BookingConfir
           </CardContent>
         </Card>
 
-        {/* Saat Bilgisi */}
+        {/* Time Information */}
         <Card>
           <CardContent className="flex items-center p-4">
             <Clock className="w-8 h-8 text-primary mr-4" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-1">
-                Saat
+                Time
               </div>
               <div className="font-semibold text-base">
-                {bookingData.timeSlot} - {getEndTime()} (45 dk)
+                {bookingData.timeSlot} - {getEndTime()} (45 min)
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* İletişim Bilgisi */}
+        {/* Contact Information */}
         <Card>
           <CardContent className="flex items-center p-4">
             <Phone className="w-8 h-8 text-primary mr-4" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-1">
-                Telefon
+                Phone
               </div>
               <div className="font-semibold text-base">
                 {customerInfo.phone}
@@ -129,8 +129,8 @@ export function BookingConfirmation({ bookingData, customerInfo }: BookingConfir
       <Alert>
         <Calendar className="h-4 w-4" />
         <AlertDescription>
-          <strong>Önemli:</strong> Randevunuzu iptal etmek istiyorsanız, randevu saatinden 
-          en az 2 saat önce profile sayfanızdan iptal edebilirsiniz.
+          <strong>Important:</strong> If you want to cancel your appointment, you can cancel it 
+          from your profile page at least 2 hours before the appointment time.
         </AlertDescription>
       </Alert>
     </div>

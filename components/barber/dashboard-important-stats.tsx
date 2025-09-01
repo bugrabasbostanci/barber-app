@@ -7,7 +7,7 @@ import {
   AppointmentStatusBadge,
 } from "@/shared/components";
 import { Users, Clock } from "lucide-react";
-import { utcToLocalDate, formatTurkishDateShort } from "@/lib/utils";
+import { utcToLocalDate, formatEnglishDateShort } from "@/lib/utils";
 
 interface ImportantData {
   todayCustomers: number;
@@ -48,14 +48,14 @@ export function DashboardImportantStats() {
       <div className="mb-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           <ImportantStatsCard
-            title="Bugünkü Müşteri"
+            title="Today's Customers"
             value="..."
             color="green"
             icon={Users}
             loading={true}
           />
           <ImportantStatsCard
-            title="Son Randevular"
+            title="Recent Appointments"
             value="..."
             color="purple"
             icon={Clock}
@@ -70,13 +70,13 @@ export function DashboardImportantStats() {
     <div className="mb-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <ImportantStatsCard
-          title="Bugünkü Müşteri"
+          title="Today's Customers"
           value={data.todayCustomers}
           color="green"
           icon={Users}
         />
         <ImportantStatsCard
-          title="Son Randevular"
+          title="Recent Appointments"
           value={data.recentAppointments.length}
           color="purple"
           icon={Clock}
@@ -86,7 +86,7 @@ export function DashboardImportantStats() {
       {/* Recent Appointments List */}
       {data.recentAppointments.length > 0 && (
         <div>
-          <SubsectionHeader title="Son Randevular" className="mb-3" />
+          <SubsectionHeader title="Recent Appointments" className="mb-3" />
           <div className="space-y-2">
             {data.recentAppointments.map((appointment) => (
               <div
@@ -98,7 +98,7 @@ export function DashboardImportantStats() {
                     {appointment.customerName}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {formatTurkishDateShort(utcToLocalDate(appointment.date))} •{" "}
+                    {formatEnglishDateShort(utcToLocalDate(appointment.date))} •{" "}
                     {appointment.startTime}
                   </div>
                 </div>

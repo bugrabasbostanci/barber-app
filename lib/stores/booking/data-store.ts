@@ -123,7 +123,7 @@ export const useBookingDataStore = create<BookingDataState>()(
             });
 
             if (!profileResponse.ok) {
-              alert("Telefon numarası güncellenemedi.");
+              alert("Phone number could not be updated.");
               return false;
             }
           }
@@ -166,13 +166,13 @@ export const useBookingDataStore = create<BookingDataState>()(
                 .join("\n");
               alert(`Validation errors:\n${errorDetails}`);
             } else {
-              alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
+              alert(result.error || "An error occurred while creating the appointment.");
             }
             return false;
           }
         } catch (error) {
-          console.error("Randevu oluşturulurken hata oluştu:", error);
-          alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+          console.error("Error occurred while creating appointment:", error);
+          alert("An error occurred while creating the appointment. Please try again.");
           return false;
         } finally {
           flowStore.setIsBooking(false);

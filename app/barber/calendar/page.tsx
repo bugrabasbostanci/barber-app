@@ -104,16 +104,16 @@ export default function BarberCalendar() {
         <Tabs defaultValue="daily" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8 h-14 text-base">
             <TabsTrigger value="daily" className="text-sm sm:text-base py-3">
-              <span className="hidden sm:inline">Günlük Görünüm</span>
-              <span className="sm:hidden">Günlük</span>
+              <span className="hidden sm:inline">Daily View</span>
+              <span className="sm:hidden">Daily</span>
             </TabsTrigger>
             <TabsTrigger value="weekly" className="text-sm sm:text-base py-3">
-              <span className="hidden sm:inline">Haftalık Görünüm</span>
-              <span className="sm:hidden">Haftalık</span>
+              <span className="hidden sm:inline">Weekly View</span>
+              <span className="sm:hidden">Weekly</span>
             </TabsTrigger>
             <TabsTrigger value="monthly" className="text-sm sm:text-base py-3">
-              <span className="hidden sm:inline">Aylık Görünüm</span>
-              <span className="sm:hidden">Aylık</span>
+              <span className="hidden sm:inline">Monthly View</span>
+              <span className="sm:hidden">Monthly</span>
             </TabsTrigger>
           </TabsList>
 

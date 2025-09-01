@@ -40,20 +40,20 @@ export function useOptimisticUpdates() {
         // Execute rollback if operation failed
         try {
           operation.rollback();
-          toast.error('Değişiklik geri alındı', {
-            description: 'İşlem başarısız oldu ve önceki duruma döndü.',
+          toast.error('Change rolled back', {
+            description: 'Operation failed and returned to previous state.',
           });
         } catch (error) {
           console.error('Rollback failed:', error);
-          toast.error('Rollback hatası', {
-            description: 'Değişiklik geri alınamadı. Sayfa yenilenecek.',
+          toast.error('Rollback error', {
+            description: 'Change could not be rolled back. Page will refresh.',
           });
           // Force refresh if rollback fails
           window.location.reload();
         }
       } else {
-        toast.success('Değişiklik kaydedildi', {
-          description: 'İşleminiz başarıyla tamamlandı.',
+        toast.success('Change saved', {
+          description: 'Your operation completed successfully.',
         });
       }
       
@@ -86,7 +86,7 @@ export function useOptimisticUpdates() {
           console.error('Rollback failed during cleanup:', error);
         }
       });
-      toast.info('Tüm bekleyen değişiklikler geri alındı');
+      toast.info('All pending changes rolled back');
     }
     
     pendingOperations.current.clear();
@@ -198,8 +198,8 @@ export function useOptimisticUpdates() {
     fallbackFn?: () => void
   ) => {
     if (!navigator.onLine) {
-      toast.warning('İnternet bağlantısı yok', {
-        description: 'Değişiklikler bağlantı kurulduğunda uygulanacak.',
+      toast.warning('No internet connection', {
+        description: 'Changes will be applied when connection is restored.',
       });
       
       if (fallbackFn) {
@@ -212,8 +212,8 @@ export function useOptimisticUpdates() {
       return await updateFn();
     } catch (error) {
       if (!navigator.onLine) {
-        toast.error('Bağlantı kesildi', {
-          description: 'İnternet bağlantınızı kontrol edin.',
+        toast.error('Connection lost', {
+          description: 'Please check your internet connection.',
         });
       }
       throw error;
@@ -247,8 +247,8 @@ export function useOptimisticFeedback() {
   const showOptimisticFeedback = useCallback((message: string, type: 'success' | 'info' | 'warning' = 'info') => {
     const pendingCount = getPendingCount();
     const description = pendingCount > 0 
-      ? `${pendingCount} değişiklik işleniyor...`
-      : 'Değişiklik uygulandı';
+      ? `${pendingCount} changes processing...`
+      : 'Change applied';
     
     toast[type](message, { description });
   }, [getPendingCount]);

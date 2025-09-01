@@ -46,17 +46,17 @@ export function TimeSelection({
             setAvailableSlots(result.data);
           } else {
             console.error('Time slots API error:', result);
-            setError(result.message || "Saat bilgisi alınamadı");
+            setError(result.message || "Could not fetch time information");
           }
         } else {
           console.error('Time slots HTTP error:', response.status, response.statusText);
           const errorText = await response.text();
           console.error('Error response body:', errorText);
-          throw new Error(`API hatası: ${response.status} ${response.statusText}`);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
       } catch (error) {
         console.error("Failed to fetch time slots:", error);
-        setError("Müsait saatler yüklenirken hata oluştu");
+        setError("Error occurred while loading available times");
       } finally {
         setLoading(false);
       }
@@ -70,7 +70,7 @@ export function TimeSelection({
       <div className="text-center py-8">
         <Clock className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
         <p className="text-muted-foreground">
-          Önce tarih ve berber seçimi yapın
+          Please select date and barber first
         </p>
       </div>
     );
@@ -94,8 +94,8 @@ export function TimeSelection({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Seçilen tarih ve berber için müsait saat bulunmamaktadır.
-          Lütfen farklı bir tarih seçin.
+          No available times for the selected date and barber.
+          Please select a different date.
         </AlertDescription>
       </Alert>
     );
@@ -104,9 +104,9 @@ export function TimeSelection({
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Saat Seçin</h2>
+        <h2 className="text-xl font-semibold mb-2">Select Time</h2>
         <p className="text-muted-foreground text-sm">
-          Müsait saatlerden birini seçin
+          Choose from available time slots
         </p>
       </div>
 

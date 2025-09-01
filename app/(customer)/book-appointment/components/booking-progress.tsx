@@ -7,7 +7,7 @@ export function BookingProgress({ currentStep, totalSteps }: BookingProgressProp
   return (
     <div className="px-4 py-3 bg-background border-b">
       <div className="text-center text-xs text-muted-foreground mb-2">
-        Adım {currentStep} / {totalSteps}
+Step {currentStep} / {totalSteps}
       </div>
       <div className="flex space-x-2">
         {Array.from({ length: totalSteps }, (_, index) => (

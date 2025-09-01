@@ -6,10 +6,10 @@ import { z } from 'zod';
 import { isValidEmail, isValidTurkishPhone } from './stringUtils';
 
 // Common validation schemas
-export const emailSchema = z.string().email('Geçerli bir email adresi giriniz');
-export const phoneSchema = z.string().refine(isValidTurkishPhone, 'Geçerli bir telefon numarası giriniz');
-export const nameSchema = z.string().min(2, 'İsim en az 2 karakter olmalıdır').max(50, 'İsim en fazla 50 karakter olabilir');
-export const passwordSchema = z.string().min(6, 'Şifre en az 6 karakter olmalıdır');
+export const emailSchema = z.string().email('Please enter a valid email address');
+export const phoneSchema = z.string().refine(isValidTurkishPhone, 'Please enter a valid phone number');
+export const nameSchema = z.string().min(2, 'Name must be at least 2 characters').max(50, 'Name can be maximum 50 characters');
+export const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
 
 // Turkish ID validation
 export function isValidTurkishId(id: string): boolean {
@@ -83,7 +83,7 @@ export function validateRequired(value: any, fieldName: string): ValidationError
   if (value === undefined || value === null || value === '') {
     return {
       field: fieldName,
-      message: `${fieldName} alanı gereklidir`
+      message: `${fieldName} field is required`
     };
   }
   return null;
@@ -93,7 +93,7 @@ export function validateMinLength(value: string, minLength: number, fieldName: s
   if (value && value.length < minLength) {
     return {
       field: fieldName,
-      message: `${fieldName} en az ${minLength} karakter olmalıdır`
+      message: `${fieldName} must be at least ${minLength} characters`
     };
   }
   return null;
@@ -103,7 +103,7 @@ export function validateMaxLength(value: string, maxLength: number, fieldName: s
   if (value && value.length > maxLength) {
     return {
       field: fieldName,
-      message: `${fieldName} en fazla ${maxLength} karakter olabilir`
+      message: `${fieldName} can be maximum ${maxLength} characters`
     };
   }
   return null;
@@ -113,7 +113,7 @@ export function validateEmail(email: string): ValidationError | null {
   if (email && !isValidEmail(email)) {
     return {
       field: 'email',
-      message: 'Geçerli bir email adresi giriniz'
+      message: 'Enter a valid email address'
     };
   }
   return null;
@@ -123,7 +123,7 @@ export function validatePhone(phone: string): ValidationError | null {
   if (phone && !isValidTurkishPhone(phone)) {
     return {
       field: 'phone',
-      message: 'Geçerli bir telefon numarası giriniz'
+      message: 'Enter a valid phone number'
     };
   }
   return null;
@@ -135,15 +135,15 @@ export const customerInfoSchema = z.object({
   lastName: nameSchema,
   email: emailSchema,
   phone: phoneSchema,
-  notes: z.string().max(500, 'Notlar en fazla 500 karakter olabilir').optional()
+  notes: z.string().max(500, 'Notes can be maximum 500 characters').optional()
 });
 
 export const appointmentSchema = z.object({
-  date: z.string().refine(isValidDate, 'Geçerli bir tarih giriniz'),
-  startTime: z.string().refine(isValidTime, 'Geçerli bir saat giriniz'),
-  staffId: z.string().min(1, 'Berber seçimi gereklidir'),
+  date: z.string().refine(isValidDate, 'Enter a valid date'),
+  startTime: z.string().refine(isValidTime, 'Enter a valid time'),
+  staffId: z.string().min(1, 'Barber selection is required'),
   customerId: z.string().optional(),
-  notes: z.string().max(500, 'Notlar en fazla 500 karakter olabilir').optional()
+  notes: z.string().max(500, 'Notes can be maximum 500 characters').optional()
 });
 
 export const profileUpdateSchema = z.object({
@@ -170,6 +170,6 @@ export function validateForm<T>(
       });
       return { isValid: false, errors };
     }
-    return { isValid: false, errors: { general: 'Doğrulama hatası oluştu' } };
+    return { isValid: false, errors: { general: 'Validation error occurred' } };
   }
 }

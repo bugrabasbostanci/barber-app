@@ -52,7 +52,7 @@ export function AppointmentsFilters({
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="text-lg">Filtreler</CardTitle>
+        <CardTitle className="text-lg">Filters</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -60,7 +60,7 @@ export function AppointmentsFilters({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Müşteri adı veya telefon ara..."
+                placeholder="Search customer name or phone..."
                 value={searchTerm}
                 onChange={(e) => onSearchTermChange(e.target.value)}
                 className="pl-10"
@@ -70,10 +70,10 @@ export function AppointmentsFilters({
 
           <Select value={selectedStaff} onValueChange={onSelectedStaffChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Personel" />
+              <SelectValue placeholder="Staff" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tüm Personel</SelectItem>
+              <SelectItem value="all">All Staff</SelectItem>
               {staffMembers.map((staff) => (
                 <SelectItem
                   key={staff.id}
@@ -87,14 +87,14 @@ export function AppointmentsFilters({
 
           <Select value={selectedStatus} onValueChange={onSelectedStatusChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Durum" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tüm Durumlar</SelectItem>
-              <SelectItem value="CONFIRMED">Onaylandı</SelectItem>
-              <SelectItem value="SCHEDULED">Planlandı</SelectItem>
-              <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
-              <SelectItem value="CANCELLED">İptal</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+              <SelectItem value="SCHEDULED">Scheduled</SelectItem>
+              <SelectItem value="COMPLETED">Completed</SelectItem>
+              <SelectItem value="CANCELLED">Cancelled</SelectItem>
             </SelectContent>
           </Select>
 
@@ -111,7 +111,7 @@ export function AppointmentsFilters({
                 {selectedDate ? (
                   formatTurkishDateShort(dateToLocalString(selectedDate))
                 ) : (
-                  <span>Tarih seçin</span>
+                  <span>Select date</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -135,7 +135,7 @@ export function AppointmentsFilters({
                       setCalendarOpen(false);
                     }}
                   >
-                    Temizle
+                    Clear
                   </Button>
                 </div>
               )}

@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Calendar as CalendarIcon, Plus, Trash2 } from "lucide-react"
-import { formatTurkishDate, dateToLocalString } from "@/lib/utils"
+import { formatEnglishDate, dateToLocalString } from "@/lib/utils"
 import { cn } from "@/lib/utils"
 
 interface BlockedTime {
@@ -107,12 +107,12 @@ export function TimeBlockingForm() {
     e.preventDefault()
     
     if (!selectedDate || !selectedStaff || !reason) {
-      alert('Lütfen tüm gerekli alanları doldurun.')
+      alert('Please fill in all required fields.')
       return
     }
 
     if (blockType === 'time-range' && (!startTime || !endTime)) {
-      alert('Lütfen başlangıç ve bitiş saatini seçin.')
+      alert('Please select start and end times.')
       return
     }
 
@@ -156,18 +156,18 @@ export function TimeBlockingForm() {
         setReason('')
         setBlockType('time-range')
 
-        alert('Zaman bloğu başarıyla oluşturuldu!')
+        alert('Time block created successfully!')
       } else {
-        alert(result.error || 'Zaman bloğu oluşturulurken bir hata oluştu.')
+        alert(result.error || 'An error occurred while creating the time block.')
       }
     } catch (error) {
       console.error('Error creating time block:', error)
-      alert('Zaman bloğu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.')
+      alert('An error occurred while creating the time block. Please try again.')
     }
   }
 
   const removeBlockedTime = async (id: string) => {
-    if (!confirm('Bu zaman bloğunu silmek istediğinizden emin misiniz?')) {
+    if (!confirm('Are you sure you want to delete this time block?')) {
       return
     }
 
@@ -180,19 +180,19 @@ export function TimeBlockingForm() {
 
       if (response.ok && result.success) {
         setBlockedTimes(prev => prev.filter(block => block.id !== id))
-        alert('Zaman bloğu başarıyla silindi!')
+        alert('Time block deleted successfully!')
       } else {
-        alert(result.error || 'Zaman bloğu silinirken bir hata oluştu.')
+        alert(result.error || 'An error occurred while deleting the time block.')
       }
     } catch (error) {
       console.error('Error deleting time block:', error)
-      alert('Zaman bloğu silinirken bir hata oluştu. Lütfen tekrar deneyin.')
+      alert('An error occurred while deleting the time block. Please try again.')
     }
   }
 
   const getStaffName = (staffId: string) => {
     const person = staff.find(s => s.id === staffId)
-    return person ? `${person.firstName} ${person.lastName}` : 'Bilinmeyen'
+    return person ? `${person.firstName} ${person.lastName}` : 'Unknown'
   }
 
   // Date validation - don't allow past dates
@@ -209,7 +209,7 @@ export function TimeBlockingForm() {
         <div className="grid grid-cols-1 gap-4">
           {/* Date Selection */}
           <div className="space-y-2">
-            <Label>Tarih</Label>
+            <Label>Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -221,9 +221,9 @@ export function TimeBlockingForm() {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? (
-                    formatTurkishDate(dateToLocalString(selectedDate))
+                    formatEnglishDate(dateToLocalString(selectedDate))
                   ) : (
-                    <span>Tarih seçin</span>
+                    <span>Select date</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -237,11 +237,11 @@ export function TimeBlockingForm() {
                   weekStartsOn={1}
                   formatters={{
                     formatWeekdayName: (date: Date) => {
-                      const days = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+                      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                       return days[date.getDay()];
                     },
                     formatMonthCaption: (date: Date) => {
-                      const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+                      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                       return `${months[date.getMonth()]} ${date.getFullYear()}`;
                     }
                   }}
@@ -252,19 +252,19 @@ export function TimeBlockingForm() {
 
           {/* Staff Selection */}
           <div className="space-y-2">
-            <Label>Personel</Label>
+            <Label>Staff</Label>
             <Select value={selectedStaff} onValueChange={setSelectedStaff}>
               <SelectTrigger>
-                <SelectValue placeholder={loading ? "Personeller yükleniyor..." : "Personel seçin"} />
+                <SelectValue placeholder={loading ? "Loading staff..." : "Select staff"} />
               </SelectTrigger>
               <SelectContent>
                 {loading ? (
                   <SelectItem value="loading" disabled>
-                    Yükleniyor...
+                    Loading...
                   </SelectItem>
                 ) : staff.length === 0 ? (
                   <SelectItem value="no-staff" disabled>
-                    Personel bulunamadı
+                    No staff found
                   </SelectItem>
                 ) : (
                   staff.map((person) => (
@@ -279,7 +279,7 @@ export function TimeBlockingForm() {
 
           {/* Block Type */}
           <div className="space-y-2">
-            <Label>Blok Türü</Label>
+            <Label>Block Type</Label>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -287,7 +287,7 @@ export function TimeBlockingForm() {
                 size="sm"
                 onClick={() => setBlockType('full-day')}
               >
-                Tüm Gün
+                Full Day
               </Button>
               <Button
                 type="button"
@@ -295,7 +295,7 @@ export function TimeBlockingForm() {
                 size="sm"
                 onClick={() => setBlockType('time-range')}
               >
-                Saat Aralığı
+                Time Range
               </Button>
             </div>
           </div>
@@ -304,10 +304,10 @@ export function TimeBlockingForm() {
           {blockType === 'time-range' && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Başlangıç Saati</Label>
+                <Label>Start Time</Label>
                 <Select value={startTime} onValueChange={setStartTime}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Saat seçin" />
+                    <SelectValue placeholder="Select time" />
                   </SelectTrigger>
                   <SelectContent>
                     {timeOptions.map((time) => (
@@ -319,10 +319,10 @@ export function TimeBlockingForm() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Bitiş Saati</Label>
+                <Label>End Time</Label>
                 <Select value={endTime} onValueChange={setEndTime}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Saat seçin" />
+                    <SelectValue placeholder="Select time" />
                   </SelectTrigger>
                   <SelectContent>
                     {timeOptions.map((time) => (
@@ -338,12 +338,12 @@ export function TimeBlockingForm() {
 
           {/* Reason */}
           <div className="space-y-2">
-            <Label htmlFor="reason">Sebep</Label>
+            <Label htmlFor="reason">Reason</Label>
             <Textarea
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Zaman bloklama sebebi..."
+              placeholder="Reason for time blocking..."
               rows={2}
               required
             />
@@ -351,7 +351,7 @@ export function TimeBlockingForm() {
 
           <Button type="submit" className="w-full">
             <Plus className="h-4 w-4 mr-2" />
-            Zaman Bloğu Ekle
+            Add Time Block
           </Button>
         </div>
       </form>
@@ -360,7 +360,7 @@ export function TimeBlockingForm() {
       {blockedTimes.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Bloklanmış Zamanlar</CardTitle>
+            <CardTitle className="text-lg">Blocked Times</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -368,12 +368,12 @@ export function TimeBlockingForm() {
                 <div key={block.id} className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
                   <div>
                     <div className="font-medium">
-                      {formatTurkishDate(dateToLocalString(block.date))}
+                      {formatEnglishDate(dateToLocalString(block.date))}
                     </div>
                     <div className="text-sm text-gray-600">
                       <span className="font-medium">{getStaffName(block.staffId)}</span>
                       {block.isFullDay ? (
-                        <span> - Tüm gün</span>
+                        <span> - Full day</span>
                       ) : (
                         <span> - {block.startTime} / {block.endTime}</span>
                       )}

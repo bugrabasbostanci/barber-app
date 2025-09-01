@@ -31,12 +31,12 @@ export default function BarberAppointmentsError({
   const getErrorMessage = () => {
     if (error.message.includes("fetch") || error.message.includes("network")) {
       return {
-        title: "Randevu Verileri Yüklenemedi",
-        description: "Randevu listesi yüklenirken bağlantı sorunu yaşandı.",
+        title: "Appointment Data Failed to Load",
+        description: "A connection error occurred while loading the appointment list.",
         suggestions: [
-          "İnternet bağlantınızı kontrol edin",
-          "Sunucu bağlantısını bekleyip tekrar deneyin",
-          "Sayfayı yenilemeyi deneyin",
+          "Check your internet connection",
+          "Wait for server connection and try again",
+          "Try refreshing the page",
         ],
       };
     } else if (
@@ -44,12 +44,12 @@ export default function BarberAppointmentsError({
       error.message.includes("save")
     ) {
       return {
-        title: "Randevu Güncelleme Sorunu",
-        description: "Randevu değişiklikleri kaydedilirken bir hata oluştu.",
+        title: "Appointment Update Error",
+        description: "An error occurred while saving appointment changes.",
         suggestions: [
-          "Değişikliklerinizi tekrar kaydetmeyi deneyin",
-          "Form alanlarını kontrol edin",
-          "İnternet bağlantınızı kontrol edin",
+          "Try saving your changes again",
+          "Check form fields",
+          "Check your internet connection",
         ],
       };
     } else if (
@@ -57,12 +57,12 @@ export default function BarberAppointmentsError({
       error.message.includes("cancel")
     ) {
       return {
-        title: "Randevu İptali Sorunu",
-        description: "Randevu iptal işlemi gerçekleştirilemedi.",
+        title: "Appointment Cancellation Error",
+        description: "The appointment cancellation could not be completed.",
         suggestions: [
-          "İptal işlemini tekrar deneyin",
-          "Randevunun iptal edilebilir durumda olduğunu kontrol edin",
-          "Müşteri ile iletişime geçerek durumu bildirin",
+          "Try the cancellation process again",
+          "Check that the appointment is eligible for cancellation",
+          "Contact the customer to inform them of the situation",
         ],
       };
     } else if (
@@ -70,22 +70,22 @@ export default function BarberAppointmentsError({
       error.message.includes("add")
     ) {
       return {
-        title: "Yeni Randevu Ekleme Sorunu",
-        description: "Yeni randevu oluşturulurken bir hata oluştu.",
+        title: "New Appointment Creation Error",
+        description: "An error occurred while creating a new appointment.",
         suggestions: [
-          "Tüm gerekli alanların dolu olduğundan emin olun",
-          "Seçilen saatin müsait olduğunu kontrol edin",
-          "Randevu formunu yeniden doldurmayı deneyin",
+          "Make sure all required fields are filled",
+          "Check that the selected time is available",
+          "Try filling out the appointment form again",
         ],
       };
     } else {
       return {
-        title: "Randevu Yönetimi Sorunu",
-        description: "Randevu sistemi yüklenirken beklenmeyen bir hata oluştu.",
+        title: "Appointment Management Error",
+        description: "An unexpected error occurred while loading the appointment system.",
         suggestions: [
-          "Sayfayı yenilemeyi deneyin",
-          "Tarayıcı önbelleğini temizleyin",
-          "Birkaç dakika sonra tekrar deneyin",
+          "Try refreshing the page",
+          "Clear your browser cache",
+          "Try again in a few minutes",
         ],
       };
     }
@@ -110,7 +110,7 @@ export default function BarberAppointmentsError({
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -138,7 +138,7 @@ export default function BarberAppointmentsError({
           <div className="flex flex-col space-y-2">
             <Button onClick={reset} className="w-full" variant="default">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Randevuları Yenile
+              Refresh Appointments
             </Button>
 
             <div className="grid grid-cols-3 gap-2">
@@ -148,7 +148,7 @@ export default function BarberAppointmentsError({
                 size="sm"
               >
                 <BarChart3 className="w-4 h-4 mr-1" />
-                Panel
+                Dashboard
               </Button>
 
               <Button
@@ -157,7 +157,7 @@ export default function BarberAppointmentsError({
                 size="sm"
               >
                 <Calendar className="w-4 h-4 mr-1" />
-                Takvim
+                Calendar
               </Button>
 
               <Button
@@ -168,14 +168,14 @@ export default function BarberAppointmentsError({
                 size="sm"
               >
                 <Users className="w-4 h-4 mr-1" />
-                Yeni
+                New
               </Button>
             </div>
           </div>
 
           <div className="text-center">
             <p className="text-xs text-gray-400">
-              Acil durumlarda müşterilerinizi telefonla arayarak bilgilendirin.
+              In emergencies, call your customers to inform them by phone.
             </p>
           </div>
         </CardContent>

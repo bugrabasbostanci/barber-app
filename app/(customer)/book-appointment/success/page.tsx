@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { useBookingStore } from "@/lib/stores/booking-store";
 import { formatTurkishDate } from "@/lib/utils";
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from "@tanstack/react-query";
 
 export default function BookingSuccessPage() {
   const { bookingData, customerInfo, getStaffName, resetBooking } =
@@ -24,13 +24,13 @@ export default function BookingSuccessPage() {
 
   useEffect(() => {
     setMounted(true);
-    
+
     // Invalidate appointments cache after successful booking
     // This ensures my-appointments page shows the new appointment
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const queryClient = (window as { queryClient?: QueryClient }).queryClient;
       if (queryClient) {
-        queryClient.invalidateQueries({ queryKey: ['appointments', 'my'] });
+        queryClient.invalidateQueries({ queryKey: ["appointments", "my"] });
       }
     }
   }, []);
@@ -66,11 +66,11 @@ export default function BookingSuccessPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h1 className="text-2xl font-semibold">Randevu bulunamadı</h1>
+          <h1 className="text-2xl font-semibold">No Appointment Found</h1>
           <Link href="/">
             <Button>
               <Home className="w-4 h-4 mr-2" />
-              Ana Sayfa
+              Home Page
             </Button>
           </Link>
         </div>
@@ -86,7 +86,7 @@ export default function BookingSuccessPage() {
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
-          ← Ana Sayfa
+          ← Home
         </Link>
       </div>
 
@@ -98,9 +98,11 @@ export default function BookingSuccessPage() {
               <CheckCircle className="w-6 h-6 text-primary" />
             </div>
           </div>
-          <h1 className="text-xl font-semibold mb-1">Randevunuz Onaylandı</h1>
+          <h1 className="text-xl font-semibold mb-1">
+            Your Appointment is Confirmed
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Randevu detaylarınızı aşağıda görüntüleyebilirsiniz
+            You can view your appointment details below
           </p>
         </div>
       </div>
@@ -117,7 +119,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {formatTurkishDate(bookingData.date)}
                   </div>
-                  <div className="text-sm text-muted-foreground">Tarih</div>
+                  <div className="text-sm text-muted-foreground">Date</div>
                 </div>
               </div>
             </CardContent>
@@ -132,7 +134,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {getStaffName(bookingData.staffId)}
                   </div>
-                  <div className="text-sm text-muted-foreground">Berber</div>
+                  <div className="text-sm text-muted-foreground">Barber</div>
                 </div>
               </div>
             </CardContent>
@@ -147,7 +149,9 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {bookingData.timeSlot} - {getEndTime()}
                   </div>
-                  <div className="text-sm text-muted-foreground">45 dakika</div>
+                  <div className="text-sm text-muted-foreground">
+                    45 minutes
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -162,7 +166,7 @@ export default function BookingSuccessPage() {
                   <div className="font-semibold text-base">
                     {customerInfo.phone}
                   </div>
-                  <div className="text-sm text-muted-foreground">İletişim</div>
+                  <div className="text-sm text-muted-foreground">Contact</div>
                 </div>
               </div>
             </CardContent>
@@ -172,7 +176,7 @@ export default function BookingSuccessPage() {
           {customerInfo.notes && (
             <Card className="cursor-default">
               <CardContent className="p-4">
-                <div className="text-sm text-muted-foreground mb-2">Notlar</div>
+                <div className="text-sm text-muted-foreground mb-2">Notes</div>
                 <div className="text-sm font-medium">{customerInfo.notes}</div>
               </CardContent>
             </Card>
@@ -185,20 +189,20 @@ export default function BookingSuccessPage() {
                 <Calendar className="h-5 w-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
                 <div>
                   <div className="text-sm font-medium text-foreground mb-2">
-                    Önemli Hatırlatmalar
+                    Important Reminders
                   </div>
                   <ul className="space-y-1 text-xs text-muted-foreground">
                     <li>
-                      • Randevunuzu iptal etmek için en az 2 saat önceden haber
-                      veriniz
+                      • Please notify us at least 2 hours before your
+                      appointment to cancel
                     </li>
                     <li>
-                      • Profilinizden randevularınızı görüntüleyebilir ve
-                      yönetebilirsiniz
+                      • You can view and manage your appointments from your
+                      profile
                     </li>
                     <li>
-                      • Randevu saatinizden 10 dakika önce salonda bulunmanızı
-                      rica ederiz
+                      • Please arrive at the salon 10 minutes before your
+                      appointment time
                     </li>
                   </ul>
                 </div>
@@ -214,14 +218,14 @@ export default function BookingSuccessPage() {
           <Link href="/" className="flex-1">
             <Button variant="outline" size="lg" className="w-full">
               <Home className="w-4 h-4 mr-2" />
-              Ana Sayfa
+              Home Page
             </Button>
           </Link>
 
           <Link href="/my-appointments" className="flex-1">
             <Button size="lg" className="w-full">
               <CalendarCheck className="w-4 h-4 mr-2" />
-              Randevularım
+              My Appointments
             </Button>
           </Link>
         </div>

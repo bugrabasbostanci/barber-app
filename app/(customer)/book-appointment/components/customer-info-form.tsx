@@ -30,23 +30,23 @@ export function CustomerInfoForm({
 
   const handlePhoneBlur = () => {
     if (customerInfo.phone && !validatePhone(customerInfo.phone)) {
-      onPhoneErrorChange("Geçerli bir telefon numarası giriniz (örn: 0532 123 45 67)");
+      onPhoneErrorChange("Please enter a valid phone number (e.g: 0532 123 45 67)");
     }
   };
 
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">İletişim Bilgileri</h2>
+        <h2 className="text-xl font-semibold mb-2">Contact Information</h2>
         <p className="text-muted-foreground text-sm">
-          Randevu onayı için telefon numaranızı giriniz
+          Enter your phone number for appointment confirmation
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="phone" className="text-sm font-medium">
-            Telefon Numarası *
+            Phone Number *
           </Label>
           <div className="relative">
             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -76,11 +76,11 @@ export function CustomerInfoForm({
 
         <div className="space-y-2">
           <Label htmlFor="notes" className="text-sm font-medium">
-            Özel Notlar (opsiyonel)
+            Special Notes (optional)
           </Label>
           <Textarea
             id="notes"
-            placeholder="Berberiniz için özel istekleriniz veya notlarınız..."
+            placeholder="Special requests or notes for your barber..."
             value={customerInfo.notes || ""}
             onChange={(e) => onCustomerInfoChange({ notes: e.target.value })}
             className="min-h-[80px]"
@@ -89,8 +89,8 @@ export function CustomerInfoForm({
 
         <div className="bg-muted/50 border rounded-lg p-4">
           <div className="text-sm text-muted-foreground">
-            <strong>Önemli:</strong> Girdiğiniz telefon numarası randevu onayı 
-            ve hatırlatma mesajları için kullanılacaktır.
+            <strong>Important:</strong> Your phone number will be used for appointment confirmation 
+            and reminder messages.
           </div>
         </div>
       </div>

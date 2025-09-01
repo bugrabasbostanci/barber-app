@@ -2,45 +2,45 @@ import { z } from 'zod'
 
 // Common validation schemas
 export const phoneSchema = z.string()
-  .min(1, 'Telefon numarası gereklidir')
-  .regex(/^[0-9]{10}$/, 'Geçerli bir telefon numarası giriniz (5XX XXX XX XX)')
+  .min(1, 'Phone number is required')
+  .regex(/^[0-9]{10}$/, 'Enter a valid phone number (5XX XXX XX XX)')
   .refine((phone) => phone.startsWith('5'), {
-    message: 'Telefon numarası 5 ile başlamalıdır'
+    message: 'Phone number must start with 5'
   })
 
 export const turkishNameSchema = z.string()
-  .min(1, 'Bu alan gereklidir')
-  .min(2, 'En az 2 karakter olmalıdır')
-  .max(50, 'En fazla 50 karakter olabilir')
-  .regex(/^[a-zA-ZçÇğĞıİöÖşŞüÜ\s]+$/, 'Sadece harfler kullanabilirsiniz')
+  .min(1, 'This field is required')
+  .min(2, 'Must be at least 2 characters')
+  .max(50, 'Can be maximum 50 characters')
+  .regex(/^[a-zA-ZçÇğĞıİöÖşŞüÜ\s]+$/, 'Only letters are allowed')
   .refine((name) => name.trim().length > 0, {
-    message: 'Bu alan gereklidir'
+    message: 'This field is required'
   })
 
 export const emailSchema = z.string()
-  .email('Geçerli bir e-posta adresi giriniz')
+  .email('Enter a valid email address')
   .optional()
   .or(z.literal(''))
 
 export const requiredEmailSchema = z.string()
-  .min(1, 'E-posta adresi gereklidir')
-  .email('Geçerli bir e-posta adresi giriniz')
+  .min(1, 'Email address is required')
+  .email('Enter a valid email address')
 
 // Date/Time validation
 export const dateSchema = z.date({
-  required_error: 'Tarih seçimi gereklidir',
-  invalid_type_error: 'Geçerli bir tarih seçiniz'
+  required_error: 'Date selection is required',
+  invalid_type_error: 'Select a valid date'
 })
 
 export const nullableDateSchema = z.date().nullable()
 
 export const timeSchema = z.string()
-  .min(1, 'Saat seçimi gereklidir')
-  .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Geçerli bir saat formatı giriniz (ÖR: 14:30)')
+  .min(1, 'Time selection is required')
+  .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Enter a valid time format (e.g.: 14:30)')
 
 export const staffIdSchema = z.string()
-  .min(1, 'Berber seçimi gereklidir')
-  .uuid('Geçerli bir berber seçiniz')
+  .min(1, 'Barber selection is required')
+  .uuid('Select a valid barber')
 
 // Customer schemas
 export const customerInfoSchema = z.object({
@@ -64,7 +64,7 @@ export const appointmentFormSchema = z.object({
   staffId: staffIdSchema,
   customer: customerInfoSchema,
   notes: z.string()
-    .max(500, 'Notlar en fazla 500 karakter olabilir')
+    .max(500, 'Notes can be maximum 500 characters')
     .optional()
 })
 
@@ -82,7 +82,7 @@ export const manualAppointmentFormSchema = z.object({
   staffId: staffIdSchema,
   customer: requiredCustomerInfoSchema,
   notes: z.string()
-    .max(500, 'Notlar en fazla 500 karakter olabilir')
+    .max(500, 'Notes can be maximum 500 characters')
     .optional()
 })
 
@@ -101,8 +101,8 @@ export const timeBlockingFormSchema = z.object({
   endTime: timeSchema,
   staffId: staffIdSchema,
   reason: z.string()
-    .min(1, 'Blokaj nedeni gereklidir')
-    .max(200, 'Blokaj nedeni en fazla 200 karakter olabilir')
+    .min(1, 'Block reason is required')
+    .max(200, 'Block reason can be maximum 200 characters')
 }).refine((data) => {
   // Validate that end time is after start time
   const [startHour, startMin] = data.startTime.split(':').map(Number)
@@ -111,7 +111,7 @@ export const timeBlockingFormSchema = z.object({
   const endMinutes = endHour * 60 + endMin
   return endMinutes > startMinutes
 }, {
-  message: 'Bitiş saati başlangıç saatinden sonra olmalıdır',
+  message: 'End time must be after start time',
   path: ['endTime']
 })
 

@@ -38,7 +38,7 @@ model User {
   createdAppointments  Appointment[]             @relation("CreatedAppointments")
   unavailableTimes     EmployeeUnavailableTime[] @relation("StaffUnavailableTimes")
 
-  @@index([email]) // User lookup'lar için
+  @@index([email]) // For user lookups
   @@map("users")
 }
 
@@ -64,7 +64,7 @@ model Appointment {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   
-  // Manuel randevular için (sistemde kayıtlı olmayan müşteriler)
+  // For manual appointments (customers not registered in the system)
   manualCustomerName  String?
   manualCustomerPhone String?
 
@@ -76,11 +76,11 @@ model Appointment {
 
   // Prevent double booking with compound index
   // Application-level checks will handle race conditions via transactions
-  @@index([customerId]) // Appointment queries için  
-  @@index([staffId]) // Staff appointment'ları için
-  @@index([date, staffId]) // Time slot queries için
-  @@index([date]) // Date-based lookups için
-  @@index([status]) // Status filtering için
+  @@index([customerId]) // For appointment queries
+  @@index([staffId]) // For staff appointments
+  @@index([date, staffId]) // For time slot queries
+  @@index([date]) // For date-based lookups
+  @@index([status]) // For status filtering
   @@index([staffId, date, startTime, status], map: "appointment_conflict_check")
   @@map("appointments")
 }
@@ -97,8 +97,8 @@ model EmployeeUnavailableTime {
   // Relation back to the user (must be barber or employee — enforce separately)
   staff User @relation("StaffUnavailableTimes", fields: [staffId], references: [id])
 
-  @@index([staffId]) // Staff unavailable time queries için
-  @@index([date]) // Date-based unavailable time queries için
+  @@index([staffId]) // For staff unavailable time queries
+  @@index([date]) // For date-based unavailable time queries
   @@map("employee_unavailable_times")
 }
 

@@ -24,12 +24,12 @@ export function DateSelection({
         // Use timezone-safe date string creation from lib/date-time.ts
         const dateString = dateToLocalString(date);
         
-        // Tarihi aynı şekilde oluştur (timezone-safe)
+        // Create date the same way (timezone-safe)
         const displayDate = new Date(dateString + 'T00:00:00');
         dates.push({
           value: dateString,
           label: formatTurkishDate(dateString),
-          dayName: displayDate.toLocaleDateString("tr-TR", { weekday: "long" }),
+          dayName: displayDate.toLocaleDateString("en-US", { weekday: "long" }),
           isToday: i === 0 && today.getDay() !== 0,
         });
       }
@@ -46,9 +46,9 @@ export function DateSelection({
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Tarih Seçin</h2>
+        <h2 className="text-xl font-semibold mb-2">Select Date</h2>
         <p className="text-muted-foreground text-sm">
-          Randevu tarihinizi seçin (Pazar günleri kapalı)
+          Choose your appointment date (Closed on Sundays)
         </p>
       </div>
 
@@ -72,7 +72,7 @@ export function DateSelection({
                     {date.label}
                     {date.isToday && (
                       <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
-                        Bugün
+                        Today
                       </span>
                     )}
                   </div>

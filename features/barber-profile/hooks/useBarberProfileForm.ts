@@ -57,7 +57,7 @@ export const useBarberProfileForm = ({ profile, onSave }: UseBarberProfileFormPr
   const cancelEditing = useCallback(() => {
     setEditState(prev => {
       if (prev.hasUnsavedChanges) {
-        const confirmed = window.confirm('Kaydedilmemiş değişiklikleriniz var. İptal etmek istediğinizden emin misiniz?')
+        const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?')
         if (!confirmed) return prev
       }
       
@@ -107,7 +107,7 @@ export const useBarberProfileForm = ({ profile, onSave }: UseBarberProfileFormPr
 
   const saveProfile = useCallback(async () => {
     if (!validateForm(editState.editForm)) {
-      toast.error('Lütfen form hatalarını düzeltin')
+      toast.error('Please fix the form errors')
       return
     }
 
@@ -119,10 +119,10 @@ export const useBarberProfileForm = ({ profile, onSave }: UseBarberProfileFormPr
         hasUnsavedChanges: false,
         validationErrors: {}
       }))
-      toast.success('Profil başarıyla güncellendi')
+      toast.success('Profile updated successfully')
     } catch (error) {
       console.error('Profile save error:', error)
-      toast.error('Profil güncellenirken hata oluştu')
+      toast.error('Error updating profile')
     }
   }, [editState.editForm, onSave, validateForm])
 

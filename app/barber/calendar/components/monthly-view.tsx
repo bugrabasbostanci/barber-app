@@ -61,10 +61,10 @@ export function MonthlyView({
             className="bg-transparent px-3 sm:px-6 py-2 sm:py-3"
           >
             <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
-            <span className="ml-1 sm:ml-2 text-xs sm:text-base">Önceki</span>
+            <span className="ml-1 sm:ml-2 text-xs sm:text-base">Previous</span>
           </Button>
           <h2 className="text-lg sm:text-2xl font-bold text-center">
-            {currentMonth.toLocaleDateString("tr-TR", {
+            {currentMonth.toLocaleDateString("en-US", {
               month: "long",
               year: "numeric",
             })}
@@ -75,7 +75,7 @@ export function MonthlyView({
             onClick={() => navigateMonth("next")}
             className="bg-transparent px-3 sm:px-6 py-2 sm:py-3"
           >
-            <span className="mr-1 sm:mr-2 text-xs sm:text-base">Sonraki</span>
+            <span className="mr-1 sm:mr-2 text-xs sm:text-base">Next</span>
             <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
           </Button>
         </div>
@@ -83,7 +83,7 @@ export function MonthlyView({
         {/* Mobile Month View - Simplified */}
         <div className="block lg:hidden">
           <div className="grid grid-cols-7 gap-1 mb-4">
-            {["P", "S", "Ç", "P", "C", "C", "P"].map((day, index) => (
+            {["S", "M", "T", "W", "T", "F", "S"].map((day, index) => (
               <div key={index} className="text-center font-bold text-sm p-2">
                 {day}
               </div>
@@ -145,7 +145,7 @@ export function MonthlyView({
 
         {/* Desktop Month Grid */}
         <div className="hidden lg:grid lg:grid-cols-7 gap-2">
-          {["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map((day) => (
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
             <div key={day} className="text-center font-medium text-muted-foreground p-2">
               {day}
             </div>
@@ -163,7 +163,7 @@ export function MonthlyView({
                     <div className="text-sm font-medium mb-1">{day.getDate()}</div>
                     {dayAppointments.length > 0 && (
                       <div className="text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded px-1 py-0.5 mb-1">
-                        {dayAppointments.length} randevu
+                        {dayAppointments.length} appointments
                       </div>
                     )}
                   </>

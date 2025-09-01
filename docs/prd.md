@@ -1,64 +1,64 @@
-# **Berber Randevu Yönetim Sistemi - Ürün Gereksinimleri Dokümanı (PRD)**
+# **Barber Appointment Management System - Product Requirements Document (PRD)**
 
-**1. Projeye Genel Bakış**
+**1. Project Overview**
 
-Bu doküman, berber salonları için geliştirilecek dijital randevu yönetim platformunun gereksinimlerini tanımlar. Projenin temel amacı, müşteri randevu sürecini otomatize ederek hem müşteriler için kolaylık sağlamak hem de salon sahibinin (berber) ve çalışanının operasyonel verimliliğini artırmaktır.
+This document defines the requirements for a digital appointment management platform to be developed for barber shops. The main goal of the project is to automate the customer appointment process, providing convenience for customers and increasing operational efficiency for salon owners (barbers) and their staff.
 
-**2. Hedef Kitle**
+**2. Target Audience**
 
-- **Müşteri:** Online olarak randevu almayı tercih eden son kullanıcılar.
-- **Berber (Salon Sahibi):** Randevu defteri ve telefon trafiğini azaltarak iş akışını dijital bir takvim üzerinden yönetmek isteyen işletme sahibi.
-- **Çalışan:** Randevu takvimi salon sahibi tarafından yönetilen personel. (MVP'de kendi kullanıcı girişi olmayacaktır).
+- **Customer:** End users who prefer to book appointments online.
+- **Barber (Salon Owner):** Business owner who wants to manage workflow through a digital calendar, reducing appointment books and phone traffic.
+- **Employee:** Staff whose appointment calendar is managed by the salon owner. (Will not have their own user login in the MVP).
 
-**3. Kapsam ve Özellikler (MVP)**
+**3. Scope and Features (MVP)**
 
-**3.1. Temel Sistem ve Randevu Mantığı**
+**3.1. Basic System and Appointment Logic**
 
-- **Kullanıcı Yönetimi:** Müşteriler için e-posta/şifre veya telefon numarası ile basit kayıt ve giriş sistemi.
-- **Çalışma Saatleri:** **09:30 - 21:30**.
-- **Randevu Süresi:** Tüm hizmetler için sabit **45 dakika**.
-- **Kapalı Gün:** **Pazar** günleri randevuya tamamen kapalıdır.
-- **Randevu Periyodu:** Müşteriler, içinde bulunulan günden sonraki **7 gün** için randevu alabilir.
+- **User Management:** Simple registration and login system for customers with email/password or phone number.
+- **Working Hours:** **09:30 - 21:30**.
+- **Appointment Duration:** Fixed **45 minutes** for all services.
+- **Closed Day:** **Sundays** are completely closed for appointments.
+- **Appointment Period:** Customers can book appointments for the next **7 days** from the current date.
 
-**3.2. Müşteri Rolü Özellikleri**
+**3.2. Customer Role Features**
 
-- **Kayıt/Giriş:** Sisteme güvenli bir şekilde kayıt olma ve giriş yapma.
-- **Randevu Oluşturma Akışı:**
-  1. **Gün Seçimi:** Sadece randevuya açık olan gelecek 7 günü gösteren bir takvimden gün seçimi.
-  2. **Personel Seçimi:** Randevu almak istediği kişiyi seçme (Berber / Çalışan).
-  3. **Saat Seçimi:** Seçilen personelin o gün için müsait olan 45 dakikalık randevu saatlerinden birini seçme.
-  4. **Onay:** Randevu özetini (tarih, saat, personel) görme ve onaylama. (Kayıtlı olduğu için bilgileri tekrar girmesine gerek kalmaz).
-- **Randevularım Ekranı:**
-  - Gelecekteki ve geçmiş randevularını listeleme.
-  - **Randevu İptali:** Gelecekteki bir randevuyu, **randevu saatine 2 saat kalana kadar** iptal etme butonu. 2 saatten az süre kaldığında bu buton pasif hale gelir.
+- **Registration/Login:** Secure registration and login to the system.
+- **Appointment Booking Flow:**
+  1. **Day Selection:** Choose a day from a calendar showing only the next 7 days available for appointments.
+  2. **Staff Selection:** Choose the person to book an appointment with (Barber / Employee).
+  3. **Time Selection:** Select one of the available 45-minute appointment slots for the chosen staff member on that day.
+  4. **Confirmation:** View and confirm the appointment summary (date, time, staff). (No need to re-enter information as they are registered).
+- **My Appointments Screen:**
+  - List future and past appointments.
+  - **Appointment Cancellation:** Button to cancel future appointments **up to 2 hours before the appointment time**. This button becomes inactive when less than 2 hours remain.
 
-**3.3. Berber (Salon Sahibi) Rolü Özellikleri**
+**3.3. Barber (Salon Owner) Role Features**
 
-- **Yönetici Paneli:** Kendine özel, güvenli bir giriş ile erişebileceği yönetim paneli.
-- **Takvim Yönetimi:**
-  - **Görünümler:** Randevuları **Günlük, Haftalık ve Aylık** formatta (Google Calendar benzeri) görsel bir takvim üzerinde görme.
-  - **Filtreleme:** Takvimde sadece kendi randevularını, sadece çalışanın randevularını veya her ikisini birden görme.
-  - **Randevu Detayı:** Takvimdeki bir randevuya tıklandığında müşteri adı ve telefonunu görme.
-- **Manuel Randevu Yönetimi:**
-  - **Müşteri Adına Randevu Oluşturma:** Sisteme kayıtlı olmayan veya telefonla arayan bir müşteri için manuel randevu ekleyebilme. Bu işlem sırasında **müşterinin sadece adını ve telefon numarasını girmek yeterlidir**, sistemde bir hesap oluşturulması gerekmez.
-  - **Randevu İptali:** Mevcut bir randevuyu (gerekçe belirterek veya belirtmeden) iptal edebilme.
-- **Zaman Bloklama (Manuel Yönetim):**
-  - **Belirli Saatleri Kapatma:** Gün içinde belirli bir zaman aralığını (örn. "doktor randevusu", "öğle yemeği") kendisi veya çalışanı için randevuya kapatabilme.
-  - **Tüm Günü Kapatma:** Hastalık, izin, resmi tatil gibi durumlar için bir veya daha fazla günü **tamamen manuel olarak** kendisi veya çalışanı için randevuya kapatabilme.
+- **Admin Panel:** A dedicated management panel accessible through secure login.
+- **Calendar Management:**
+  - **Views:** View appointments in **Daily, Weekly, and Monthly** formats (similar to Google Calendar) on a visual calendar.
+  - **Filtering:** View only own appointments, only employee appointments, or both in the calendar.
+  - **Appointment Details:** View customer name and phone number when clicking on an appointment in the calendar.
+- **Manual Appointment Management:**
+  - **Create Appointments for Customers:** Ability to manually add appointments for customers not registered in the system or calling by phone. During this process, **entering only the customer's name and phone number is sufficient**, no system account creation is required.
+  - **Appointment Cancellation:** Ability to cancel existing appointments (with or without specifying a reason).
+- **Time Blocking (Manual Management):**
+  - **Block Specific Hours:** Ability to close specific time periods during the day (e.g., "doctor appointment", "lunch break") for appointments for themselves or employees.
+  - **Close Entire Days:** Ability to **manually close** one or more days completely for appointments for themselves or employees due to illness, vacation, public holidays, etc.
 
-**3.4. Bildirimler (MVP için Düşük Maliyetli Çözüm)**
+**3.4. Notifications (Low-Cost Solution for MVP)**
 
-- **Temel Yaklaşım:** MVP aşamasında maliyet yaratacak SMS veya ücretli WhatsApp API entegrasyonlarından kaçınılacaktır.
-- **Uygulama İçi Onay:** Müşteri randevu oluşturduğunda veya iptal ettiğinde, ekranda net bir onay mesajı ("Randevunuz oluşturulmuştur", "Randevunuz başarıyla iptal edildi") gösterilir.
-- **Gelecek Potansiyeli (WhatsApp):** Berberin mevcut "İşletme WhatsApp" hesabını kullanarak randevudan bir gün önce manuel veya yarı-otomatik bir hatırlatma göndermesi teşvik edilebilir. Tam otomasyon, projenin bir sonraki aşamasında değerlendirilecektir. Bu, MVP'de sıfır teknik maliyetle "no-show" oranını düşürmeye yardımcı olur.
+- **Basic Approach:** SMS or paid WhatsApp API integrations that would create costs will be avoided in the MVP phase.
+- **In-App Confirmation:** When customers create or cancel appointments, clear confirmation messages are displayed on screen ("Your appointment has been created", "Your appointment has been successfully canceled").
+- **Future Potential (WhatsApp):** The barber can be encouraged to use their existing "Business WhatsApp" account to send manual or semi-automatic reminders one day before appointments. Full automation will be considered in the next phase of the project. This helps reduce "no-show" rates at zero technical cost in the MVP.
 
-**4. Kapsam Dışı (MVP Sonrası Değerlendirilecekler)**
+**4. Out of Scope (To Be Considered After MVP)**
 
-- Otomatik SMS/E-posta/WhatsApp bildirimleri ve hatırlatmaları.
-- Online ödeme entegrasyonu.
-- Farklı hizmetler, süreler ve fiyatlandırma.
-- Çalışan için ayrı kullanıcı girişi ve kendi takvimini yönetme yetkisi.
-- Detaylı raporlama (gelir, müşteri yoğunluğu vb.).
-- Pazarlama ve kampanya modülleri.
+- Automatic SMS/Email/WhatsApp notifications and reminders.
+- Online payment integration.
+- Different services, durations, and pricing.
+- Separate user login for employees and authority to manage their own calendar.
+- Detailed reporting (revenue, customer density, etc.).
+- Marketing and campaign modules.
 
-Bu doküman, projenin ilk ve en yalın halini hayata geçirmek için sağlam bir temel oluşturmaktadır. Proje canlıya alındıktan sonra bir berber tarafından aktif olarak kullanılması, en değerli geri bildirimleri toplayarak sonraki adımları doğru bir şekilde planlamamızı sağlayacaktır.
+This document establishes a solid foundation for implementing the first and leanest version of the project. Active use by a barber after the project goes live will help us gather the most valuable feedback and plan the next steps correctly.

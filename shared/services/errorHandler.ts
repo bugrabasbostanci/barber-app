@@ -147,10 +147,10 @@ export class ToastErrorHandler implements ErrorHandler {
       if (error.status >= 400 && error.status < 500) {
         this.showToast(message, 'warning');
       } else if (error.status >= 500) {
-        this.showToast('Sunucu hatası oluştu. Lütfen tekrar deneyin.', 'error');
+        this.showToast('Server error occurred. Please try again.', 'error');
       }
     } else {
-      this.showToast('Beklenmedik bir hata oluştu.', 'error');
+      this.showToast('An unexpected error occurred.', 'error');
     }
   }
 }

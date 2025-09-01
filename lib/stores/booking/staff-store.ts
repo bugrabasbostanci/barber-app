@@ -56,7 +56,7 @@ export const useBookingStaffStore = create<BookingStaffState>()(
       // Computed
       getStaffName: (staffId: string) => {
         const staff = get().staffMembers.find((s) => s.id === staffId);
-        return staff ? `${staff.firstName} ${staff.lastName}` : "Seçilen Berber";
+        return staff ? `${staff.firstName} ${staff.lastName}` : "Selected Barber";
       },
 
       // Reset

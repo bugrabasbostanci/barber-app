@@ -10,15 +10,13 @@ export function AppointmentsHeader() {
           <Link href="/barber/dashboard">
             <Button variant="ghost" size="lg" className="text-base">
               <ArrowLeft className="w-6 h-6 mr-3" />
-              Geri
+              Back
             </Button>
           </Link>
           <div className="ml-4">
-            <h1 className="text-xl sm:text-2xl font-bold">
-              Randevu Yönetimi
-            </h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Appointment Management</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Tüm randevuları görüntüle ve yönet
+              View and manage all appointments
             </p>
           </div>
         </div>
@@ -28,7 +26,7 @@ export function AppointmentsHeader() {
             className="bg-black hover:bg-gray-800 dark:bg-white  dark:hover:bg-gray-200 text-white dark:text-black text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
           >
             <Plus className="w-5 h-5 sm:mr-2" />
-            Yeni Randevu
+            New Appointment
           </Button>
         </Link>
       </div>

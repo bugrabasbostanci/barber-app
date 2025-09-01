@@ -115,7 +115,7 @@ export function NewAppointmentForm() {
     e.preventDefault();
 
     if (!selectedDate || !selectedTime || !selectedStaff) {
-      alert("Lütfen tüm gerekli alanları doldurun.");
+      alert("Please fill in all required fields.");
       return;
     }
 
@@ -123,7 +123,7 @@ export function NewAppointmentForm() {
       customerType === "new" &&
       (!formData.customerName || !formData.customerPhone)
     ) {
-      alert("Lütfen müşteri adı ve telefon numarasını girin.");
+      alert("Please enter customer name and phone number.");
       return;
     }
 
@@ -150,14 +150,14 @@ export function NewAppointmentForm() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        alert("Randevu başarıyla oluşturuldu!");
+        alert("Appointment created successfully!");
         router.push("/barber/appointments");
       } else {
-        alert(result.error || "Randevu oluşturulurken bir hata oluştu.");
+        alert(result.error || "An error occurred while creating the appointment.");
       }
     } catch (error) {
       console.error('Error creating appointment:', error);
-      alert("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+      alert("An error occurred while creating the appointment. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -182,13 +182,13 @@ export function NewAppointmentForm() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5" />
-                Randevu Detayları
+                Appointment Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Date Selection */}
               <div className="space-y-2">
-                <Label>Tarih</Label>
+                <Label>Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -202,7 +202,7 @@ export function NewAppointmentForm() {
                       {selectedDate ? (
                         formatTurkishDate(dateToLocalString(selectedDate))
                       ) : (
-                        <span>Tarih seçin</span>
+                        <span>Select date</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -220,10 +220,10 @@ export function NewAppointmentForm() {
 
               {/* Staff Selection */}
               <div className="space-y-2">
-                <Label>Berber/Personel</Label>
+                <Label>Barber/Staff</Label>
                 <Select value={selectedStaff} onValueChange={setSelectedStaff}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Personel seçin" />
+                    <SelectValue placeholder="Select staff" />
                   </SelectTrigger>
                   <SelectContent>
                     {staff.map((person) => (
@@ -243,7 +243,7 @@ export function NewAppointmentForm() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Saat Seçimi
+                  Time Selection
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -268,7 +268,7 @@ export function NewAppointmentForm() {
                 </div>
                 {timeSlots.length === 0 && (
                   <p className="text-center text-gray-500 py-4">
-                    Tarih ve personel seçimi yapın
+                    Select date and staff
                   </p>
                 )}
               </CardContent>
@@ -282,13 +282,13 @@ export function NewAppointmentForm() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Müşteri Bilgileri
+                Customer Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Customer Type Selection */}
               <div className="space-y-2">
-                <Label>Müşteri Türü</Label>
+                <Label>Customer Type</Label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -296,7 +296,7 @@ export function NewAppointmentForm() {
                     size="sm"
                     onClick={() => setCustomerType("new")}
                   >
-                    Yeni Müşteri
+                    New Customer
                   </Button>
                   <Button
                     type="button"
@@ -306,7 +306,7 @@ export function NewAppointmentForm() {
                     size="sm"
                     onClick={() => setCustomerType("existing")}
                   >
-                    Mevcut Müşteri
+                    Existing Customer
                   </Button>
                 </div>
               </div>
@@ -314,7 +314,7 @@ export function NewAppointmentForm() {
               {customerType === "new" ? (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="customerName">Müşteri Adı</Label>
+                    <Label htmlFor="customerName">Customer Name</Label>
                     <Input
                       id="customerName"
                       value={formData.customerName}
@@ -324,12 +324,12 @@ export function NewAppointmentForm() {
                           customerName: e.target.value,
                         }))
                       }
-                      placeholder="Müşteri adını girin"
+                      placeholder="Enter customer name"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="customerPhone">Telefon Numarası</Label>
+                    <Label htmlFor="customerPhone">Phone Number</Label>
                     <Input
                       id="customerPhone"
                       type="tel"
@@ -347,9 +347,9 @@ export function NewAppointmentForm() {
                 </>
               ) : (
                 <div className="space-y-2">
-                  <Label>Mevcut Müşteri</Label>
+                  <Label>Existing Customer</Label>
                   <div className="flex gap-2">
-                    <Input placeholder="Müşteri ara..." />
+                    <Input placeholder="Search customer..." />
                     <Button type="button" variant="outline" size="icon">
                       <Search className="h-4 w-4" />
                     </Button>
@@ -358,14 +358,14 @@ export function NewAppointmentForm() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notlar (İsteğe bağlı)</Label>
+                <Label htmlFor="notes">Notes (Optional)</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, notes: e.target.value }))
                   }
-                  placeholder="Randevu ile ilgili notlar..."
+                  placeholder="Notes about the appointment..."
                   rows={3}
                 />
               </div>
@@ -376,17 +376,17 @@ export function NewAppointmentForm() {
           {selectedDate && selectedTime && selectedStaff && (
             <Card>
               <CardHeader>
-                <CardTitle>Randevu Özeti</CardTitle>
+                <CardTitle>Appointment Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Tarih:</span>
+                  <span className="text-gray-600">Date:</span>
                   <span className="font-medium">
                     {formatTurkishDate(dateToLocalString(selectedDate))}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Saat:</span>
+                  <span className="text-gray-600">Time:</span>
                   <span className="font-medium">
                     {selectedTime} -{" "}
                     {(() => {
@@ -397,25 +397,25 @@ export function NewAppointmentForm() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Berber:</span>
+                  <span className="text-gray-600">Barber:</span>
                   <span className="font-medium">
                     {staff.find((s) => s.id === selectedStaff)?.firstName}{" "}
                     {staff.find((s) => s.id === selectedStaff)?.lastName}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Süre:</span>
+                  <span className="text-gray-600">Duration:</span>
                   <span className="font-medium">
-                    {BUSINESS_RULES.APPOINTMENT_DURATION} dakika
+                    {BUSINESS_RULES.APPOINTMENT_DURATION} minutes
                   </span>
                 </div>
                 {(formData.customerName || formData.existingCustomerId) && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Müşteri:</span>
+                    <span className="text-gray-600">Customer:</span>
                     <span className="font-medium">
                       {customerType === "new"
                         ? formData.customerName
-                        : "Mevcut müşteri"}
+                        : "Existing customer"}
                     </span>
                   </div>
                 )}
@@ -428,11 +428,11 @@ export function NewAppointmentForm() {
       {/* Submit Button */}
       <div className="flex justify-end gap-4">
         <Button type="button" variant="outline" onClick={() => router.back()}>
-          İptal
+          Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           <Save className="h-4 w-4 mr-2" />
-          {isSubmitting ? "Oluşturuluyor..." : "Randevu Oluştur"}
+          {isSubmitting ? "Creating..." : "Create Appointment"}
         </Button>
       </div>
     </form>

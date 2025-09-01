@@ -16,11 +16,11 @@ export const barberProfileFormSchema = z.object({
   phone: phoneSchema,
   email: emailSchema,
   businessName: z.string()
-    .min(2, 'İşletme adı en az 2 karakter olmalıdır')
-    .max(100, 'İşletme adı en fazla 100 karakter olabilir')
+    .min(2, 'Business name must be at least 2 characters')
+    .max(100, 'Business name can be maximum 100 characters')
     .optional(),
   address: z.string()
-    .max(200, 'Adres en fazla 200 karakter olabilir')
+    .max(200, 'Address can be maximum 200 characters')
     .optional()
 })
 
@@ -81,7 +81,7 @@ export const workingHoursSchema = z.object({
   }
   return true
 }, {
-  message: 'Açık günlerde başlangıç ve bitiş saatleri belirtilmeli, bitiş saati başlangıçtan sonra olmalıdır'
+  message: 'For open days, start and end times must be specified, and end time must be after start time'
 })
 
 // Type exports

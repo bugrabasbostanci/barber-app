@@ -7,7 +7,7 @@ export async function requireAuth() {
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
-    redirect('/auth/login?error=Bu sayfayı görüntülemek için giriş yapmanız gerekiyor')
+    redirect('/auth/login?error=You need to log in to view this page')
   }
 
   return user
@@ -23,21 +23,21 @@ export async function requireCustomer() {
     })
 
     if (!dbUser) {
-      redirect('/auth/login?error=Kullanıcı bulunamadı')
+      redirect('/auth/login?error=User not found')
     }
 
     if (!dbUser.isActive) {
-      redirect('/auth/login?error=Hesabınız deaktif durumda')
+      redirect('/auth/login?error=Your account is deactivated')
     }
 
     if (dbUser.role !== 'CUSTOMER') {
-      redirect('/?error=Bu sayfaya erişim yetkiniz bulunmuyor')
+      redirect('/?error=You do not have permission to access this page')
     }
 
     return { user, role: dbUser.role }
   } catch (error) {
     console.error('Database error in requireCustomer:', error)
-    redirect('/auth/login?error=Veritabanı hatası oluştu')
+    redirect('/auth/login?error=Database error occurred')
   }
 }
 
@@ -51,20 +51,20 @@ export async function requireBarber() {
     })
 
     if (!dbUser) {
-      redirect('/auth/login?error=Kullanıcı bulunamadı')
+      redirect('/auth/login?error=User not found')
     }
 
     if (!dbUser.isActive) {
-      redirect('/auth/login?error=Hesabınız deaktif durumda')
+      redirect('/auth/login?error=Your account is deactivated')
     }
 
     if (dbUser.role !== 'BARBER' && dbUser.role !== 'ADMIN') {
-      redirect('/?error=Bu sayfaya erişim yetkiniz bulunmuyor')
+      redirect('/?error=You do not have permission to access this page')
     }
 
     return { user, role: dbUser.role }
   } catch (error) {
     console.error('Database error in requireBarber:', error)
-    redirect('/auth/login?error=Veritabanı hatası oluştu')
+    redirect('/auth/login?error=Database error occurred')
   }
 }

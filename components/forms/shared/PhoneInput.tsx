@@ -18,7 +18,7 @@ export const PhoneInput = ({
   value,
   onChange,
   error,
-  label = 'Telefon Numarası',
+  label = 'Phone Number',
   placeholder = '5XX XXX XX XX',
   required = true,
   disabled = false
@@ -105,7 +105,7 @@ export const PhoneInput = ({
       />
       {(error || (!isValid && value)) && (
         <p className="text-sm text-red-500">
-          {error || 'Geçerli bir telefon numarası giriniz (5XX XXX XX XX)'}
+          {error || 'Please enter a valid phone number (5XX XXX XX XX)'}
         </p>
       )}
     </div>

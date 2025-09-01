@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (zustandUser?.email) {
       return zustandUser.email.split('@')[0];
     }
-    return 'Kullanıcı';
+    return 'User';
   }, [zustandUser]);
 
   const getUserInitials = useCallback((): string => {

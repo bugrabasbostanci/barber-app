@@ -145,20 +145,20 @@ export const useAppointmentsStore = create<AppointmentsState>()(
               });
             } else {
               set({ 
-                error: "Randevu verileri alınamadı",
+                error: "Could not retrieve appointment data",
                 appointments: [] 
               });
             }
           } else {
             set({ 
-              error: "Randevular yüklenirken bir hata oluştu",
+              error: "An error occurred while loading appointments",
               appointments: [] 
             });
           }
         } catch (error) {
           console.error("Error fetching appointments:", error);
           set({ 
-            error: "Bağlantı hatası oluştu",
+            error: "Connection error occurred",
             appointments: [] 
           });
         } finally {
@@ -194,12 +194,12 @@ export const useAppointmentsStore = create<AppointmentsState>()(
             });
             return true;
           } else {
-            set({ error: result.error || "Randevu iptal edilemedi" });
+            set({ error: result.error || "Appointment could not be cancelled" });
             return false;
           }
         } catch (error) {
           console.error("Error cancelling appointment:", error);
-          set({ error: "Randevu iptal edilirken bir hata oluştu" });
+          set({ error: "An error occurred while cancelling appointment" });
           return false;
         } finally {
           set({ cancellingId: null });

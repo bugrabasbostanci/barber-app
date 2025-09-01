@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Turkish barber appointment management system** built as a Next.js application. The system enables customers to book appointments online and provides barbers (salon owners) with a management interface to handle bookings, schedules, and availability.
+This is a **barber appointment management system** built as a Next.js application. The system enables customers to book appointments online and provides barbers (salon owners) with a management interface to handle bookings, schedules, and availability.
 
 ### Key Business Rules
 
@@ -76,7 +76,7 @@ Uses shadcn/ui component system with:
 - Tailwind CSS for styling with CSS variables
 - Lucide React for icons
 
-When developing new features, follow the existing patterns in the codebase and refer to the Turkish PRD document for business requirements.
+When developing new features, follow the existing patterns in the codebase and refer to the PRD document for business requirements.
 
 ## Refatoring and Improvement
 

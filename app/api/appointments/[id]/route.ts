@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
-import { withAuth, requireBarber, AuthenticatedUser } from "@/lib/middleware/api-auth";
+import {
+  withAuth,
+  requireBarber,
+  AuthenticatedUser,
+} from "@/lib/middleware/api-auth";
 import { withErrorHandler } from "@/lib/middleware/error-handler";
 import { ApiResponseBuilder } from "@/lib/api/response";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
@@ -11,7 +15,7 @@ async function deleteAppointment(
 ) {
   // Get ID from URL path
   const url = new URL(request.url);
-  const pathSegments = url.pathname.split('/');
+  const pathSegments = url.pathname.split("/");
   const id = pathSegments[pathSegments.length - 1];
   const user = context?.user as AuthenticatedUser;
 
@@ -25,7 +29,7 @@ async function deleteAppointment(
     });
 
     if (!appointment) {
-      throw new NotFoundError("Randevu bulunamadı");
+      throw new NotFoundError("Appointment not found");
     }
 
     // Check if user is a barber and belongs to the same shop
@@ -34,7 +38,9 @@ async function deleteAppointment(
     });
 
     if (!userRecord || userRecord.role !== "BARBER") {
-      throw new ForbiddenError("Bu işlemi gerçekleştirmek için berber yetkisi gerekli");
+      throw new ForbiddenError(
+        "Bu işlemi gerçekleştirmek için berber yetkisi gerekli"
+      );
     }
 
     // Delete the appointment (hard delete as requested by user)

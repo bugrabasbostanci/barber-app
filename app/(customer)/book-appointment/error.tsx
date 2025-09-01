@@ -27,46 +27,46 @@ export default function BookAppointmentError({
     
     if (message.includes('staff') || message.includes('berber')) {
       return {
-        title: 'Berber Seçiminde Sorun',
-        description: 'Berber bilgileri yüklenirken bir hata oluştu.',
+        title: 'Staff Selection Issue',
+        description: 'An error occurred while loading staff information.',
         icon: <User className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Sayfayı yenileyin ve tekrar deneyin',
-          'Farklı bir tarih seçmeyi deneyin',
-          'İnternet bağlantınızı kontrol edin'
+          'Refresh the page and try again',
+          'Try selecting a different date',
+          'Check your internet connection'
         ]
       }
     } else if (message.includes('time') || message.includes('slot') || message.includes('saat')) {
       return {
-        title: 'Saat Seçiminde Sorun',
-        description: 'Müsait saatler yüklenirken bir hata oluştu.',
+        title: 'Time Selection Issue',
+        description: 'An error occurred while loading available time slots.',
         icon: <Clock className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Farklı bir tarih seçmeyi deneyin',
-          'Başka bir berber seçmeyi deneyin',
-          'Sayfayı yenileyin ve tekrar deneyin'
+          'Try selecting a different date',
+          'Try selecting a different barber',
+          'Refresh the page and try again'
         ]
       }
     } else if (message.includes('submit') || message.includes('booking') || message.includes('randevu')) {
       return {
-        title: 'Randevu Kaydetmede Sorun',
-        description: 'Randevunuz kaydedilirken bir hata oluştu.',
+        title: 'Appointment Booking Issue',
+        description: 'An error occurred while saving your appointment.',
         icon: <Calendar className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Telefon numaranızın doğru olduğundan emin olun',
-          'Tüm gerekli bilgileri doldurduğunuzdan emin olun',
-          'Birkaç dakika bekleyip tekrar deneyin'
+          'Make sure your phone number is correct',
+          'Make sure all required information is filled out',
+          'Wait a few minutes and try again'
         ]
       }
     } else {
       return {
-        title: 'Randevu Alma İşleminde Sorun',
-        description: 'Randevu alma sürecinde beklenmeyen bir hata oluştu.',
+        title: 'Appointment Booking Process Issue',
+        description: 'An unexpected error occurred during the appointment booking process.',
         icon: <AlertTriangle className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Sayfayı yenileyin ve baştan başlayın',
-          'İnternet bağlantınızı kontrol edin',
-          'Tarayıcınızı güncelleyin'
+          'Refresh the page and start over',
+          'Check your internet connection',
+          'Update your browser'
         ]
       }
     }
@@ -94,23 +94,23 @@ export default function BookAppointmentError({
             <Calendar className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-2">
-                <p className="font-medium text-sm">Randevu alma süreci:</p>
+                <p className="font-medium text-sm">Appointment booking process:</p>
                 <div className="text-xs space-y-1">
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">1</div>
-                    <span>Tarih seçin</span>
+                    <span>Select date</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">2</div>
-                    <span>Berberi seçin</span>
+                    <span>Select barber</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">3</div>
-                    <span>Saat seçin</span>
+                    <span>Select time</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">4</div>
-                    <span>Bilgileri onaylayın</span>
+                    <span>Confirm details</span>
                   </div>
                 </div>
               </div>
@@ -121,7 +121,7 @@ export default function BookAppointmentError({
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -153,7 +153,7 @@ export default function BookAppointmentError({
               variant="default"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Randevu Almaya Devam Et
+              Continue Booking
             </Button>
             
             <Button 
@@ -162,16 +162,16 @@ export default function BookAppointmentError({
               className="w-full"
             >
               <Calendar className="w-4 h-4 mr-2" />
-              Ana Sayfaya Dön
+              Back to Home
             </Button>
           </div>
 
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-xs text-blue-800 text-center">
-              <strong>Çalışma Saatleri:</strong> 09:30 - 21:30 (Pazar kapalı)
+              <strong>Working Hours:</strong> 09:30 - 21:30 (Closed on Sundays)
             </p>
             <p className="text-xs text-blue-700 text-center mt-1">
-              Randevular 45 dakika sürmektedir
+              Appointments last 45 minutes
             </p>
           </div>
         </CardContent>

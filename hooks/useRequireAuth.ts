@@ -12,12 +12,12 @@ export function useRequireAuth(requiredRole?: string) {
     if (!initialized) return;
 
     if (!loading && !user) {
-      router.push("/auth/login?error=Bu sayfayı görüntülemek için giriş yapmanız gerekiyor");
+      router.push("/auth/login?error=You need to log in to view this page");
       return;
     }
 
     if (requiredRole && user?.role !== requiredRole) {
-      router.push("/?error=Bu sayfaya erişim yetkiniz bulunmuyor");
+      router.push("/?error=You do not have permission to access this page");
       return;
     }
   }, [user, loading, initialized, requiredRole, router]);
@@ -38,9 +38,9 @@ export function useRequireCustomer() {
 
     if (!loading) {
       if (!user) {
-        router.push("/auth/login?error=Bu sayfayı görüntülemek için giriş yapmanız gerekiyor");
+        router.push("/auth/login?error=You need to log in to view this page");
       } else if (user.role !== "CUSTOMER") {
-        router.push("/?error=Bu sayfaya erişim yetkiniz bulunmuyor");
+        router.push("/?error=You do not have permission to access this page");
       }
     }
   }, [user, loading, initialized, router]);
@@ -62,9 +62,9 @@ export function useRequireBarber() {
 
     if (!loading) {
       if (!user) {
-        router.push("/auth/login?error=Bu sayfayı görüntülemek için giriş yapmanız gerekiyor");
+        router.push("/auth/login?error=You need to log in to view this page");
       } else if (user.role !== "BARBER" && user.role !== "ADMIN") {
-        router.push("/?error=Bu sayfaya erişim yetkiniz bulunmuyor");
+        router.push("/?error=You do not have permission to access this page");
       }
     }
   }, [user, loading, initialized, router]);

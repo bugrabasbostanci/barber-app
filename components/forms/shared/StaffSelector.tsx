@@ -26,8 +26,8 @@ export const StaffSelector = ({
   value,
   onChange,
   error,
-  label = 'Berber Seçin',
-  placeholder = 'Berber seçiniz',
+  label = 'Select Barber',
+  placeholder = 'Choose a barber',
   required = true,
   disabled = false,
   excludeIds = []
@@ -44,7 +44,7 @@ export const StaffSelector = ({
         
         const response = await fetch('/api/staff')
         if (!response.ok) {
-          throw new Error('Staff bilgileri yüklenirken hata oluştu')
+          throw new Error('Error occurred while loading staff information')
         }
         
         const data = await response.json()
@@ -52,7 +52,7 @@ export const StaffSelector = ({
         setStaff(filteredStaff)
       } catch (error) {
         console.error('Error fetching staff:', error)
-        setApiError(error instanceof Error ? error.message : 'Bilinmeyen hata')
+        setApiError(error instanceof Error ? error.message : 'Unknown error')
       } finally {
         setLoading(false)
       }
@@ -76,7 +76,7 @@ export const StaffSelector = ({
         )}
         <div className="flex items-center space-x-2 p-3 border rounded-md bg-gray-50">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="text-sm text-gray-600">Berberler yükleniyor...</span>
+          <span className="text-sm text-gray-600">Loading barbers...</span>
         </div>
       </div>
     )
@@ -118,7 +118,7 @@ export const StaffSelector = ({
         <SelectContent>
           {staff.length === 0 ? (
             <SelectItem value="" disabled>
-              Hiç berber bulunamadı
+              No barbers found
             </SelectItem>
           ) : (
             staff.map((member) => (

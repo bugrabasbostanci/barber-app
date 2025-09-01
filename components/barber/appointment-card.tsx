@@ -40,7 +40,7 @@ export function AppointmentCard({
     ? `${appointment.customer.firstName || ""} ${
         appointment.customer.lastName || ""
       }`.trim()
-    : appointment.manualCustomerName || "Bilinmeyen Müşteri";
+    : appointment.manualCustomerName || "Unknown Customer";
 
   const customerPhone =
     appointment.customer?.phone || appointment.manualCustomerPhone || "";
@@ -50,39 +50,39 @@ export function AppointmentCard({
 
   const fields: InfoField[] = [
     {
-      label: "Müşteri",
+      label: "Customer",
       value: customerName,
       icon: User,
     },
     ...(customerPhone
       ? [
           {
-            label: "Telefon",
+            label: "Phone",
             value: customerPhone,
             icon: Phone,
           },
         ]
       : []),
     {
-      label: "Berber",
+      label: "Barber",
       value: staffName,
       icon: UserCheck,
       className: "text-blue-600 font-semibold",
     },
     {
-      label: "Tarih",
+      label: "Date",
       value: formatTurkishDateShort(appointment.date),
       icon: Calendar,
     },
     {
-      label: "Saat",
+      label: "Time",
       value: `${appointment.startTime} - ${appointment.endTime}`,
       icon: Clock,
     },
     ...(appointment.notes
       ? [
           {
-            label: "Not",
+            label: "Notes",
             value: appointment.notes,
           },
         ]
@@ -111,7 +111,7 @@ export function AppointmentCard({
             className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 bg-transparent border border-red-200 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
-            Sil
+            Delete
           </button>
         </div>
       }

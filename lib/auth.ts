@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { Role } from "@prisma/client";
 
-// Auth error messages in Turkish
+// Auth error messages in English
 function getAuthErrorMessage(error: { message?: string } | null): string {
   if (!error) return "";
 
@@ -9,44 +9,44 @@ function getAuthErrorMessage(error: { message?: string } | null): string {
 
   // Common Supabase auth errors
   if (errorMessage.includes("invalid login credentials")) {
-    return "E-posta adresi veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.";
+    return "Invalid email address or password. Please check your credentials.";
   }
 
   if (errorMessage.includes("email not confirmed")) {
-    return "E-posta adresinizi doğrulamanız gerekiyor. Gelen kutunuzu kontrol edin.";
+    return "You need to verify your email address. Please check your inbox.";
   }
 
   if (errorMessage.includes("user not found")) {
-    return "Bu e-posta adresi ile kayıtlı bir hesap bulunamadı.";
+    return "No account found with this email address.";
   }
 
   if (
     errorMessage.includes("email already registered") ||
     errorMessage.includes("user already registered")
   ) {
-    return "Bu e-posta adresi zaten kayıtlı. Giriş yapmayı deneyin.";
+    return "This email address is already registered. Try signing in.";
   }
 
   if (errorMessage.includes("password")) {
     if (errorMessage.includes("weak") || errorMessage.includes("short")) {
-      return "Şifreniz en az 6 karakter olmalıdır.";
+      return "Your password must be at least 6 characters long.";
     }
-    return "Şifre ile ilgili bir sorun oluştu. Lütfen tekrar deneyin.";
+    return "A problem occurred with the password. Please try again.";
   }
 
   if (
     errorMessage.includes("rate limit") ||
     errorMessage.includes("too many")
   ) {
-    return "Çok fazla deneme yaptınız. Lütfen birkaç dakika bekleyin.";
+    return "Too many attempts. Please wait a few minutes.";
   }
 
   if (errorMessage.includes("network") || errorMessage.includes("connection")) {
-    return "İnternet bağlantınızı kontrol edin ve tekrar deneyin.";
+    return "Check your internet connection and try again.";
   }
 
   // Default message
-  return "Bir hata oluştu. Lütfen daha sonra tekrar deneyin.";
+  return "An error occurred. Please try again later.";
 }
 
 // Re-export the centralized type for backward compatibility
@@ -77,7 +77,7 @@ export async function signUp(
     },
   });
 
-  // Return Turkish error message
+  // Return English error message
   return {
     data,
     error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
@@ -92,7 +92,7 @@ export async function signIn(email: string, password: string) {
     password,
   });
 
-  // Return Turkish error message
+  // Return English error message
   return {
     data,
     error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
@@ -122,7 +122,7 @@ export async function signInWithGoogle(redirectTo?: string) {
     },
   });
 
-  // Return Turkish error message
+  // Return English error message
   return {
     data,
     error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
@@ -136,7 +136,7 @@ export async function resetPassword(email: string) {
     redirectTo: `${window.location.origin}/auth/callback?next=/auth/reset-password`,
   });
 
-  // Return Turkish error message
+  // Return English error message
   return {
     data,
     error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
@@ -150,7 +150,7 @@ export async function updatePassword(password: string) {
     password: password,
   });
 
-  // Return Turkish error message
+  // Return English error message
   return {
     data,
     error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
@@ -168,7 +168,7 @@ export async function changePassword(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user?.email) {
-    return { data: null, error: { message: "Kullanıcı bulunamadı" } };
+    return { data: null, error: { message: "User not found" } };
   }
 
   // For security, we should validate current password on backend
@@ -185,7 +185,7 @@ export async function changePassword(
     });
 
     if (!response.ok) {
-      return { data: null, error: { message: "Mevcut şifre yanlış" } };
+      return { data: null, error: { message: "Current password is incorrect" } };
     }
 
     // Update to new password
@@ -193,7 +193,7 @@ export async function changePassword(
       password: newPassword,
     });
 
-    // Return Turkish error message
+    // Return English error message
     return {
       data,
       error: error ? { ...error, message: getAuthErrorMessage(error) } : null,
@@ -201,7 +201,7 @@ export async function changePassword(
   } catch {
     return { 
       data: null, 
-      error: { message: "Şifre değiştirme işleminde hata oluştu" } 
+      error: { message: "Error occurred while changing password" } 
     };
   }
 }

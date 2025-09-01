@@ -35,7 +35,7 @@ export const CustomerInfoForm = ({
   errors = {},
   disabled = false,
   showEmail = false,
-  title = 'Müşteri Bilgileri',
+  title = 'Customer Information',
   required = {
     firstName: true,
     lastName: true,
@@ -79,7 +79,7 @@ export const CustomerInfoForm = ({
         {/* First Name */}
         <div className="space-y-2">
           <Label htmlFor="customer-firstName">
-            Ad
+            First Name
             {required.firstName && <span className="text-red-500 ml-1">*</span>}
           </Label>
           <Input
@@ -88,7 +88,7 @@ export const CustomerInfoForm = ({
             value={localValue.firstName}
             onChange={(e) => handleFieldChange('firstName', e.target.value)}
             disabled={disabled}
-            placeholder="Adınızı giriniz"
+            placeholder="Enter your first name"
             className={`${errors.firstName ? 'border-red-500 focus:border-red-500' : ''}`}
           />
           {errors.firstName && (
@@ -96,7 +96,7 @@ export const CustomerInfoForm = ({
           )}
           {localValue.firstName && !validateTurkishName(localValue.firstName) && (
             <p className="text-sm text-orange-500">
-              Lütfen geçerli bir ad giriniz (sadece harfler)
+              Please enter a valid first name (letters only)
             </p>
           )}
         </div>
@@ -104,7 +104,7 @@ export const CustomerInfoForm = ({
         {/* Last Name */}
         <div className="space-y-2">
           <Label htmlFor="customer-lastName">
-            Soyad
+            Last Name
             {required.lastName && <span className="text-red-500 ml-1">*</span>}
           </Label>
           <Input
@@ -113,7 +113,7 @@ export const CustomerInfoForm = ({
             value={localValue.lastName}
             onChange={(e) => handleFieldChange('lastName', e.target.value)}
             disabled={disabled}
-            placeholder="Soyadınızı giriniz"
+            placeholder="Enter your last name"
             className={`${errors.lastName ? 'border-red-500 focus:border-red-500' : ''}`}
           />
           {errors.lastName && (
@@ -121,7 +121,7 @@ export const CustomerInfoForm = ({
           )}
           {localValue.lastName && !validateTurkishName(localValue.lastName) && (
             <p className="text-sm text-orange-500">
-              Lütfen geçerli bir soyad giriniz (sadece harfler)
+              Please enter a valid last name (letters only)
             </p>
           )}
         </div>
@@ -131,7 +131,7 @@ export const CustomerInfoForm = ({
           value={localValue.phone}
           onChange={(phone) => handleFieldChange('phone', phone)}
           error={errors.phone}
-          label="Telefon Numarası"
+          label="Phone Number"
           required={required.phone}
           disabled={disabled}
         />
@@ -141,7 +141,7 @@ export const CustomerInfoForm = ({
           <div className="space-y-2">
             <Label htmlFor="customer-email" className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              E-posta
+              Email
               {required.email && <span className="text-red-500 ml-1">*</span>}
             </Label>
             <Input
@@ -150,7 +150,7 @@ export const CustomerInfoForm = ({
               value={localValue.email || ''}
               onChange={(e) => handleFieldChange('email', e.target.value)}
               disabled={disabled}
-              placeholder="E-posta adresinizi giriniz"
+              placeholder="Enter your email address"
               className={`${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
             />
             {errors.email && (
@@ -158,7 +158,7 @@ export const CustomerInfoForm = ({
             )}
             {localValue.email && !validateEmail(localValue.email) && (
               <p className="text-sm text-orange-500">
-                Lütfen geçerli bir e-posta adresi giriniz
+                Please enter a valid email address
               </p>
             )}
           </div>
@@ -167,7 +167,7 @@ export const CustomerInfoForm = ({
         {/* Customer Info Summary */}
         {(localValue.firstName || localValue.lastName || localValue.phone) && (
           <div className="mt-4 p-3 bg-gray-50 rounded-md">
-            <p className="text-sm font-medium text-gray-700">Müşteri Özeti:</p>
+            <p className="text-sm font-medium text-gray-700">Customer Summary:</p>
             <div className="text-sm text-gray-600 mt-1">
               {localValue.firstName && localValue.lastName && (
                 <p>{localValue.firstName} {localValue.lastName}</p>

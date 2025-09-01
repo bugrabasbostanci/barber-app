@@ -46,7 +46,10 @@ export default function NewAppointment() {
           return;
         }
         const data = await response.json();
-        if (!data.success || (data.data.role !== "BARBER" && data.data.role !== "ADMIN")) {
+        if (
+          !data.success ||
+          (data.data.role !== "BARBER" && data.data.role !== "ADMIN")
+        ) {
           router.push("/");
           return;
         }
@@ -139,7 +142,7 @@ export default function NewAppointment() {
       !customerName ||
       !customerPhone
     ) {
-      toast.error("Lütfen zorunlu alanları doldurun");
+      toast.error("Please fill in the required fields");
       return;
     }
 
@@ -166,14 +169,16 @@ export default function NewAppointment() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success("Randevu başarıyla oluşturuldu!");
+        toast.success("Appointment created successfully!");
         router.push("/barber/appointments");
       } else {
-        toast.error(result.error || "Randevu oluşturulurken bir hata oluştu.");
+        toast.error(result.error || "An error occurred while creating the appointment.");
       }
     } catch (error) {
       console.error("Error creating appointment:", error);
-      toast.error("Randevu oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+      toast.error(
+        "An error occurred while creating the appointment. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -222,15 +227,13 @@ export default function NewAppointment() {
             <Link href="/barber/dashboard">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-6 h-6 mr-3" />
-                Geri
+                Back
               </Button>
             </Link>
             <div className="ml-6">
-              <h1 className="text-xl sm:text-2xl font-bold">
-                Yeni Randevu
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-bold">New Appointment</h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                Manuel olarak randevu oluşturun
+                Create appointment manually
               </p>
             </div>
           </div>
@@ -246,13 +249,13 @@ export default function NewAppointment() {
               <CardHeader>
                 <CardTitle className="flex items-center text-lg">
                   <Calendar className="w-5 h-5 mr-2" />
-                  Randevu Detayları
+                  Appointment Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Date Selection */}
                 <div>
-                  <Label className="text-sm font-medium">Tarih</Label>
+                  <Label className="text-sm font-medium">Date</Label>
                   <div className="mt-2">
                     <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                       <PopoverTrigger asChild>
@@ -267,7 +270,7 @@ export default function NewAppointment() {
                           {selectedDate ? (
                             formatTurkishDate(dateToLocalString(selectedDate))
                           ) : (
-                            <span>Tarih seçin</span>
+                            <span>Select date</span>
                           )}
                         </Button>
                       </PopoverTrigger>
@@ -289,13 +292,13 @@ export default function NewAppointment() {
 
                 {/* Staff Selection */}
                 <div>
-                  <Label className="text-sm font-medium">Berber/Personel</Label>
+                  <Label className="text-sm font-medium">Barber/Staff</Label>
                   <Select
                     value={selectedStaff}
                     onValueChange={setSelectedStaff}
                   >
                     <SelectTrigger className="mt-2 h-12">
-                      <SelectValue placeholder="Personel seçin" />
+                      <SelectValue placeholder="Select staff" />
                     </SelectTrigger>
                     <SelectContent>
                       {staff.length > 0 ? (
@@ -306,7 +309,7 @@ export default function NewAppointment() {
                         ))
                       ) : (
                         <SelectItem value="loading" disabled>
-                          Personel yükleniyor...
+                          Loading staff...
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -321,14 +324,16 @@ export default function NewAppointment() {
                 <CardHeader>
                   <CardTitle className="flex items-center text-lg">
                     <Clock className="w-5 h-5 mr-2" />
-                    Saat Seçimi
+                    Time Selection
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {loadingTimeSlots ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto mb-2"></div>
-                      <p className="text-muted-foreground">Saatler yükleniyor...</p>
+                      <p className="text-muted-foreground">
+                        Loading times...
+                      </p>
                     </div>
                   ) : timeSlots.length > 0 ? (
                     <div className="grid grid-cols-4 gap-3">
@@ -349,7 +354,7 @@ export default function NewAppointment() {
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">
-                        Bu tarih için uygun saat bulunmuyor
+                        No available times for this date
                       </p>
                     </div>
                   )}
@@ -364,7 +369,7 @@ export default function NewAppointment() {
               <CardHeader>
                 <CardTitle className="flex items-center text-lg">
                   <User className="w-5 h-5 mr-2" />
-                  Müşteri Bilgileri
+                  Customer Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -374,14 +379,14 @@ export default function NewAppointment() {
                     htmlFor="customer-name"
                     className="text-sm font-medium"
                   >
-                    Müşteri Adı *
+                    Customer Name *
                   </Label>
                   <Input
                     id="customer-name"
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Müşteri adını girin"
+                    placeholder="Enter customer name"
                     className="mt-2 h-12"
                   />
                 </div>
@@ -392,7 +397,7 @@ export default function NewAppointment() {
                     htmlFor="customer-phone"
                     className="text-sm font-medium"
                   >
-                    Telefon Numarası *
+                    Phone Number *
                   </Label>
                   <Input
                     id="customer-phone"
@@ -407,13 +412,13 @@ export default function NewAppointment() {
                 {/* Notes */}
                 <div>
                   <Label htmlFor="notes" className="text-sm font-medium">
-                    Notlar (İsteğe bağlı)
+                    Notes (Optional)
                   </Label>
                   <Textarea
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Randevu ile ilgili notlar..."
+                    placeholder="Notes about the appointment..."
                     className="mt-2 h-24 resize-none"
                   />
                 </div>
@@ -429,7 +434,7 @@ export default function NewAppointment() {
               variant="outline"
               className="w-full sm:w-auto bg-transparent"
             >
-              İptal
+              Cancel
             </Button>
           </Link>
           <Button
@@ -437,7 +442,7 @@ export default function NewAppointment() {
             disabled={isLoading}
             className="w-full sm:w-auto bg-black hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200"
           >
-            {isLoading ? "Oluşturuluyor..." : "Randevu Oluştur"}
+            {isLoading ? "Creating..." : "Create Appointment"}
           </Button>
         </div>
       </div>

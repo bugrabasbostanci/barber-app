@@ -10,13 +10,13 @@ export function CalendarHeader() {
           <Link href="/barber/dashboard">
             <Button variant="ghost" size="lg" className="text-base">
               <ArrowLeft className="w-6 h-6 mr-3" />
-              Geri
+              Back
             </Button>
           </Link>
           <div className="ml-6">
-            <h1 className="text-xl sm:text-2xl font-bold">Takvim Yönetimi</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Calendar Management</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">
-              Randevu takvimi ve planlama
+              Appointment calendar and scheduling
             </p>
           </div>
         </div>
@@ -26,7 +26,7 @@ export function CalendarHeader() {
             className="bg-black hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-200 text-white dark:text-black text-base px-3 py-3 sm:px-6 w-auto sm:w-auto"
           >
             <Plus className="w-5 h-5 sm:mr-2" />
-            <span className="hidden sm:inline">Yeni Randevu</span>
+            <span className="hidden sm:inline">New Appointment</span>
           </Button>
         </Link>
       </div>

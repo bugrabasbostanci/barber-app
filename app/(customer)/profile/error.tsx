@@ -26,46 +26,46 @@ export default function ProfileError({
     
     if (message.includes('validation') || message.includes('phone') || message.includes('telefon')) {
       return {
-        title: 'Bilgi Doğrulama Hatası',
-        description: 'Girdiğiniz bilgilerde bir sorun var.',
+        title: 'Information Validation Error',
+        description: 'There is a problem with the information you entered.',
         icon: <Settings className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Telefon numaranızı 0532 123 45 67 formatında girin',
-          'Ad ve soyad alanlarını boş bırakmayın',
-          'Geçerli bir e-posta adresi kullanın'
+          'Enter your phone number in the format 0532 123 45 67',
+          'Do not leave the first and last name fields empty',
+          'Use a valid email address'
         ]
       }
     } else if (message.includes('save') || message.includes('update') || message.includes('kaydet')) {
       return {
-        title: 'Profil Kaydetme Hatası',
-        description: 'Profil bilgileriniz kaydedilirken bir hata oluştu.',
+        title: 'Profile Save Error',
+        description: 'An error occurred while saving your profile information.',
         icon: <User className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'İnternet bağlantınızı kontrol edin',
-          'Tüm alanları doğru doldurduğunuzdan emin olun',
-          'Birkaç dakika bekleyip tekrar deneyin'
+          'Check your internet connection',
+          'Make sure you have filled in all fields correctly',
+          'Wait a few minutes and try again'
         ]
       }
     } else if (message.includes('auth') || message.includes('permission') || message.includes('yetki')) {
       return {
-        title: 'Yetkilendirme Hatası',
-        description: 'Bu işlem için gerekli yetkiniz bulunmuyor.',
+        title: 'Authorization Error',
+        description: 'You do not have the necessary permission for this operation.',
         icon: <AlertTriangle className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Oturumunuzu kapatıp tekrar açın',
-          'Sayfayı yenileyin',
-          'Hesabınızla giriş yaptığınızdan emin olun'
+          'Log out and log back in',
+          'Refresh the page',
+          'Make sure you are logged in with your account'
         ]
       }
     } else {
       return {
-        title: 'Profil İşleminde Sorun',
-        description: 'Profil sayfasında beklenmeyen bir hata oluştu.',
+        title: 'Profile Operation Problem',
+        description: 'An unexpected error occurred on the profile page.',
         icon: <AlertTriangle className="w-8 h-8 text-red-600" />,
         suggestions: [
-          'Sayfayı yenileyin',
-          'Tarayıcınızın çerezlerini temizleyin',
-          'Farklı bir tarayıcı deneyin'
+          'Refresh the page',
+          'Clear your browser cookies',
+          'Try a different browser'
         ]
       }
     }
@@ -93,11 +93,11 @@ export default function ProfileError({
             <User className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-2">
-                <p className="font-medium text-sm">Profil bilgileri:</p>
+                <p className="font-medium text-sm">Profile information:</p>
                 <div className="text-xs space-y-1">
-                  <div>• <strong>Ad-Soyad:</strong> En az 2 karakter, sadece harf</div>
-                  <div>• <strong>Telefon:</strong> 0532 123 45 67 formatında</div>
-                  <div>• <strong>E-posta:</strong> Geçerli bir e-posta adresi</div>
+                  <div>• <strong>First-Last Name:</strong> At least 2 characters, letters only</div>
+                  <div>• <strong>Phone:</strong> In 0532 123 45 67 format</div>
+                  <div>• <strong>Email:</strong> A valid email address</div>
                 </div>
               </div>
             </AlertDescription>
@@ -107,7 +107,7 @@ export default function ProfileError({
           <Alert>
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium text-sm">Çözüm önerileri:</p>
+                <p className="font-medium text-sm">Solution suggestions:</p>
                 <ul className="text-xs space-y-1 ml-2">
                   {errorInfo.suggestions.map((suggestion, index) => (
                     <li key={index}>• {suggestion}</li>
@@ -139,7 +139,7 @@ export default function ProfileError({
               variant="default"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Profili Yeniden Yükle
+              Reload Profile
             </Button>
             
             <Button 
@@ -148,13 +148,13 @@ export default function ProfileError({
               className="w-full"
             >
               <Home className="w-4 h-4 mr-2" />
-              Ana Sayfaya Dön
+              Back to Home
             </Button>
           </div>
 
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="text-xs text-blue-800 text-center">
-              <strong>Güvenlik:</strong> Kişisel bilgileriniz güvenli şekilde korunmaktadır
+              <strong>Security:</strong> Your personal information is securely protected
             </p>
           </div>
         </CardContent>
