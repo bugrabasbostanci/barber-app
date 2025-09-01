@@ -36,6 +36,8 @@ export function AppHeader({
     user,
     signOut,
     hydrated,
+    initialized,
+    loading,
     getDisplayName,
     getUserInitials,
     isCustomer,
@@ -116,7 +118,7 @@ export function AppHeader({
           {(extraActions || true) && (
             <div className="w-px h-6 bg-border mx-1"></div>
           )}
-          {!hydrated ? (
+          {!hydrated || loading || !initialized ? (
             // Loading state with proper dimensions to prevent layout shift
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-muted rounded-full animate-pulse"></div>
@@ -178,7 +180,16 @@ export function AppHeader({
                 )}
 
                 {/* Barber specific menu items */}
-                {canAccessBarberPanel() && (
+                {(() => {
+                  const canAccess = canAccessBarberPanel();
+                  console.log('DEBUG - User info:', {
+                    user: user,
+                    role: user?.role,
+                    canAccessBarberPanel: canAccess,
+                    isStaff: user?.role && ['EMPLOYEE', 'BARBER', 'ADMIN'].includes(user.role)
+                  });
+                  return canAccess;
+                })() && (
                   <DropdownMenuItem asChild>
                     <Link href="/barber/dashboard">
                       <Settings className="w-4 h-4 mr-3 text-muted-foreground" />

@@ -51,8 +51,7 @@ export const useAuthStore = create<ExtendedAuthState>()(
         const supabase = createClient();
 
         try {
-          // Set loading immediately but keep any persisted user data visible
-          set({ loading: false, initialized: true });
+          set({ loading: true });
 
           const {
             data: { session },
@@ -62,29 +61,23 @@ export const useAuthStore = create<ExtendedAuthState>()(
             // Check if we have cached user data from persistence
             const cachedUser = get().user;
             
-            // Optimistic: Set basic user info immediately
-            const basicUser: AuthUser = {
-              ...session.user,
-              role: cachedUser?.role, // Use cached role if available
-              firstName: cachedUser?.firstName,
-              lastName: cachedUser?.lastName,
-              isGoogleUser:
-                session.user.identities?.some((i) => i.provider === "google") ||
-                false,
-              isEmailUser:
-                session.user.identities?.some((i) => i.provider === "email") ||
-                false,
-            };
-            
-            // Only update if user data changed to prevent unnecessary re-renders
-            if (!cachedUser || cachedUser.id !== session.user.id) {
-              set({ user: basicUser });
+            // If we have cached user data for the same user, use it immediately
+            if (cachedUser && cachedUser.id === session.user.id && cachedUser.role) {
+              set({ 
+                user: cachedUser, 
+                loading: false, 
+                initialized: true 
+              });
+              
+              // Background refresh for latest data
+              setTimeout(() => get().refreshUser(), 100);
+              return;
             }
             
-            // Background refresh for latest data - don't await to prevent blocking
-            setTimeout(() => get().refreshUser(), 0);
+            // No cached data or different user - fetch from API immediately
+            await get().refreshUser();
           } else {
-            set({ user: null });
+            set({ user: null, loading: false, initialized: true });
           }
         } catch (error) {
           console.error("Auth initialization error:", error);
@@ -95,16 +88,22 @@ export const useAuthStore = create<ExtendedAuthState>()(
         supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'SIGNED_OUT') {
             set({ user: null });
-          } else if (session?.user) {
-            // Don't await to prevent blocking UI
-            setTimeout(() => get().refreshUser(), 0);
+          } else if (session?.user && event === 'SIGNED_IN') {
+            // Immediately refresh user data on sign in
+            await get().refreshUser();
           }
         });
       },
 
       refreshUser: async () => {
         try {
-          const response = await fetch("/api/profile");
+          const response = await fetch("/api/profile", {
+            credentials: 'include',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          });
+          
           if (response.ok) {
             const result = await response.json();
             if (result.success && result.data) {
@@ -128,12 +127,16 @@ export const useAuthStore = create<ExtendedAuthState>()(
                       (i) => i.provider === "email"
                     ) || false,
                 };
-                set({ user: userWithRole });
+                set({ user: userWithRole, loading: false, initialized: true });
               }
             }
+          } else if (response.status === 401) {
+            // Unauthorized - clear user data
+            set({ user: null, loading: false, initialized: true });
           }
         } catch (error) {
           console.error("Error refreshing user:", error);
+          set({ loading: false, initialized: true });
         }
       },
 

@@ -79,15 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth on mount
   useEffect(() => {
-    // Set hydrated immediately to prevent loading flicker
-    setHydrated(true);
-    
-    // Initialize auth in next tick to allow hydrated state to update first
-    const timer = setTimeout(() => {
-      initialize();
-    }, 0);
-    
-    return () => clearTimeout(timer);
+    initialize().finally(() => {
+      // Set hydrated after initialization is complete
+      setHydrated(true);
+    });
   }, [initialize, setHydrated]);
 
   // Enhanced signOut with navigation
@@ -185,8 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isStaff]);
 
   const canAccessBarberPanel = useCallback((): boolean => {
-    return isBarber() || isAdmin();
-  }, [isBarber, isAdmin]);
+    return isStaff();
+  }, [isStaff]);
 
   const contextValue: AuthContextType = {
     // State (from Zustand)

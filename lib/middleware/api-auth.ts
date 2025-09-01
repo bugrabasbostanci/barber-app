@@ -39,17 +39,24 @@ export interface AuthenticatedUser {
 export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> {
   try {
     const supabase = await createClient();
+
+    // Use getUser() instead of getSession() for security as recommended by Supabase
     const {
       data: { user },
-      error: authError,
+      error: userError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user) {
+    if (userError || !user) {
+      console.log("Auth user error:", userError?.message || "No user found");
       return null;
     }
 
-    // Get user role and details from database
-    const dbUser = await prisma.user.findUnique({
+    console.log(
+      `Auth middleware: Checking user ${user.email} (ID: ${user.id})`
+    );
+
+    // Get user role and details from database by ID first
+    let dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: {
         id: true,
@@ -62,8 +69,45 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
     });
 
     if (!dbUser) {
+      console.log(
+        `User not found by ID (${user.id}), checking by email (${user.email})`
+      );
+
+      // Try to find by email (for demo users that might have different IDs)
+      dbUser = await prisma.user.findFirst({
+        where: { email: user.email },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          isActive: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      if (dbUser) {
+        console.log(
+          `Found user by email: ${dbUser.email} (DB ID: ${dbUser.id} vs Auth ID: ${user.id})`
+        );
+        // Return the user with the Supabase Auth ID for consistency
+        return {
+          id: user.id, // Use Supabase Auth ID
+          email: dbUser.email,
+          role: dbUser.role,
+          isActive: dbUser.isActive,
+          firstName: dbUser.firstName,
+          lastName: dbUser.lastName,
+        };
+      }
+
+      console.log(`User not found in database by email either: ${user.email}`);
       return null;
     }
+
+    console.log(
+      `Found user in database: ${dbUser.email} (role: ${dbUser.role})`
+    );
 
     return {
       id: dbUser.id,
@@ -144,7 +188,7 @@ export function requireStaff() {
 }
 
 // Middleware composition types
-export type AuthMiddleware = (req: NextRequest) => Promise<AuthenticatedUser>;
+export type AuthMiddleware = () => Promise<AuthenticatedUser | null>;
 export type ApiHandler = (
   req: NextRequest,
   context?: Record<string, unknown>
@@ -157,7 +201,7 @@ export function withAuth(authMiddleware: AuthMiddleware) {
   return (handler: ApiHandler) => {
     return async (req: NextRequest) => {
       try {
-        const user = await authMiddleware(req);
+        const user = await authMiddleware();
         return await handler(req, { user });
       } catch (error) {
         if (error instanceof AuthError) {
@@ -189,11 +233,11 @@ export function withMiddleware(middlewares: AuthMiddleware[]) {
   return (handler: ApiHandler) => {
     return async (req: NextRequest) => {
       try {
-        let user: AuthenticatedUser | undefined;
+        let user: AuthenticatedUser | null = null;
 
         // Run all middlewares in sequence
         for (const middleware of middlewares) {
-          user = await middleware(req);
+          user = await middleware();
         }
 
         return await handler(req, { user });

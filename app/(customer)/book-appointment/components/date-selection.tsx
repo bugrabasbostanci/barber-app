@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatTurkishDate, dateToLocalString } from "@/lib/utils";
+import { formatEnglishDate, dateToLocalString } from "@/lib/utils/dates/formatting";
 
 interface DateSelectionProps {
   selectedDate: string;
@@ -28,7 +28,7 @@ export function DateSelection({
         const displayDate = new Date(dateString + 'T00:00:00');
         dates.push({
           value: dateString,
-          label: formatTurkishDate(dateString),
+          label: formatEnglishDate(dateString),
           dayName: displayDate.toLocaleDateString("en-US", { weekday: "long" }),
           isToday: i === 0 && today.getDay() !== 0,
         });

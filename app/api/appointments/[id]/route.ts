@@ -33,13 +33,20 @@ async function deleteAppointment(
     }
 
     // Check if user is a barber and belongs to the same shop
-    const userRecord = await prisma.user.findUnique({
+    let userRecord = await prisma.user.findUnique({
       where: { id: user.id },
     });
 
+    // If not found by ID, try to find by email (for demo users)
+    if (!userRecord) {
+      userRecord = await prisma.user.findFirst({
+        where: { email: user.email },
+      });
+    }
+
     if (!userRecord || userRecord.role !== "BARBER") {
       throw new ForbiddenError(
-        "Bu işlemi gerçekleştirmek için berber yetkisi gerekli"
+        "Barber authorization required for this operation"
       );
     }
 
@@ -48,7 +55,7 @@ async function deleteAppointment(
       where: { id },
     });
 
-    return ApiResponseBuilder.success({ message: "Randevu başarıyla silindi" });
+    return ApiResponseBuilder.success({ message: "Appointment successfully deleted" });
   } catch (error) {
     throw error;
   }

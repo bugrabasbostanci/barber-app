@@ -65,6 +65,13 @@ async function createAppointment(
       where: { id: user.id },
     });
 
+    // If not found by ID, try to find by email (for demo users)
+    if (!dbUser) {
+      dbUser = await prisma.user.findFirst({
+        where: { email: user.email },
+      });
+    }
+
     if (!dbUser) {
       // Create user if doesn't exist
       dbUser = await prisma.user.create({

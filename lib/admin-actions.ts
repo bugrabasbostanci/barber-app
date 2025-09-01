@@ -186,34 +186,46 @@ export async function checkUserRole() {
       select: { role: true, isActive: true }
     })
 
-    // If user not found in database, try to create them
+    // If user not found by ID, try to find by email (for demo users)
     if (!dbUser) {
-      console.log('User not found in database, attempting to create...')
+      console.log(`User not found by ID (${user.id}), checking by email (${user.email})`)
       
-      const userData = {
-        email: user.email!,
-        firstName: user.user_metadata?.first_name || '',
-        lastName: user.user_metadata?.last_name || '',
-        phone: user.user_metadata?.phone || undefined
-      }
+      dbUser = await prisma.user.findFirst({
+        where: { email: user.email },
+        select: { role: true, isActive: true }
+      })
       
-      try {
-        const newUser = await prisma.user.create({
-          data: {
-            id: user.id,
-            email: userData.email,
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            phone: userData.phone,
-            role: 'CUSTOMER'
-          },
-          select: { role: true, isActive: true }
-        })
+      if (dbUser) {
+        console.log(`Found user by email: ${user.email}`)
+      } else {
+        console.log('User not found in database by email either, attempting to create...')
         
-        dbUser = newUser
-      } catch (createError) {
-        console.error('Error creating user in database:', createError)
-        return null
+        const userData = {
+          email: user.email!,
+          firstName: user.user_metadata?.first_name || '',
+          lastName: user.user_metadata?.last_name || '',
+          phone: user.user_metadata?.phone || undefined
+        }
+        
+        try {
+          const newUser = await prisma.user.create({
+            data: {
+              id: user.id,
+              email: userData.email,
+              firstName: userData.firstName,
+              lastName: userData.lastName,
+              phone: userData.phone,
+              role: 'CUSTOMER'
+            },
+            select: { role: true, isActive: true }
+          })
+          
+          dbUser = newUser
+          console.log(`Created new user: ${userData.email}`)
+        } catch (createError) {
+          console.error('Error creating user in database:', createError)
+          return null
+        }
       }
     }
 

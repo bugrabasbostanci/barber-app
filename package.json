@@ -9,6 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx prisma/seed.ts",
+    "reset-db": "tsx scripts/reset-db.ts",
+    "create-auth-users": "tsx scripts/create-auth-users.ts",
+    "reset-and-seed": "npm run reset-db && npm run seed",
+    "full-reset": "npm run reset-db && npm run seed && npm run create-auth-users",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -39,6 +43,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
     "lucide-react": "^0.526.0",
     "next": "15.4.4",
     "next-themes": "^0.4.6",

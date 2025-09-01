@@ -32,15 +32,11 @@ async function getProfileHandler(
 
     // If user doesn't exist in our database but is authenticated, create them
     if (!userProfile) {
-      userProfile = await prisma.user.create({
-        data: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName || "",
-          lastName: user.lastName || "",
-          phone: null,
-          role: "CUSTOMER",
-        },
+      console.log(`Creating new user in database for: ${user.email} (ID: ${user.id})`);
+      
+      // Check if this is a demo user by email
+      const existingDemoUser = await prisma.user.findFirst({
+        where: { email: user.email },
         select: {
           id: true,
           email: true,
@@ -51,6 +47,94 @@ async function getProfileHandler(
           createdAt: true,
         },
       });
+
+      if (existingDemoUser) {
+        console.log(`Found existing demo user by email: ${existingDemoUser.email} (DB ID: ${existingDemoUser.id}, Auth ID: ${user.id})`);
+        
+        // We'll create a new user with the correct Supabase ID and copy the demo user's data
+        // First, we need to handle any foreign key constraints by updating related records
+        try {
+          // Update appointments table if any
+          await prisma.appointment.updateMany({
+            where: { 
+              OR: [
+                { customerId: existingDemoUser.id },
+                { staffId: existingDemoUser.id }
+              ]
+            },
+            data: { 
+              customerId: existingDemoUser.role === 'CUSTOMER' ? user.id : undefined,
+              staffId: existingDemoUser.role !== 'CUSTOMER' ? user.id : undefined
+            },
+          });
+
+          // Update unavailable times if any
+          await prisma.employeeUnavailableTime.updateMany({
+            where: { staffId: existingDemoUser.id },
+            data: { staffId: user.id },
+          });
+
+          // Create new user with Supabase Auth ID
+          userProfile = await prisma.user.create({
+            data: {
+              id: user.id,
+              email: existingDemoUser.email,
+              firstName: existingDemoUser.firstName,
+              lastName: existingDemoUser.lastName,
+              phone: existingDemoUser.phone,
+              role: existingDemoUser.role,
+            },
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              role: true,
+              createdAt: true,
+            },
+          });
+
+          // Delete the old demo user record
+          await prisma.user.delete({
+            where: { id: existingDemoUser.id },
+          });
+
+          console.log(`Successfully migrated demo user: ${userProfile.email}`);
+        } catch (migrationError) {
+          console.error(`Migration failed for ${user.email}:`, migrationError);
+          
+          // Fallback: Just return the existing demo user data but with Supabase ID
+          // This won't persist but at least the user can proceed
+          userProfile = {
+            ...existingDemoUser,
+            id: user.id, // Use Supabase ID for session
+          };
+          console.log(`Using fallback approach for user: ${userProfile.email}`);
+        }
+      } else {
+        // Create new user
+        userProfile = await prisma.user.create({
+          data: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            phone: null,
+            role: "CUSTOMER",
+          },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            role: true,
+            createdAt: true,
+          },
+        });
+        console.log(`Created new user: ${userProfile.email}`);
+      }
     }
 
   return ApiResponseBuilder.success({
